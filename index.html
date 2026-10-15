@@ -34,6 +34,7 @@
       --gelir: #15803d;    /* Gelir tutarları (yeşil) */
       --gider: #c2410c;    /* Gider tutarları (turuncu-kırmızı) */
       --buton-yazi: #ffffff;
+      --hata: #dc2626;
     }
 
     /* --- Renkler: telefon karanlık moddaysa koyu tema --- */
@@ -48,10 +49,13 @@
         --gelir: #4ade80;
         --gider: #fb923c;
         --buton-yazi: #042f2b;
+        --hata: #f87171;
       }
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    /* "hidden" verilen öğe, kendi display ayarı olsa bile gizli kalsın */
+    [hidden] { display: none !important; }
 
     html, body {
       background: var(--arkaplan);
@@ -93,9 +97,12 @@
     .vurgu-renk { color: var(--vurgu); }
     .bilgi { color: var(--soluk); font-size: 14px; line-height: 1.5; }
 
+    /* Özet: dönem adı ("Ekim 2026") */
+    .donem-adi { font-size: 17px; font-weight: 600; margin: 0 4px 10px; }
+
     /* Özet kartları: Gelir ve Gider yan yana */
     .yan-yana { display: flex; gap: 10px; }
-    .yan-yana .kart { flex: 1; min-width: 0; }
+    .yan-yana > .kart, .yan-yana > .alan { flex: 1; min-width: 0; }
     .yan-yana .kart .deger { font-size: 22px; }
 
     /* Henüz içeriği olmayan sayfalardaki açıklama */
@@ -192,6 +199,126 @@
     }
     .ekle-dugmesi:active { transform: scale(.92); }
     .ekle-dugmesi svg { width: 26px; height: 26px; }
+
+    /* ---------- KAYIT FORMU (Sürüm 0.2) ---------- */
+    .alan { margin-bottom: 14px; }
+    .alan > label, .alan-baslik { display: block; font-size: 13px; color: var(--soluk); margin-bottom: 6px; }
+    .alan input[type=text], .alan input[type=date], .alan input[type=time] {
+      width: 100%;
+      min-height: 46px;
+      font-size: 16px;            /* 16px'ten küçük olursa iPhone kutuya yakınlaştırır */
+      padding: 12px;
+      border: 1px solid var(--cizgi);
+      border-radius: 10px;
+      background: var(--arkaplan);
+      color: var(--yazi);
+      font-family: inherit;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .alan input::-webkit-date-and-time-value { text-align: left; }
+    .alan input:focus { outline: 2px solid var(--vurgu); border-color: transparent; }
+    /* Tutar kutusu: büyük yazı */
+    .alan input.tutar-kutusu { font-size: 22px; font-weight: 600; }
+
+    /* Gider / Gelir seçimi (iki parçalı düğme) */
+    .secim {
+      display: flex;
+      background: var(--arkaplan);
+      border: 1px solid var(--cizgi);
+      border-radius: 10px;
+      padding: 3px;
+    }
+    .secim input { display: none; }
+    .secim label {
+      flex: 1;
+      text-align: center;
+      padding: 9px 0;
+      margin: 0;
+      border-radius: 8px;
+      font-size: 15px;
+      color: var(--soluk);
+    }
+    .secim input:checked + label {
+      background: var(--kart);
+      color: var(--yazi);
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
+    }
+    .secim input[value="gider"]:checked + label { color: var(--gider); }
+    .secim input[value="gelir"]:checked + label { color: var(--gelir); }
+
+    /* Grup ve kalem çipleri */
+    .cipler { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cip {
+      padding: 8px 13px;
+      min-height: 38px;
+      border-radius: 19px;
+      border: 1px solid var(--cizgi);
+      background: var(--arkaplan);
+      color: var(--yazi);
+      font-size: 15px;
+      font-family: inherit;
+    }
+    .cip:active { opacity: .7; }
+    .cip.secili {
+      background: var(--vurgu);
+      border-color: var(--vurgu);
+      color: var(--buton-yazi);
+      font-weight: 600;
+    }
+    .cip.diger { border-style: dashed; color: var(--vurgu); background: none; }
+
+    /* "Diğer…" ile yeni kalem adı yazma kutusu */
+    .yeni-kalem { display: flex; gap: 8px; margin-top: 10px; }
+    .yeni-kalem input { flex: 1; min-width: 0; }
+    .kucuk-dugme {
+      flex: none;
+      padding: 0 14px;
+      min-height: 46px;
+      border-radius: 10px;
+      border: none;
+      background: var(--vurgu);
+      color: var(--buton-yazi);
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+    }
+    .kucuk-dugme.ikincil { background: var(--arkaplan); color: var(--soluk); border: 1px solid var(--cizgi); }
+
+    /* Kutuların altındaki küçük açıklama / hata yazıları */
+    .ipucu { font-size: 13px; color: var(--soluk); margin-top: 6px; min-height: 18px; }
+    .ipucu.hata { color: var(--hata); }
+
+    .buton {
+      width: 100%;
+      padding: 14px;
+      font-size: 17px;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      background: var(--vurgu);
+      color: var(--buton-yazi);
+      font-family: inherit;
+    }
+    .buton:active { opacity: .8; }
+
+    /* "Kaydedildi" gibi kısa süreli bildirim balonu */
+    .bildirim {
+      position: fixed;
+      left: 50%;
+      bottom: calc(env(safe-area-inset-bottom) * 0.5 + 76px);
+      transform: translateX(-50%);
+      background: var(--yazi);
+      color: var(--arkaplan);
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+    .bildirim.goster { opacity: 1; z-index: 30; }
   </style>
 </head>
 <body>
@@ -208,24 +335,25 @@
   <main>
     <!-- ===================================================
          BÖLÜM 4: SAYFA — ÖZET (ana sayfa)
-         Sürüm 0.5'te gerçek rakamlarla dolacak; şimdilik boş kartlar
+         Şimdilik bu ayın toplamları; ay/yıl seçimi ve dağılım Sürüm 0.5'te
          =================================================== -->
     <section class="sayfa aktif" id="sayfa-ozet">
+      <div class="donem-adi" id="ozet-donem"></div>
       <div class="yan-yana">
         <div class="kart">
           <h2>Gelir</h2>
-          <div class="deger gelir-renk">— ₺</div>
+          <div class="deger gelir-renk" id="ozet-gelir">— ₺</div>
         </div>
         <div class="kart">
           <h2>Gider</h2>
-          <div class="deger gider-renk">— ₺</div>
+          <div class="deger gider-renk" id="ozet-gider">— ₺</div>
         </div>
       </div>
       <div class="kart">
         <h2>Kalan</h2>
-        <div class="deger vurgu-renk">— ₺</div>
+        <div class="deger vurgu-renk" id="ozet-kalan">— ₺</div>
       </div>
-      <p class="bilgi">Kayıt eklemek için sağ alttaki + düğmesine dokun. Kayıt formu bir sonraki sürümde gelecek.</p>
+      <p class="bilgi" id="ozet-bilgi">Kayıt eklemek için sağ alttaki + düğmesine dokun.</p>
     </section>
 
     <!-- ===================================================
@@ -234,8 +362,8 @@
     <section class="sayfa" id="sayfa-kayitlar">
       <div class="bos-liste">
         <div class="buyuk-ikon">📋</div>
-        <h3>Henüz kayıt yok</h3>
-        <p class="bilgi">Gelir ve giderler burada aylara göre listelenecek.</p>
+        <h3 id="kayitlar-baslik">Henüz kayıt yok</h3>
+        <p class="bilgi">Gelir ve giderler burada aylara göre listelenecek (bir sonraki sürüm).</p>
       </div>
     </section>
 
@@ -263,8 +391,8 @@
   </main>
 
   <!-- ===================================================
-       BÖLÜM 8: AÇILIR PANEL — YENİ KAYIT
-       + düğmesine basınca alttan kayarak açılır. Form Sürüm 0.2'de gelecek.
+       BÖLÜM 8: AÇILIR PANEL — YENİ KAYIT (Sürüm 0.2)
+       + düğmesine basınca alttan kayarak açılır
        =================================================== -->
   <div class="perde" id="perde"></div>
   <div class="panel" id="ekle-paneli" role="dialog" aria-modal="true" aria-labelledby="panel-baslik">
@@ -272,9 +400,66 @@
       <h2 id="panel-baslik">Yeni Kayıt</h2>
       <button type="button" class="kapat" id="panel-kapat" aria-label="Kapat">✕</button>
     </div>
-    <div class="bos-liste">
-      <p class="bilgi">Kayıt formu (gelir/gider, kalem seçimi, tutar, tarih) bir sonraki sürümde burada olacak.</p>
-    </div>
+
+    <form id="kayit-formu" novalidate>
+      <!-- Gider mi gelir mi -->
+      <div class="alan">
+        <div class="secim">
+          <input type="radio" name="tip" id="tip-gider" value="gider" checked>
+          <label for="tip-gider">Gider</label>
+          <input type="radio" name="tip" id="tip-gelir" value="gelir">
+          <label for="tip-gelir">Gelir</label>
+        </div>
+      </div>
+
+      <!-- Grup çipleri (JavaScript ile doldurulur) -->
+      <div class="alan">
+        <div class="alan-baslik">Grup</div>
+        <div class="cipler" id="grup-cipleri"></div>
+      </div>
+
+      <!-- Kalem çipleri: seçili grubun kalemleri, en çok kullanılan önde; sonda "Diğer…" -->
+      <div class="alan" id="kalem-blok" hidden>
+        <div class="alan-baslik">Kalem</div>
+        <div class="cipler" id="kalem-cipleri"></div>
+        <!-- "Diğer…" seçilince açılır: yazılan ad bu gruba kalıcı kalem olarak eklenir -->
+        <div class="yeni-kalem" id="yeni-kalem" hidden>
+          <div class="alan" style="flex:1;margin:0">
+            <input type="text" id="f-yeni-kalem" maxlength="30" autocomplete="off" placeholder="Kalem adı">
+          </div>
+          <button type="button" class="kucuk-dugme" id="yeni-kalem-ekle">Ekle</button>
+          <button type="button" class="kucuk-dugme ikincil" id="yeni-kalem-iptal" aria-label="Vazgeç">✕</button>
+        </div>
+        <div class="ipucu" id="kalem-ipucu"></div>
+      </div>
+
+      <!-- Tutar: virgül de nokta da kabul edilir -->
+      <div class="alan">
+        <label for="f-tutar">Tutar (₺)</label>
+        <input type="text" inputmode="decimal" id="f-tutar" class="tutar-kutusu" placeholder="0,00" autocomplete="off">
+      </div>
+
+      <!-- Tarih ve saat (açılışta şu anki zamanla dolar) -->
+      <div class="yan-yana">
+        <div class="alan">
+          <label for="f-tarih">Tarih</label>
+          <input type="date" id="f-tarih">
+        </div>
+        <div class="alan">
+          <label for="f-saat">Saat</label>
+          <input type="time" id="f-saat">
+        </div>
+      </div>
+
+      <!-- Not: isteğe bağlı -->
+      <div class="alan">
+        <label for="f-not">Not (isteğe bağlı)</label>
+        <input type="text" id="f-not" maxlength="100" autocomplete="off">
+      </div>
+
+      <button type="submit" class="buton">Kaydet</button>
+      <div class="ipucu hata" id="form-hata"></div>
+    </form>
   </div>
 
   <!-- ===================================================
@@ -308,20 +493,21 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "0.1";
-    document.getElementById("surum").textContent = "Sürüm " + SURUM;
+    const SURUM = "0.2";
+    const el = id => document.getElementById(id);
+    el("surum").textContent = "Sürüm " + SURUM;
 
     // --- Sekme geçişi ---
     // Alttaki bir düğmeye basılınca ilgili sayfayı gösterir, diğerlerini gizler
     function sayfaAc(ad, baslik) {
       document.querySelectorAll(".sayfa").forEach(s => s.classList.remove("aktif"));
-      document.getElementById("sayfa-" + ad).classList.add("aktif");
+      el("sayfa-" + ad).classList.add("aktif");
 
       document.querySelectorAll("nav button").forEach(b => {
         b.classList.toggle("aktif", b.dataset.sayfa === ad);
       });
 
-      document.getElementById("baslik").textContent = baslik;
+      el("baslik").textContent = baslik;
       window.scrollTo(0, 0);
     }
 
@@ -329,25 +515,393 @@
       buton.addEventListener("click", () => sayfaAc(buton.dataset.sayfa, buton.dataset.baslik));
     });
 
-    // --- Açılır panel ---
-    const perde = document.getElementById("perde");
-    const panel = document.getElementById("ekle-paneli");
+    // Safari'den verileri kendiliğinden silmemesini rica et
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist();
+    }
 
+    // =====================================================
+    // VERİ: KAYITLAR (Sürüm 0.2)
+    // Her kayıt: { id, tip: "gider"|"gelir", grup, grupAd, kalemId, kalemAd, tutar, tarih, saat, not }
+    // Kalemin ve grubun adı da saklanır: kalem sonradan silinse/adı değişse de eski kayıt okunur kalır.
+    // =====================================================
+    const KAYIT_ANAHTARI = "butceKayitlari_v1";
+
+    function kayitlariOku() {
+      try {
+        const veri = localStorage.getItem(KAYIT_ANAHTARI);
+        const liste = veri ? JSON.parse(veri) : [];
+        return Array.isArray(liste) ? liste : [];
+      } catch (e) {
+        console.error("Kayıtlar okunamadı:", e);
+        return [];
+      }
+    }
+
+    function kayitlariYaz(kayitlar) {
+      try {
+        localStorage.setItem(KAYIT_ANAHTARI, JSON.stringify(kayitlar));
+        return true;
+      } catch (e) {
+        alert("Kayıt yapılamadı. Telefonda yer kalmamış olabilir.");
+        return false;
+      }
+    }
+
+    // Benzersiz kimlik: zaman + rastgele ek (aynı milisaniyede iki kayıt çakışmasın)
+    function yeniId(onEk) {
+      return onEk + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+
+    function kayitEkle(kayit) {
+      const kayitlar = kayitlariOku();
+      kayit.id = yeniId("r");
+      kayitlar.push(kayit);
+      return kayitlariYaz(kayitlar);
+    }
+
+    // =====================================================
+    // VERİ: KALEMLER (Sürüm 0.2)
+    // Hazır liste koddadır; telefonda saklanan listeyle birleştirilir.
+    // Kullanıcının "Diğer…" ile eklediği kalemler (ozel: true) sadece telefonda durur.
+    // Kişiye/arabaya özel kalemler buraya YAZILMAZ, kullanıcı kendisi ekler.
+    // =====================================================
+    const KALEM_ANAHTARI = "butceKalemler_v1";
+
+    const HAZIR_KALEMLER = {
+      gider: [
+        { id: "ev",        ad: "Ev",            kalemler: [["kira", "Kira"]] },
+        { id: "fatura",    ad: "Faturalar",     kalemler: [["elektrik", "Elektrik"], ["su", "Su"], ["dogalgaz", "Doğal gaz"], ["internet", "Ev interneti"]] },
+        { id: "telefon",   ad: "Telefon",       kalemler: [] },
+        { id: "mutfak",    ad: "Mutfak",        kalemler: [["market", "Market"], ["pazar", "Pazar"]] },
+        { id: "araba",     ad: "Araba",         kalemler: [["benzin", "Benzin"], ["kasko", "Kasko"], ["trafik", "Trafik sigortası"], ["bakim", "Bakım"]] },
+        { id: "alisveris", ad: "Alışveriş",     kalemler: [["alisveris", "Alışveriş"]] },
+        { id: "kisisel",   ad: "Kişisel",       kalemler: [["harclik", "Harçlık"]] },
+        { id: "kredi",     ad: "Kredi ve kart", kalemler: [["kredi", "Kredi"]] },
+        { id: "diger",     ad: "Diğer",         kalemler: [] }
+      ],
+      gelir: [
+        { id: "gelirler",  ad: "Gelirler",      kalemler: [["maas", "Maaş"], ["emekli", "Emekli maaşı"], ["ozelders", "Özel ders"], ["kiragelir", "Kira geliri"]] },
+        { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
+      ]
+    };
+
+    // Hazır listeyi saklanan yapıya çevirir: kalem kimliği "grup.kalem" olur (gruplar arası çakışmasın)
+    function hazirGrup(tip, g) {
+      return {
+        id: g.id,
+        ad: g.ad,
+        kalemler: g.kalemler.map(([id, ad]) => ({ id: tip + "." + g.id + "." + id, ad, ozel: false, gizli: false }))
+      };
+    }
+
+    // Kalemleri okur. Saklanan listede olmayan hazır grup/kalem varsa ekler
+    // (sonraki sürümlerde yeni hazır kalem eklenirse telefona da gelsin diye).
+    function kalemleriOku() {
+      let saklanan = null;
+      try { saklanan = JSON.parse(localStorage.getItem(KALEM_ANAHTARI)); } catch (e) {}
+      const sonuc = { gider: [], gelir: [] };
+
+      ["gider", "gelir"].forEach(tip => {
+        const eski = saklanan && Array.isArray(saklanan[tip]) ? saklanan[tip] : [];
+        const liste = eski.map(g => ({ ...g, kalemler: Array.isArray(g.kalemler) ? g.kalemler : [] }));
+        HAZIR_KALEMLER[tip].forEach((hg, sira) => {
+          const hazir = hazirGrup(tip, hg);
+          const var_olan = liste.find(g => g.id === hazir.id);
+          if (!var_olan) {
+            liste.splice(Math.min(sira, liste.length), 0, hazir);
+          } else {
+            hazir.kalemler.forEach(hk => {
+              if (!var_olan.kalemler.some(k => k.id === hk.id)) var_olan.kalemler.push(hk);
+            });
+          }
+        });
+        sonuc[tip] = liste;
+      });
+      return sonuc;
+    }
+
+    function kalemleriYaz(kalemler) {
+      try {
+        localStorage.setItem(KALEM_ANAHTARI, JSON.stringify(kalemler));
+        return true;
+      } catch (e) {
+        alert("Kalem kaydedilemedi. Telefonda yer kalmamış olabilir.");
+        return false;
+      }
+    }
+
+    // Bir gruba kullanıcının yazdığı kalemi ekler. Aynı adda kalem varsa onu döndürür (çift olmasın).
+    function ozelKalemEkle(tip, grupId, ad) {
+      const kalemler = kalemleriOku();
+      const grup = kalemler[tip].find(g => g.id === grupId);
+      if (!grup) return null;
+      const kucuk = s => s.toLocaleLowerCase("tr-TR");
+      const ayni = grup.kalemler.find(k => kucuk(k.ad) === kucuk(ad));
+      if (ayni) {
+        if (ayni.gizli) { ayni.gizli = false; kalemleriYaz(kalemler); }
+        return ayni;
+      }
+      const yeni = { id: yeniId("k"), ad, ozel: true, gizli: false };
+      grup.kalemler.push(yeni);
+      return kalemleriYaz(kalemler) ? yeni : null;
+    }
+
+    // Kalemlerin kaç kez kullanıldığı (en çok kullanılan önde gösterilsin diye)
+    function kullanimSayilari() {
+      const sayi = {};
+      kayitlariOku().forEach(k => { sayi[k.kalemId] = (sayi[k.kalemId] || 0) + 1; });
+      return sayi;
+    }
+
+    // =====================================================
+    // SAYI VE TARİH YARDIMCILARI
+    // =====================================================
+    const tlBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const AY_ADLARI = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                       "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    const ikiHane = n => String(n).padStart(2, "0");
+
+    // Yazılan tutarı sayıya çevirir:
+    // "32,15" → 32.15 | "32.15" → 32.15 | "1.234,56" → 1234.56 | "1.500" → 1500 | "1500" → 1500
+    function sayiyaCevir(metin) {
+      if (!metin) return NaN;
+      let s = metin.trim().replace(/\s/g, "").replace(/₺/g, "");
+      if (s.includes(",")) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+        s = s.replace(/\./g, "");          // nokta binlik ayırıcı olarak yazılmış
+      }
+      if (!/^\d*\.?\d+$/.test(s)) return NaN;
+      return parseFloat(s);
+    }
+
+    function bugun() {
+      const s = new Date();
+      return s.getFullYear() + "-" + ikiHane(s.getMonth() + 1) + "-" + ikiHane(s.getDate());
+    }
+
+    // =====================================================
+    // KAYIT FORMU (Sürüm 0.2)
+    // Sıra: Gider/Gelir → grup → kalem (ya da "Diğer…" ile yeni kalem) → tutar → tarih/saat → not
+    // =====================================================
+    const form = el("kayit-formu");
+    let seciliGrup = null;     // seçili grubun kimliği
+    let seciliKalem = null;    // seçili kalemin kimliği
+
+    const seciliTip = () => form.querySelector('input[name="tip"]:checked').value;
+
+    function cipYap(yazi, secili, tiklaninca, ekSinif) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "cip" + (secili ? " secili" : "") + (ekSinif ? " " + ekSinif : "");
+      b.textContent = yazi;           // textContent: kullanıcının yazdığı ad HTML olarak işlenmez
+      b.addEventListener("click", tiklaninca);
+      return b;
+    }
+
+    // Grup çiplerini çizer
+    function gruplariCiz() {
+      const kutu = el("grup-cipleri");
+      kutu.innerHTML = "";
+      kalemleriOku()[seciliTip()].filter(g => !g.gizli).forEach(g => {
+        kutu.appendChild(cipYap(g.ad, g.id === seciliGrup, () => grupSec(g.id)));
+      });
+    }
+
+    // Seçili grubun kalem çiplerini çizer (gizli olanlar hariç, en çok kullanılan önde)
+    function kalemleriCiz() {
+      const blok = el("kalem-blok");
+      const kutu = el("kalem-cipleri");
+      kutu.innerHTML = "";
+      const grup = kalemleriOku()[seciliTip()].find(g => g.id === seciliGrup);
+      blok.hidden = !grup;
+      if (!grup) return;
+
+      const sayi = kullanimSayilari();
+      const gorunen = grup.kalemler
+        .map((k, sira) => ({ ...k, sira }))
+        .filter(k => !k.gizli)
+        .sort((a, b) => (sayi[b.id] || 0) - (sayi[a.id] || 0) || a.sira - b.sira);
+
+      gorunen.forEach(k => kutu.appendChild(cipYap(k.ad, k.id === seciliKalem, () => kalemSec(k.id))));
+      kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
+
+      el("kalem-ipucu").textContent = gorunen.length ? "" : "Bu grupta henüz kalem yok. \"Diğer…\" ile ekleyebilirsin.";
+    }
+
+    function grupSec(id) {
+      if (seciliGrup !== id) seciliKalem = null;
+      seciliGrup = id;
+      yeniKalemKapat();
+      gruplariCiz();
+      kalemleriCiz();
+      // Grubun tek kalemi varsa (ör. Ev → Kira) onu kendiliğinden seç
+      const grup = kalemleriOku()[seciliTip()].find(g => g.id === id);
+      const gorunen = grup ? grup.kalemler.filter(k => !k.gizli) : [];
+      if (!seciliKalem && gorunen.length === 1) kalemSec(gorunen[0].id);
+    }
+
+    function kalemSec(id) {
+      seciliKalem = id;
+      yeniKalemKapat();
+      kalemleriCiz();
+      el("form-hata").textContent = "";
+    }
+
+    // "Diğer…": ad yazma kutusunu açar
+    function yeniKalemAc() {
+      el("yeni-kalem").hidden = false;
+      el("f-yeni-kalem").value = "";
+      el("f-yeni-kalem").focus();
+    }
+    function yeniKalemKapat() {
+      el("yeni-kalem").hidden = true;
+    }
+
+    // Yazılan adı gruba kalıcı kalem olarak ekler ve seçer
+    function yeniKalemKaydet() {
+      const ad = el("f-yeni-kalem").value.trim().replace(/\s+/g, " ");
+      if (!ad) { el("f-yeni-kalem").focus(); return; }
+      const kalem = ozelKalemEkle(seciliTip(), seciliGrup, ad);
+      if (kalem) {
+        kalemSec(kalem.id);
+        bildirimGoster("✓ \"" + kalem.ad + "\" listeye eklendi");
+      }
+    }
+    el("yeni-kalem-ekle").addEventListener("click", yeniKalemKaydet);
+    el("yeni-kalem-iptal").addEventListener("click", yeniKalemKapat);
+    el("f-yeni-kalem").addEventListener("keydown", olay => {
+      if (olay.key === "Enter") { olay.preventDefault(); yeniKalemKaydet(); }
+    });
+
+    // Bir tipte en son kullanılan grup (form açılınca o grup hazır seçili gelsin)
+    function sonGrup(tip) {
+      const son = kayitlariOku().filter(k => k.tip === tip)
+        .sort((a, b) => (a.tarih + a.saat + a.id).localeCompare(b.tarih + b.saat + b.id)).pop();
+      const gruplar = kalemleriOku()[tip];
+      if (son && gruplar.some(g => g.id === son.grup && !g.gizli)) return son.grup;
+      return null;
+    }
+
+    function tipDegisti() {
+      seciliGrup = sonGrup(seciliTip());
+      seciliKalem = null;
+      yeniKalemKapat();
+      gruplariCiz();
+      kalemleriCiz();
+      el("form-hata").textContent = "";
+    }
+    form.querySelectorAll('input[name="tip"]').forEach(r => r.addEventListener("change", tipDegisti));
+
+    function formuSifirla() {
+      el("tip-gider").checked = true;
+      const simdi = new Date();
+      el("f-tarih").value = bugun();
+      el("f-saat").value = ikiHane(simdi.getHours()) + ":" + ikiHane(simdi.getMinutes());
+      el("f-tutar").value = "";
+      el("f-not").value = "";
+      tipDegisti();
+    }
+
+    // --- Açılır panel ---
     function paneliAc() {
-      perde.classList.add("acik");
-      panel.classList.add("acik");
+      formuSifirla();
+      el("ekle-paneli").scrollTop = 0;
+      el("ekle-paneli").classList.add("acik");
+      el("perde").classList.add("acik");
       document.body.classList.add("panel-acik");
     }
-
     function paneliKapat() {
-      perde.classList.remove("acik");
-      panel.classList.remove("acik");
+      document.activeElement && document.activeElement.blur(); // klavyeyi kapat
+      el("ekle-paneli").classList.remove("acik");
+      el("perde").classList.remove("acik");
       document.body.classList.remove("panel-acik");
     }
+    el("ekle-dugmesi").addEventListener("click", paneliAc);
+    el("panel-kapat").addEventListener("click", paneliKapat);
+    el("perde").addEventListener("click", paneliKapat);   // karartmaya dokununca da kapanır
 
-    document.getElementById("ekle-dugmesi").addEventListener("click", paneliAc);
-    document.getElementById("panel-kapat").addEventListener("click", paneliKapat);
-    perde.addEventListener("click", paneliKapat);   // karartmaya dokununca da kapanır
+    // "Kaydet"
+    form.addEventListener("submit", olay => {
+      olay.preventDefault();
+      const hataGoster = mesaj => { el("form-hata").textContent = mesaj; };
+
+      const tip = seciliTip();
+      const kalemler = kalemleriOku()[tip];
+      const grup = kalemler.find(g => g.id === seciliGrup);
+      const kalem = grup && grup.kalemler.find(k => k.id === seciliKalem);
+      const tutar = sayiyaCevir(el("f-tutar").value);
+      const tarih = el("f-tarih").value;
+
+      if (!grup)                 return hataGoster("Bir grup seçin.");
+      if (!kalem)                return hataGoster("Bir kalem seçin ya da \"Diğer…\" ile ekleyin.");
+      if (!(tutar > 0))          return hataGoster("Tutarı girin.");
+      if (tutar > 100000000)     return hataGoster("Tutar çok büyük, kontrol edin.");
+      if (!tarih)                return hataGoster("Tarih girin.");
+
+      const kayit = {
+        tip: tip,
+        grup: grup.id,
+        grupAd: grup.ad,
+        kalemId: kalem.id,
+        kalemAd: kalem.ad,
+        tutar: Math.round(tutar * 100) / 100,
+        tarih: tarih,
+        saat: el("f-saat").value,
+        not: el("f-not").value.trim()
+      };
+
+      if (kayitEkle(kayit)) {
+        paneliKapat();
+        bildirimGoster("✓ Kaydedildi");
+        hepsiniGuncelle();
+      }
+    });
+
+    // Ekranın altında kısa süreli bildirim balonu
+    const bildirim = document.createElement("div");
+    bildirim.className = "bildirim";
+    document.body.appendChild(bildirim);
+    function bildirimGoster(mesaj) {
+      bildirim.textContent = mesaj;
+      bildirim.classList.add("goster");
+      clearTimeout(bildirim.zamanlayici);
+      bildirim.zamanlayici = setTimeout(() => bildirim.classList.remove("goster"), 1800);
+    }
+
+    // =====================================================
+    // ÖZET (geçici, Sürüm 0.2): bu ayın gelir, gider ve kalanı
+    // Ay/yıl seçimi, grup dağılımı ve karşılaştırma Sürüm 0.5'te
+    // =====================================================
+    function ozetGuncelle() {
+      const s = new Date();
+      const donem = s.getFullYear() + "-" + ikiHane(s.getMonth() + 1);
+      el("ozet-donem").textContent = AY_ADLARI[s.getMonth()] + " " + s.getFullYear();
+
+      const tumu = kayitlariOku();
+      const buAy = tumu.filter(k => (k.tarih || "").startsWith(donem));
+      const topla = tip => buAy.filter(k => k.tip === tip).reduce((t, k) => t + (k.tutar || 0), 0);
+      const gelir = topla("gelir");
+      const gider = topla("gider");
+
+      el("ozet-gelir").textContent = tlBicim.format(gelir) + " ₺";
+      el("ozet-gider").textContent = tlBicim.format(gider) + " ₺";
+      el("ozet-kalan").textContent = tlBicim.format(gelir - gider) + " ₺";
+      // Gider gelirden fazlaysa "Kalan" gider renginde yazılır
+      el("ozet-kalan").className = "deger " + (gelir - gider < 0 ? "gider-renk" : "vurgu-renk");
+      el("ozet-bilgi").textContent = buAy.length
+        ? "Bu ay " + buAy.length + " kayıt var."
+        : "Kayıt eklemek için sağ alttaki + düğmesine dokun.";
+
+      el("kayitlar-baslik").textContent = tumu.length ? "Toplam " + tumu.length + " kayıt var" : "Henüz kayıt yok";
+    }
+
+    function hepsiniGuncelle() {
+      ozetGuncelle();
+    }
+
+    hepsiniGuncelle();
   </script>
 </body>
 </html>
