@@ -1164,7 +1164,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.7";
+    const SURUM = "1.7.1";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1408,11 +1408,11 @@
         { id: "araba",     ad: "Araba",         kalemler: [["benzin", "Benzin"], ["kasko", "Kasko"], ["trafik", "Trafik sigortası"], ["bakim", "Bakım"]] },
         { id: "alisveris", ad: "Alışveriş",     kalemler: [["alisveris", "Alışveriş"]] },
         { id: "kisisel",   ad: "Kişisel",       kalemler: [] },   // 1.3.1: Harçlık kaldırıldı
-        { id: "kredi",     ad: "Kredi kartı",   kalemler: [["kredi", "Kredi"]] },   // 1.3.1: eski adı "Kredi ve kart"
+        { id: "kredi",     ad: "Kredi kartı",   kalemler: [["kredi", "Kredi"]] },
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
       gelir: [
-        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"]] },   // 1.6.1: Emekli maaşı ve Özel ders kaldırıldı
+        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"]] },
         // Kira geliri gelirde de "Ev" grubunda: Kayıtlar'da "Ev" süzülünce kira gideri ve geliri birlikte çıkar (Sürüm 1.2)
         { id: "ev",         ad: "Ev",           kalemler: [["kiragelir", "Kira geliri"]] },
         { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
@@ -1469,127 +1469,6 @@
       return sonuc;
     }
     const kalemleriYaz = kalemler => depoYaz(KALEM_ANAHTARI, kalemler);
-
-    // -----------------------------------------------------
-    // VERİ GEÇİŞİ (Sürüm 1.2): "Kira geliri" Gelirler grubundan gelirdeki "Ev" grubuna taşındı.
-    // Telefondaki kalem (adı değiştirilmiş olsa bile) ve o kalemle girilmiş kayıtlar yeni yere geçer.
-    // Bir kez çalışır; yedekten gelen eski kayıtlar da kayitGoc ile çevrilir.
-    // -----------------------------------------------------
-    const ESKI_KIRA_GELIRI = "gelir.gelirler.kiragelir";
-    const YENI_KIRA_GELIRI = "gelir.ev.kiragelir";
-    const GOC_ANAHTARI = "butceGoc_v1";
-
-    // Sürüm 1.3.1 geçişi: Telefon grubu → Faturalar, "Kredi ve kart" → "Kredi kartı", Harçlık kalktı
-    const HAZIR_TELEFON = "gider.fatura.telefon";
-    const HARCLIK = "gider.kisisel.harclik";
-
-    // Tek bir kaydı yeni yapıya çevirir (telefondaki kayıtlar ve eski yedekten gelenler için)
-    function kayitGoc(k) {
-      if (k && k.kalemId === ESKI_KIRA_GELIRI) {
-        k.kalemId = YENI_KIRA_GELIRI;
-        k.grup = "ev";
-        k.grupAd = "Ev";
-      }
-      if (k && k.tip === "gider" && k.grup === "telefon") {
-        k.grup = "fatura";
-        k.grupAd = "Faturalar";
-      }
-      if (k && k.tip === "gider" && k.grup === "kredi" && k.grupAd === "Kredi ve kart") k.grupAd = "Kredi kartı";
-      return k;
-    }
-
-    // 1.3.1: telefondaki kalem listesinde Telefon grubunu Faturalar'a katar, Kredi ve kart adını
-    // değiştirir, Harçlık'ı kaldırır (kayıtta kullanılmışsa silmez, gizler). Kimliği değişen kalemler döner.
-    function kalemGoc2(saklanan, kayitlar) {
-      const yeniKimlik = {};
-      if (!saklanan || !Array.isArray(saklanan.gider)) return yeniKimlik;
-      const gider = saklanan.gider;
-      const tel = gider.find(g => g && g.id === "telefon");
-      if (tel) {
-        let fat = gider.find(g => g && g.id === "fatura");
-        if (!fat) {
-          fat = { id: "fatura", ad: "Faturalar", ozel: false, gizli: false, kalemler: [] };
-          gider.splice(gider.indexOf(tel), 0, fat);
-        }
-        if (!Array.isArray(fat.kalemler)) fat.kalemler = [];
-        (Array.isArray(tel.kalemler) ? tel.kalemler : []).forEach(k => {
-          if (!k || !k.ad) return;
-          // Kullanıcının "Telefon" adlı kalemi hazır Telefon kalemi olur (iki tane olmasın)
-          if (kucukHarf(k.ad) === "telefon") { yeniKimlik[k.id] = HAZIR_TELEFON; return; }
-          const ayni = fat.kalemler.find(x => x && kucukHarf(x.ad) === kucukHarf(k.ad));
-          if (ayni) { yeniKimlik[k.id] = ayni.id; return; }
-          fat.kalemler.push(k);
-        });
-        saklanan.gider = gider.filter(g => g !== tel);
-      }
-      const kredi = saklanan.gider.find(g => g && g.id === "kredi");
-      if (kredi && kredi.ad === "Kredi ve kart") kredi.ad = "Kredi kartı";
-      const kisisel = saklanan.gider.find(g => g && g.id === "kisisel");
-      if (kisisel && Array.isArray(kisisel.kalemler)) {
-        const kullanilmis = kayitlar.some(r => r.kalemId === HARCLIK);
-        kisisel.kalemler = kullanilmis
-          ? kisisel.kalemler.map(k => k && k.id === HARCLIK ? { ...k, gizli: true } : k)
-          : kisisel.kalemler.filter(k => !k || k.id !== HARCLIK);
-      }
-      return yeniKimlik;
-    }
-
-    // VERİ GEÇİŞİ (Sürüm 1.6.1, butceGoc_v1 = 3): hazır gelir kalemlerinden Emekli maaşı ve Özel ders kaldırıldı.
-    // Kayıtta hiç kullanılmamışsa listeden silinir, kullanılmışsa gizlenir (eski kayıtlar adıyla görünür).
-    // Eski yedek geri yüklenirken de aynı çeviri yapılır.
-    const KALDIRILAN_GELIRLER = ["gelir.gelirler.emekli", "gelir.gelirler.ozelders"];
-    function kalemGoc3(saklanan, kayitlar) {
-      if (!saklanan || !Array.isArray(saklanan.gelir)) return;
-      saklanan.gelir.forEach(g => {
-        if (!g || !Array.isArray(g.kalemler)) return;
-        g.kalemler = g.kalemler
-          .filter(k => !k || !KALDIRILAN_GELIRLER.includes(k.id) || kayitlar.some(r => r && r.kalemId === k.id))
-          .map(k => k && KALDIRILAN_GELIRLER.includes(k.id) ? { ...k, gizli: true } : k);
-      });
-    }
-    function verileriGecir() {
-      verileriGecirEski();
-      if (depoOku(GOC_ANAHTARI, 0) >= 3) return;
-      const saklanan = depoOku(KALEM_ANAHTARI, null);
-      if (saklanan) {
-        kalemGoc3(saklanan, kayitlariOku());
-        if (!kalemleriYaz(saklanan)) return;
-      }
-      depoYaz(GOC_ANAHTARI, 3);
-    }
-    function verileriGecirEski() {
-      const seviye = depoOku(GOC_ANAHTARI, 0);
-      if (seviye < 2) {
-        const kayitlar = kayitlariOku();
-        const saklanan = depoOku(KALEM_ANAHTARI, null);
-        const yeniKimlik = kalemGoc2(saklanan, kayitlar);
-        if (saklanan && !kalemleriYaz(saklanan)) return;
-        kayitlar.forEach(k => {
-          kayitGoc(k);
-          if (yeniKimlik[k.kalemId]) k.kalemId = yeniKimlik[k.kalemId];
-        });
-        if (kayitlar.length && !kayitlariYaz(kayitlar)) return;
-      }
-      if (seviye >= 2) return;
-      if (seviye >= 1) { depoYaz(GOC_ANAHTARI, 2); return; }
-      const saklanan = depoOku(KALEM_ANAHTARI, null);
-      if (saklanan && Array.isArray(saklanan.gelir)) {
-        const eskiGrup = saklanan.gelir.find(g => g && g.id === "gelirler");
-        const kalem = eskiGrup && Array.isArray(eskiGrup.kalemler) && eskiGrup.kalemler.find(k => k && k.id === ESKI_KIRA_GELIRI);
-        if (kalem) {
-          eskiGrup.kalemler = eskiGrup.kalemler.filter(k => k !== kalem);
-          let ev = saklanan.gelir.find(g => g && g.id === "ev");
-          if (!ev) {
-            ev = { id: "ev", ad: "Ev", ozel: false, gizli: false, kalemler: [] };
-            saklanan.gelir.splice(saklanan.gelir.indexOf(eskiGrup) + 1, 0, ev);
-          }
-          ev.kalemler.push({ ...kalem, id: YENI_KIRA_GELIRI });
-          if (!kalemleriYaz(saklanan)) return;
-        }
-      }
-      // (eski kira geliri kayıtları yukarıda kayitGoc ile zaten çevrildi)
-      depoYaz(GOC_ANAHTARI, 2);
-    }
 
     const kucukHarf = s => s.toLocaleLowerCase("tr-TR");
     const adTemizle = s => String(s || "").trim().replace(/\s+/g, " ").slice(0, 30);
@@ -3045,7 +2924,6 @@
     const kimlikMi = s => typeof s === "string" && s.length > 0 && s.length < 80;
 
     function kayitTemizle(k) {
-      if (k && typeof k === "object") k = kayitGoc({ ...k });   // eski sürüm yedeği: Kira geliri → Ev
       if (!k || !kimlikMi(k.id) || !["gelir", "gider"].includes(k.tip) || !tarihMi(k.tarih) ||
           typeof k.tutar !== "number" || !(k.tutar > 0) || !kimlikMi(k.grup) || !kimlikMi(k.kalemId)) return null;
       const temiz = {
@@ -3062,14 +2940,7 @@
     function yedektenYukle(veri) {
       const sayac = { kayit: 0, kalem: 0, borc: 0, birikim: 0, hesap: 0, havale: 0, atlanan: 0 };
 
-      // Eski sürüm yedeğinin kalem listesi önce yeni yapıya çevrilir (1.3.1: Telefon → Faturalar,
-      // Kredi kartı adı, Harçlık). Kimliği değişen kalemler kayıtlarda da düzeltilir.
-      let yedekKalemler = null, yeniKimlik = {};
-      if (veri.kalemler && typeof veri.kalemler === "object") {
-        try { yedekKalemler = JSON.parse(JSON.stringify(veri.kalemler)); } catch (e) {}
-        if (yedekKalemler) yeniKimlik = kalemGoc2(yedekKalemler, Array.isArray(veri.kayitlar) ? veri.kayitlar : []);
-        if (yedekKalemler) kalemGoc3(yedekKalemler, Array.isArray(veri.kayitlar) ? veri.kayitlar : []);
-      }
+      const yedekKalemler = veri.kalemler && typeof veri.kalemler === "object" ? veri.kalemler : null;
 
       // Kayıtlar
       if (Array.isArray(veri.kayitlar)) {
@@ -3078,7 +2949,6 @@
         veri.kayitlar.forEach(k => {
           const t = kayitTemizle(k);
           if (!t) { sayac.atlanan++; return; }
-          if (yeniKimlik[t.kalemId]) t.kalemId = yeniKimlik[t.kalemId];
           if (kimlikler.has(t.id)) return;
           mevcut.push(t); kimlikler.add(t.id); sayac.kayit++;
         });
@@ -3100,10 +2970,7 @@
             }
             (Array.isArray(g.kalemler) ? g.kalemler : []).forEach(k => {
               if (!k || !kimlikMi(k.id) || !metin(k.ad, 30) || grup.kalemler.some(x => x.id === k.id)) return;
-              if (k.id === ESKI_KIRA_GELIRI) return;
-              if (kalemler.silinen.includes(k.id)) return;   // telefonda silinmiş hazır kalem   // 1.2'den beri gelirdeki Ev grubunda
-              // Harçlık 1.3.1'de kaldırıldı: sadece yedekteki kayıtlarda kullanılmışsa gizli olarak gelir
-              if (k.id === HARCLIK && !k.gizli) return;
+              if (kalemler.silinen.includes(k.id)) return;   // telefonda silinmiş hazır kalem
               grup.kalemler.push({ id: k.id, ad: metin(k.ad, 30), ozel: !!k.ozel, gizli: !!k.gizli });
               degisti = true; sayac.kalem++;
             });
@@ -3683,7 +3550,6 @@
       birikimListesiCiz();
       yedekBilgisiGoster();
     }
-    verileriGecir();
     hepsiniGuncelle();
     kurlariGerekirseGuncelle();   // Sürüm 1.7
 
