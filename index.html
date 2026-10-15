@@ -628,11 +628,17 @@
       </div>
       <!-- Liste JavaScript ile doldurulur: aylara göre gruplu, yeniden eskiye -->
       <div id="kayit-listesi"></div>
+    </section>
 
+    <!-- ===================================================
+         BÖLÜM 7b: SAYFA — AYARLAR (Sürüm 1.1)
+         Kalemleri düzenleme, yedekleme ve Excel burada
+         =================================================== -->
+    <section class="sayfa" id="sayfa-ayarlar">
       <!-- Kalem ayarları (Sürüm 0.4) -->
-      <div class="kart" style="margin-top:18px">
+      <div class="kart">
         <h2>Kalemler</h2>
-        <p class="bilgi">Kalem ve grupların adını değiştir, gizle, sil ya da yeni grup ekle.</p>
+        <p class="bilgi">Kalem ve grupların adını değiştir, gizle, sil ya da yeni kalem / grup ekle.</p>
         <div class="dugme-satiri">
           <button type="button" class="ikincil-dugme" id="kalemleri-duzenle">Kalemleri düzenle</button>
         </div>
@@ -651,6 +657,12 @@
         </div>
         <input type="file" id="yedek-dosya" accept=".json,application/json" hidden>
         <div class="durum" id="yedek-durum"></div>
+      </div>
+
+      <!-- Uygulama hakkında -->
+      <div class="kart">
+        <h2>Uygulama</h2>
+        <p class="bilgi" id="uygulama-bilgi"></p>
       </div>
     </section>
 
@@ -803,6 +815,9 @@
     <button data-sayfa="birikim" data-baslik="Birikim">
       <span class="ikon">🏦</span>Birikim
     </button>
+    <button data-sayfa="ayarlar" data-baslik="Ayarlar">
+      <span class="ikon">⚙️</span>Ayarlar
+    </button>
   </nav>
 
   <!-- Yüzen "Ekle" düğmesi: açık sekmeye göre kayıt / borç / birikim kutusu ekler -->
@@ -817,9 +832,11 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.0";
+    const SURUM = "1.1";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
+    el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
+      ". Bütün veriler sadece bu telefonda saklanır; hiçbir yere gönderilmez. Telefon değişirse ya da uygulama silinirse kaybolmasın diye ara ara yedek al.";
 
     // Safari'den verileri kendiliğinden silmemesini rica et
     if (navigator.storage && navigator.storage.persist) {
@@ -1128,6 +1145,8 @@
       el("baslik").textContent = buton.dataset.baslik;
       el("ekle-dugmesi").setAttribute("aria-label",
         ad === "borc" ? "Yeni borç ekle" : ad === "birikim" ? "Yeni birikim ekle" : "Yeni kayıt ekle");
+      // Ayarlar'da eklenecek bir şey yok: + düğmesi gizlenir (Sürüm 1.1)
+      el("ekle-dugmesi").hidden = ad === "ayarlar";
       window.scrollTo(0, 0);
       // Gizliyken çizilen grafiğin genişliği yanlış olur: Özet açılınca yeniden çiz
       if (ad === "ozet") ozetGuncelle();
