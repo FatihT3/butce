@@ -15,9 +15,17 @@
   <!-- Ana ekranda simgenin altında görünecek isim -->
   <meta name="apple-mobile-web-app-title" content="Bütçe">
   <!-- Durum çubuğunun rengi: başlık çubuğuyla aynı (açık / koyu tema) -->
-  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#161b26" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" id="renk-acik">
+  <meta name="theme-color" content="#161b26" media="(prefers-color-scheme: dark)" id="renk-koyu">
   <title>Bütçe</title>
+  <!-- Görünüm (Sürüm 1.3.1): seçilen tema sayfa çizilmeden önce uygulanır, açılışta yanıp sönme olmasın.
+       "acik" / "koyu" seçiliyse html'e data-tema yazılır; yoksa telefonun ayarı izlenir. -->
+  <script>
+    try {
+      var t = JSON.parse(localStorage.getItem("butceTema_v1"));
+      if (t === "acik" || t === "koyu") document.documentElement.dataset.tema = t;
+    } catch (e) {}
+  </script>
   <!-- Ana ekran simgesi (Sürüm 1.0) -->
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="icon" type="image/png" href="icon.png">
@@ -39,11 +47,15 @@
       --buton-yazi: #ffffff;
       --hata: #dc2626;
       --uyari: #b45309;
+      color-scheme: light dark;   /* tarih/saat kutuları da temaya uysun */
     }
+    :root[data-tema="acik"] { color-scheme: light; }
 
-    /* --- Renkler: telefon karanlık moddaysa koyu tema --- */
+    /* --- Renkler: koyu tema ---
+       Telefon karanlık moddaysa (Görünüm: Telefonla aynı) ya da Görünüm "Koyu" seçiliyse.
+       Aynı renkler iki kez yazılı: biri telefona göre, biri elle seçilen Koyu için. */
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-tema="acik"]) {
         --arkaplan: #0b0f17;
         --kart: #161b26;
         --yazi: #f3f4f6;
@@ -56,6 +68,20 @@
         --hata: #f87171;
         --uyari: #fbbf24;
       }
+    }
+    :root[data-tema="koyu"] {
+      color-scheme: dark;
+      --arkaplan: #0b0f17;
+      --kart: #161b26;
+      --yazi: #f3f4f6;
+      --soluk: #9ca3af;
+      --cizgi: #263041;
+      --vurgu: #2dd4bf;
+      --gelir: #4ade80;
+      --gider: #fb923c;
+      --buton-yazi: #042f2b;
+      --hata: #f87171;
+      --uyari: #fbbf24;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -486,6 +512,53 @@
     .hareket-sil.onay { background: var(--hata); border-color: var(--hata); color: #fff; }
     .bolum-baslik { font-size: 13px; color: var(--soluk); margin: 18px 0 6px; }
 
+    /* ---------- AYARLAR LİSTESİ (Sürüm 1.3.1): telefon ayarları gibi satırlar ---------- */
+    .ayar-listesi {
+      background: var(--kart);
+      border: 1px solid var(--cizgi);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .ayar-ogesi {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      background: none;
+      border: none;
+      border-top: 1px solid var(--cizgi);
+      text-align: left;
+      min-height: 56px;
+    }
+    .ayar-ogesi:first-child { border-top: none; }
+    .ayar-ogesi:active { background: var(--arkaplan); }
+    .ayar-ikon {
+      flex: none;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+    .ayar-yazi { flex: 1; min-width: 0; }
+    .ayar-yazi b { display: block; font-size: 16px; font-weight: 500; }
+    .ayar-yazi small { display: block; font-size: 13px; color: var(--soluk); margin-top: 2px; }
+    .ayar-ok { flex: none; color: var(--soluk); font-size: 22px; line-height: 1; }
+    .ayar-tik { flex: none; color: var(--vurgu); font-size: 18px; font-weight: 700; visibility: hidden; }
+    .ayar-ogesi.secili .ayar-tik { visibility: visible; }
+    .ayar-dipnot { font-size: 13px; color: var(--soluk); line-height: 1.5; margin: 4px 4px 0; }
+    .geri-dugmesi {
+      background: none;
+      border: none;
+      color: var(--vurgu);
+      font-size: 16px;
+      padding: 0 0 4px;
+      margin-left: -2px;
+    }
+
     /* ---------- KALEM AYARLARI (Sürüm 0.4) ---------- */
     .ayar-grup { border-top: 1px solid var(--cizgi); padding: 12px 0 6px; }
     .ayar-grup:first-child { border-top: none; }
@@ -530,6 +603,8 @@
        BÖLÜM 3: ÜST BAŞLIK
        =================================================== -->
   <header>
+    <!-- Alt sayfada (Yedekleme) görünür: Ayarlar'a döner -->
+    <button type="button" class="geri-dugmesi" id="geri-dugmesi" hidden>‹ Ayarlar</button>
     <h1 id="baslik">Özet</h1>
     <!-- Sürüm numarası: güncellemenin telefona gelip gelmediğini anlamak için -->
     <small id="surum"></small>
@@ -631,39 +706,56 @@
     </section>
 
     <!-- ===================================================
-         BÖLÜM 7b: SAYFA — AYARLAR (Sürüm 1.1)
-         Kalemleri düzenleme, yedekleme ve Excel burada
+         BÖLÜM 7b: SAYFA — AYARLAR (Sürüm 1.1, 1.3.1'de liste görünümü)
+         Telefon ayarları gibi satırlar: dokununca açılır.
+         Kalemleri düzenle → açılır pencere, Yedekleme → ayrı sayfa, Görünüm → açılır pencere
          =================================================== -->
     <section class="sayfa" id="sayfa-ayarlar">
-      <!-- Kalem ayarları (Sürüm 0.4) -->
-      <div class="kart">
-        <h2>Kalemler</h2>
-        <p class="bilgi">Kalem ve grupların adını değiştir, gizle, sil ya da yeni kalem / grup ekle.</p>
-        <div class="dugme-satiri">
-          <button type="button" class="ikincil-dugme" id="kalemleri-duzenle">Kalemleri düzenle</button>
-        </div>
+      <div class="ayar-listesi">
+        <button type="button" class="ayar-ogesi" id="kalemleri-duzenle">
+          <span class="ayar-ikon" style="background:#0f766e">🗂️</span>
+          <span class="ayar-yazi"><b>Kalemleri düzenle</b><small>Gelir ve gider kalemleri, gruplar</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="yedekleme-ac">
+          <span class="ayar-ikon" style="background:#2563eb">💾</span>
+          <span class="ayar-yazi"><b>Yedekleme</b><small id="yedek-ozet">Yedek al, geri yükle, Excel'e aktar</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="gorunum-ac">
+          <span class="ayar-ikon" style="background:#6d28d9">🌓</span>
+          <span class="ayar-yazi"><b>Görünüm</b><small id="gorunum-ozet"></small></span>
+          <span class="ayar-ok">›</span>
+        </button>
       </div>
+      <p class="ayar-dipnot" id="uygulama-bilgi"></p>
+    </section>
 
-      <!-- Yedekleme ve Excel (Sürüm 0.9) -->
-      <div class="kart">
-        <h2>Yedekleme</h2>
-        <p class="bilgi" id="yedek-bilgi"></p>
-        <div class="dugme-satiri">
-          <button type="button" class="ikincil-dugme" id="yedek-al">Yedek al</button>
-          <button type="button" class="ikincil-dugme" id="yedek-yukle">Geri yükle</button>
-        </div>
-        <div class="dugme-satiri">
-          <button type="button" class="ikincil-dugme" id="csv-aktar">Excel'e aktar (CSV)</button>
-        </div>
-        <input type="file" id="yedek-dosya" accept=".json,application/json" hidden>
-        <div class="durum" id="yedek-durum"></div>
+    <!-- ===================================================
+         BÖLÜM 7c: SAYFA — YEDEKLEME (Ayarlar'ın alt sayfası, Sürüm 1.3.1)
+         Üstteki "‹ Ayarlar" ile geri dönülür
+         =================================================== -->
+    <section class="sayfa" id="sayfa-yedekleme">
+      <p class="bilgi" id="yedek-bilgi" style="margin:0 4px 12px"></p>
+      <div class="ayar-listesi">
+        <button type="button" class="ayar-ogesi" id="yedek-al">
+          <span class="ayar-ikon" style="background:#2563eb">⬆️</span>
+          <span class="ayar-yazi"><b>Yedek al</b><small>Bütün veriler tek dosyaya kaydedilir</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="yedek-yukle">
+          <span class="ayar-ikon" style="background:#0f766e">⬇️</span>
+          <span class="ayar-yazi"><b>Geri yükle</b><small>Yedek dosyasındakiler eklenir, hiçbir şey silinmez</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="csv-aktar">
+          <span class="ayar-ikon" style="background:#15803d">📊</span>
+          <span class="ayar-yazi"><b>Excel'e aktar</b><small>Kayıtlar CSV dosyası olarak</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
       </div>
-
-      <!-- Uygulama hakkında -->
-      <div class="kart">
-        <h2>Uygulama</h2>
-        <p class="bilgi" id="uygulama-bilgi"></p>
-      </div>
+      <input type="file" id="yedek-dosya" accept=".json,application/json" hidden>
+      <div class="durum" id="yedek-durum" style="margin:12px 4px 0"></div>
     </section>
 
     <!-- ===================================================
@@ -773,6 +865,33 @@
   <!-- ===================================================
        BÖLÜM 9: AÇILIR PANEL — KALEM AYARLARI (Sürüm 0.4)
        =================================================== -->
+  <!-- ===================================================
+       AÇILIR PANEL — GÖRÜNÜM (Sürüm 1.3.1): Telefonla aynı / Açık / Koyu
+       =================================================== -->
+  <div class="panel" id="gorunum-paneli" role="dialog" aria-modal="true" aria-labelledby="gorunum-panel-baslik">
+    <div class="panel-ust">
+      <h2 id="gorunum-panel-baslik">Görünüm</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="ayar-listesi" id="tema-secenekleri">
+      <button type="button" class="ayar-ogesi" data-tema="sistem">
+        <span class="ayar-ikon" style="background:#6b7280">📱</span>
+        <span class="ayar-yazi"><b>Telefonla aynı</b><small>iPhone açık moddaysa açık, karanlık moddaysa koyu</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="acik">
+        <span class="ayar-ikon" style="background:#f59e0b">☀️</span>
+        <span class="ayar-yazi"><b>Açık</b><small>Her zaman aydınlık</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="koyu">
+        <span class="ayar-ikon" style="background:#1e3a8a">🌙</span>
+        <span class="ayar-yazi"><b>Koyu</b><small>Her zaman karanlık</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+    </div>
+  </div>
+
   <div class="panel" id="kalem-paneli" role="dialog" aria-modal="true" aria-labelledby="kalem-panel-baslik">
     <div class="panel-ust">
       <h2 id="kalem-panel-baslik">Kalemler</h2>
@@ -832,7 +951,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.3";
+    const SURUM = "1.3.1";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -997,13 +1116,13 @@
     const HAZIR_KALEMLER = {
       gider: [
         { id: "ev",        ad: "Ev",            kalemler: [["kira", "Kira"]] },
-        { id: "fatura",    ad: "Faturalar",     kalemler: [["elektrik", "Elektrik"], ["su", "Su"], ["dogalgaz", "Doğal gaz"], ["internet", "Ev interneti"]] },
-        { id: "telefon",   ad: "Telefon",       kalemler: [] },
+        // 1.3.1: Telefon ayrı grup değil, Faturalar'da bir kalem
+        { id: "fatura",    ad: "Faturalar",     kalemler: [["elektrik", "Elektrik"], ["su", "Su"], ["dogalgaz", "Doğal gaz"], ["internet", "Ev interneti"], ["telefon", "Telefon"]] },
         { id: "mutfak",    ad: "Mutfak",        kalemler: [["market", "Market"], ["pazar", "Pazar"]] },
         { id: "araba",     ad: "Araba",         kalemler: [["benzin", "Benzin"], ["kasko", "Kasko"], ["trafik", "Trafik sigortası"], ["bakim", "Bakım"]] },
         { id: "alisveris", ad: "Alışveriş",     kalemler: [["alisveris", "Alışveriş"]] },
-        { id: "kisisel",   ad: "Kişisel",       kalemler: [["harclik", "Harçlık"]] },
-        { id: "kredi",     ad: "Kredi ve kart", kalemler: [["kredi", "Kredi"]] },
+        { id: "kisisel",   ad: "Kişisel",       kalemler: [] },   // 1.3.1: Harçlık kaldırıldı
+        { id: "kredi",     ad: "Kredi kartı",   kalemler: [["kredi", "Kredi"]] },   // 1.3.1: eski adı "Kredi ve kart"
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
       gelir: [
@@ -1015,6 +1134,12 @@
     };
     // Borç ödemesi gider olarak yazılırken kullanılan kalem
     const BORC_GIDER = { grup: "kredi", kalemId: "gider.kredi.kredi" };
+    // "Kredi kartı → Kredi" (adlar değiştirildiyse güncel adlarla)
+    function borcGiderYazisi() {
+      const g = kalemleriOku().gider.find(x => x.id === BORC_GIDER.grup);
+      const k = g && g.kalemler.find(x => x.id === BORC_GIDER.kalemId);
+      return (g ? g.ad : "Kredi kartı") + " → " + (k ? k.ad : "Kredi");
+    }
 
     // Hazır grubu saklanan yapıya çevirir: kalem kimliği "tip.grup.kalem" olur (gruplar arası çakışmasın)
     function hazirGrup(tip, g) {
@@ -1063,17 +1188,75 @@
     const YENI_KIRA_GELIRI = "gelir.ev.kiragelir";
     const GOC_ANAHTARI = "butceGoc_v1";
 
+    // Sürüm 1.3.1 geçişi: Telefon grubu → Faturalar, "Kredi ve kart" → "Kredi kartı", Harçlık kalktı
+    const HAZIR_TELEFON = "gider.fatura.telefon";
+    const HARCLIK = "gider.kisisel.harclik";
+
+    // Tek bir kaydı yeni yapıya çevirir (telefondaki kayıtlar ve eski yedekten gelenler için)
     function kayitGoc(k) {
       if (k && k.kalemId === ESKI_KIRA_GELIRI) {
         k.kalemId = YENI_KIRA_GELIRI;
         k.grup = "ev";
         k.grupAd = "Ev";
       }
+      if (k && k.tip === "gider" && k.grup === "telefon") {
+        k.grup = "fatura";
+        k.grupAd = "Faturalar";
+      }
+      if (k && k.tip === "gider" && k.grup === "kredi" && k.grupAd === "Kredi ve kart") k.grupAd = "Kredi kartı";
       return k;
     }
 
+    // 1.3.1: telefondaki kalem listesinde Telefon grubunu Faturalar'a katar, Kredi ve kart adını
+    // değiştirir, Harçlık'ı kaldırır (kayıtta kullanılmışsa silmez, gizler). Kimliği değişen kalemler döner.
+    function kalemGoc2(saklanan, kayitlar) {
+      const yeniKimlik = {};
+      if (!saklanan || !Array.isArray(saklanan.gider)) return yeniKimlik;
+      const gider = saklanan.gider;
+      const tel = gider.find(g => g && g.id === "telefon");
+      if (tel) {
+        let fat = gider.find(g => g && g.id === "fatura");
+        if (!fat) {
+          fat = { id: "fatura", ad: "Faturalar", ozel: false, gizli: false, kalemler: [] };
+          gider.splice(gider.indexOf(tel), 0, fat);
+        }
+        if (!Array.isArray(fat.kalemler)) fat.kalemler = [];
+        (Array.isArray(tel.kalemler) ? tel.kalemler : []).forEach(k => {
+          if (!k || !k.ad) return;
+          // Kullanıcının "Telefon" adlı kalemi hazır Telefon kalemi olur (iki tane olmasın)
+          if (kucukHarf(k.ad) === "telefon") { yeniKimlik[k.id] = HAZIR_TELEFON; return; }
+          const ayni = fat.kalemler.find(x => x && kucukHarf(x.ad) === kucukHarf(k.ad));
+          if (ayni) { yeniKimlik[k.id] = ayni.id; return; }
+          fat.kalemler.push(k);
+        });
+        saklanan.gider = gider.filter(g => g !== tel);
+      }
+      const kredi = saklanan.gider.find(g => g && g.id === "kredi");
+      if (kredi && kredi.ad === "Kredi ve kart") kredi.ad = "Kredi kartı";
+      const kisisel = saklanan.gider.find(g => g && g.id === "kisisel");
+      if (kisisel && Array.isArray(kisisel.kalemler)) {
+        const kullanilmis = kayitlar.some(r => r.kalemId === HARCLIK);
+        kisisel.kalemler = kullanilmis
+          ? kisisel.kalemler.map(k => k && k.id === HARCLIK ? { ...k, gizli: true } : k)
+          : kisisel.kalemler.filter(k => !k || k.id !== HARCLIK);
+      }
+      return yeniKimlik;
+    }
+
     function verileriGecir() {
-      if (depoOku(GOC_ANAHTARI, 0) >= 1) return;
+      const seviye = depoOku(GOC_ANAHTARI, 0);
+      if (seviye < 2) {
+        const kayitlar = kayitlariOku();
+        const saklanan = depoOku(KALEM_ANAHTARI, null);
+        const yeniKimlik = kalemGoc2(saklanan, kayitlar);
+        if (saklanan && !kalemleriYaz(saklanan)) return;
+        kayitlar.forEach(k => {
+          kayitGoc(k);
+          if (yeniKimlik[k.kalemId]) k.kalemId = yeniKimlik[k.kalemId];
+        });
+        if (kayitlar.length && !kayitlariYaz(kayitlar)) return;
+      }
+      if (seviye >= 1) { if (seviye < 2) depoYaz(GOC_ANAHTARI, 2); return; }
       const saklanan = depoOku(KALEM_ANAHTARI, null);
       if (saklanan && Array.isArray(saklanan.gelir)) {
         const eskiGrup = saklanan.gelir.find(g => g && g.id === "gelirler");
@@ -1089,12 +1272,8 @@
           if (!kalemleriYaz(saklanan)) return;
         }
       }
-      const kayitlar = kayitlariOku();
-      if (kayitlar.some(k => k.kalemId === ESKI_KIRA_GELIRI)) {
-        kayitlar.forEach(kayitGoc);
-        if (!kayitlariYaz(kayitlar)) return;
-      }
-      depoYaz(GOC_ANAHTARI, 1);
+      // (eski kira geliri kayıtları yukarıda kayitGoc ile zaten çevrildi)
+      depoYaz(GOC_ANAHTARI, 2);
     }
 
     const kucukHarf = s => s.toLocaleLowerCase("tr-TR");
@@ -1181,23 +1360,64 @@
     // SEKME GEÇİŞİ
     // =====================================================
     let aktifSayfa = "ozet";
+    // Alt çubukta düğmesi olmayan alt sayfalar: hangi sekmenin altında oldukları ve başlıkları
+    const ALT_SAYFALAR = { yedekleme: { ust: "ayarlar", baslik: "Yedekleme" } };
+
     function sayfaAc(ad) {
       aktifSayfa = ad;
+      const alt = ALT_SAYFALAR[ad];
+      const sekme = alt ? alt.ust : ad;
       document.querySelectorAll(".sayfa").forEach(s => s.classList.remove("aktif"));
       el("sayfa-" + ad).classList.add("aktif");
-      document.querySelectorAll("nav button").forEach(b => b.classList.toggle("aktif", b.dataset.sayfa === ad));
-      const buton = document.querySelector('nav button[data-sayfa="' + ad + '"]');
-      el("baslik").textContent = buton.dataset.baslik;
+      document.querySelectorAll("nav button").forEach(b => b.classList.toggle("aktif", b.dataset.sayfa === sekme));
+      const buton = document.querySelector('nav button[data-sayfa="' + sekme + '"]');
+      el("baslik").textContent = alt ? alt.baslik : buton.dataset.baslik;
+      el("geri-dugmesi").hidden = !alt;   // alt sayfada "‹ Ayarlar"
       el("ekle-dugmesi").setAttribute("aria-label",
         ad === "borc" ? "Yeni borç ekle" : ad === "birikim" ? "Yeni birikim ekle" : "Yeni kayıt ekle");
-      // Ayarlar'da eklenecek bir şey yok: + düğmesi gizlenir (Sürüm 1.1)
-      el("ekle-dugmesi").hidden = ad === "ayarlar";
+      // Ayarlar ve alt sayfalarında eklenecek bir şey yok: + düğmesi gizlenir
+      el("ekle-dugmesi").hidden = sekme === "ayarlar";
       window.scrollTo(0, 0);
       // Gizliyken çizilen grafiğin genişliği yanlış olur: Özet açılınca yeniden çiz
       if (ad === "ozet") ozetGuncelle();
     }
     document.querySelectorAll("nav button[data-sayfa]").forEach(b =>
       b.addEventListener("click", () => sayfaAc(b.dataset.sayfa)));
+    el("geri-dugmesi").addEventListener("click", () => sayfaAc(ALT_SAYFALAR[aktifSayfa] ? ALT_SAYFALAR[aktifSayfa].ust : "ozet"));
+    el("yedekleme-ac").addEventListener("click", () => sayfaAc("yedekleme"));
+
+    // =====================================================
+    // GÖRÜNÜM (Sürüm 1.3.1): Telefonla aynı / Açık / Koyu
+    // "sistem": telefonun açık/koyu ayarı izlenir (html'de data-tema yok).
+    // "acik" / "koyu": html'e data-tema yazılır, renkler CSS'te ona göre seçilir.
+    // Durum çubuğu rengi (theme-color) de seçilen temaya göre ayarlanır.
+    // =====================================================
+    const TEMA_ANAHTARI = "butceTema_v1";
+    const TEMA_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu" };
+
+    function temaOku() {
+      const t = depoOku(TEMA_ANAHTARI, "sistem");
+      return TEMA_ADLARI[t] ? t : "sistem";
+    }
+    function temaUygula(tema) {
+      const kok = document.documentElement;
+      if (tema === "sistem") delete kok.dataset.tema; else kok.dataset.tema = tema;
+      // Durum çubuğu: sistemde iki etiket telefona göre; elle seçilende ikisi de aynı renk
+      const acikRenk = "#ffffff", koyuRenk = "#161b26";
+      el("renk-acik").content = tema === "koyu" ? koyuRenk : acikRenk;
+      el("renk-koyu").content = tema === "acik" ? acikRenk : koyuRenk;
+      el("gorunum-ozet").textContent = TEMA_ADLARI[tema];
+      el("tema-secenekleri").querySelectorAll("[data-tema]").forEach(b =>
+        b.classList.toggle("secili", b.dataset.tema === tema));
+    }
+    el("gorunum-ac").addEventListener("click", () => panelAc("gorunum-paneli"));
+    el("tema-secenekleri").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-tema]");
+      if (!b) return;
+      depoYaz(TEMA_ANAHTARI, b.dataset.tema);
+      temaUygula(b.dataset.tema);
+    });
+    temaUygula(temaOku());
 
     // + düğmesi: açık sekmeye göre
     el("ekle-dugmesi").addEventListener("click", () => {
@@ -2060,7 +2280,7 @@
             '<div class="yan-yana"><div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[b.birim].kisa + ')</label><input type="text" inputmode="decimal" id="h-miktar" autocomplete="off" placeholder="0"></div>' +
             '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div></div>' +
             '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off"></div>' +
-            (tlMi ? '<label class="onay-kutusu"><input type="checkbox" id="h-gider">Gider olarak da kaydet (Kredi ve kart → Kredi)</label>' : "") +
+            (tlMi ? '<label class="onay-kutusu"><input type="checkbox" id="h-gider">Gider olarak da kaydet (' + guvenli(borcGiderYazisi()) + ")</label>" : "") +
             '<button type="button" class="buton" data-islem="odeme-ekle">Ödemeyi kaydet</button>' +
             '<div class="ipucu hata" id="h-hata"></div>'
           : "") +
@@ -2204,7 +2424,7 @@
           const grup = kalemleriOku().gider.find(g => g.id === BORC_GIDER.grup);
           const kalem = grup && grup.kalemler.find(k => k.id === BORC_GIDER.kalemId);
           const kayitId = kayitEkle({
-            tip: "gider", grup: BORC_GIDER.grup, grupAd: grup ? grup.ad : "Kredi ve kart",
+            tip: "gider", grup: BORC_GIDER.grup, grupAd: grup ? grup.ad : "Kredi kartı",
             kalemId: BORC_GIDER.kalemId, kalemAd: kalem ? kalem.ad : "Kredi",
             tutar: Math.round(miktar * 100) / 100, tarih, saat: simdikiSaat(),
             not: ("Borç ödemesi: " + b.ad + (odeme.not ? " · " + odeme.not : "")).slice(0, 100),
@@ -2323,6 +2543,8 @@
         yazi += "Son yedek: " + uzunTarih(son.slice(0, 10)) + (gun > 30 ? " (bir aydan eski, yeni yedek al)" : "");
       }
       el("yedek-bilgi").textContent = yazi.trim();
+      // Ayarlar listesindeki "Yedekleme" satırının alt yazısı
+      el("yedek-ozet").textContent = son ? "Son yedek: " + uzunTarih(son.slice(0, 10)) : (sayi ? "Henüz yedek alınmadı" : "Yedek al, geri yükle, Excel'e aktar");
     }
 
     const dosyaTarihi = () => bugun();
@@ -2432,6 +2654,14 @@
     function yedektenYukle(veri) {
       const sayac = { kayit: 0, kalem: 0, borc: 0, birikim: 0, atlanan: 0 };
 
+      // Eski sürüm yedeğinin kalem listesi önce yeni yapıya çevrilir (1.3.1: Telefon → Faturalar,
+      // Kredi kartı adı, Harçlık). Kimliği değişen kalemler kayıtlarda da düzeltilir.
+      let yedekKalemler = null, yeniKimlik = {};
+      if (veri.kalemler && typeof veri.kalemler === "object") {
+        try { yedekKalemler = JSON.parse(JSON.stringify(veri.kalemler)); } catch (e) {}
+        if (yedekKalemler) yeniKimlik = kalemGoc2(yedekKalemler, Array.isArray(veri.kayitlar) ? veri.kayitlar : []);
+      }
+
       // Kayıtlar
       if (Array.isArray(veri.kayitlar)) {
         const mevcut = kayitlariOku();
@@ -2439,6 +2669,7 @@
         veri.kayitlar.forEach(k => {
           const t = kayitTemizle(k);
           if (!t) { sayac.atlanan++; return; }
+          if (yeniKimlik[t.kalemId]) t.kalemId = yeniKimlik[t.kalemId];
           if (kimlikler.has(t.id)) return;
           mevcut.push(t); kimlikler.add(t.id); sayac.kayit++;
         });
@@ -2446,11 +2677,11 @@
       }
 
       // Kalemler: olmayan grup ve kalemler eklenir, var olanların adı değiştirilmez
-      if (veri.kalemler && typeof veri.kalemler === "object") {
+      if (yedekKalemler) {
         const kalemler = kalemleriOku();
         let degisti = false;
         ["gider", "gelir"].forEach(tip => {
-          (Array.isArray(veri.kalemler[tip]) ? veri.kalemler[tip] : []).forEach(g => {
+          (Array.isArray(yedekKalemler[tip]) ? yedekKalemler[tip] : []).forEach(g => {
             if (!g || !kimlikMi(g.id) || !metin(g.ad, 30)) return;
             let grup = kalemler[tip].find(x => x.id === g.id);
             if (!grup) {
@@ -2460,6 +2691,8 @@
             (Array.isArray(g.kalemler) ? g.kalemler : []).forEach(k => {
               if (!k || !kimlikMi(k.id) || !metin(k.ad, 30) || grup.kalemler.some(x => x.id === k.id)) return;
               if (k.id === ESKI_KIRA_GELIRI) return;   // 1.2'den beri gelirdeki Ev grubunda
+              // Harçlık 1.3.1'de kaldırıldı: sadece yedekteki kayıtlarda kullanılmışsa gizli olarak gelir
+              if (k.id === HARCLIK && !k.gizli) return;
               grup.kalemler.push({ id: k.id, ad: metin(k.ad, 30), ozel: !!k.ozel, gizli: !!k.gizli });
               degisti = true; sayac.kalem++;
             });
