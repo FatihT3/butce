@@ -568,6 +568,9 @@
     .ayar-ok { flex: none; color: var(--soluk); font-size: 22px; line-height: 1; }
     .ayar-tik { flex: none; color: var(--vurgu); font-size: 18px; font-weight: 700; visibility: hidden; }
     .ayar-ogesi.secili .ayar-tik { visibility: visible; }
+    /* Ayarlar sayfasındaki bölüm başlıkları (Sürüm 1.4) */
+    .ayar-bolum { font-size: 13px; color: var(--soluk); margin: 16px 4px 6px; }
+    .ayar-bolum:first-child { margin-top: 2px; }
     .ayar-dipnot { font-size: 13px; color: var(--soluk); line-height: 1.5; margin: 4px 4px 0; }
     .geri-dugmesi {
       background: none;
@@ -727,23 +730,53 @@
     <!-- ===================================================
          BÖLÜM 7b: SAYFA — AYARLAR (Sürüm 1.1, 1.3.1'de liste görünümü)
          Telefon ayarları gibi satırlar: dokununca açılır.
-         Kalemleri düzenle → açılır pencere, Yedekleme → ayrı sayfa, Görünüm → açılır pencere
+         İşlemler / Kategori-Hesaplar / Ayarlar başlıkları (1.4); kategori → kalem penceresi, Yedekle → ayrı sayfa, Stil → açılır pencere
          =================================================== -->
     <section class="sayfa" id="sayfa-ayarlar">
+      <!-- Sürüm 1.4: satırlar üç başlık altında gruplandı -->
+      <div class="ayar-bolum">İşlemler</div>
       <div class="ayar-listesi">
-        <button type="button" class="ayar-ogesi" id="kalemleri-duzenle">
-          <span class="ayar-ikon" style="background:#0f766e">🗂️</span>
-          <span class="ayar-yazi"><b>Kalemleri düzenle</b><small>Gelir ve gider kalemleri, gruplar</small></span>
+        <button type="button" class="ayar-ogesi" id="donem-ac">
+          <span class="ayar-ikon" style="background:#0891b2">📅</span>
+          <span class="ayar-yazi"><b>Dönem ayrıntıları</b><small>Ayın başlangıç günü, dönem ayarları</small></span>
           <span class="ayar-ok">›</span>
         </button>
+        <button type="button" class="ayar-ogesi" id="tekrar-ac">
+          <span class="ayar-ikon" style="background:#7c3aed">🔁</span>
+          <span class="ayar-yazi"><b>Tekrarlayan işlemler</b><small>Her ay yinelenen gelir ve giderler</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+      </div>
+
+      <div class="ayar-bolum">Kategori / Hesaplar</div>
+      <div class="ayar-listesi">
+        <button type="button" class="ayar-ogesi" id="gelir-kategori">
+          <span class="ayar-ikon" style="background:#15803d">➕</span>
+          <span class="ayar-yazi"><b>Gelir kategorisi</b><small>Gelir grupları ve kalemleri</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="gider-kategori">
+          <span class="ayar-ikon" style="background:#c2410c">➖</span>
+          <span class="ayar-yazi"><b>Gider kategorisi</b><small>Gider grupları ve kalemleri</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <button type="button" class="ayar-ogesi" id="hesap-ac">
+          <span class="ayar-ikon" style="background:#0f766e">🏦</span>
+          <span class="ayar-yazi"><b>Hesap ayarları</b><small>Hesaplar, hesap türleri</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+      </div>
+
+      <div class="ayar-bolum">Ayarlar</div>
+      <div class="ayar-listesi">
         <button type="button" class="ayar-ogesi" id="yedekleme-ac">
           <span class="ayar-ikon" style="background:#2563eb">💾</span>
-          <span class="ayar-yazi"><b>Yedekleme</b><small id="yedek-ozet">Yedek al, geri yükle, Excel'e aktar</small></span>
+          <span class="ayar-yazi"><b>Yedekle</b><small id="yedek-ozet">Yedek al, geri yükle, Excel'e aktar</small></span>
           <span class="ayar-ok">›</span>
         </button>
         <button type="button" class="ayar-ogesi" id="gorunum-ac">
-          <span class="ayar-ikon" style="background:#6d28d9">🌓</span>
-          <span class="ayar-yazi"><b>Görünüm</b><small id="gorunum-ozet"></small></span>
+          <span class="ayar-ikon" style="background:#6d28d9">🎨</span>
+          <span class="ayar-yazi"><b>Stil</b><small id="gorunum-ozet"></small></span>
           <span class="ayar-ok">›</span>
         </button>
       </div>
@@ -889,7 +922,7 @@
        =================================================== -->
   <div class="panel" id="gorunum-paneli" role="dialog" aria-modal="true" aria-labelledby="gorunum-panel-baslik">
     <div class="panel-ust">
-      <h2 id="gorunum-panel-baslik">Görünüm</h2>
+      <h2 id="gorunum-panel-baslik">Stil</h2>
       <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
     </div>
     <div class="ayar-listesi" id="tema-secenekleri">
@@ -970,7 +1003,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.3.3";
+    const SURUM = "1.4";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1380,7 +1413,7 @@
     // =====================================================
     let aktifSayfa = "ozet";
     // Alt çubukta düğmesi olmayan alt sayfalar: hangi sekmenin altında oldukları ve başlıkları
-    const ALT_SAYFALAR = { yedekleme: { ust: "ayarlar", baslik: "Yedekleme" } };
+    const ALT_SAYFALAR = { yedekleme: { ust: "ayarlar", baslik: "Yedekle" } };
 
     function sayfaAc(ad) {
       aktifSayfa = ad;
@@ -1886,13 +1919,18 @@
       if (kutu && !kutu.value) kutu.focus();
     }
 
-    function kalemPaneliAc() {
+    // tip: "gider" | "gelir" — Gelir/Gider kategorisi satırına göre panel o sekmede açılır (Sürüm 1.4)
+    function kalemPaneliAc(tip) {
       ayarAcik = null;
-      el("ayar-gider").checked = true;
+      el(tip === "gelir" ? "ayar-gelir" : "ayar-gider").checked = true;
       kalemAyarlariniCiz();
       panelAc("kalem-paneli");
     }
-    el("kalemleri-duzenle").addEventListener("click", kalemPaneliAc);
+    el("gelir-kategori").addEventListener("click", () => kalemPaneliAc("gelir"));
+    el("gider-kategori").addEventListener("click", () => kalemPaneliAc("gider"));
+    // İçeriği henüz yazılmamış satırlar (Sürüm 1.4): şimdilik sadece bilgi gösterir
+    ["donem-ac", "tekrar-ac", "hesap-ac"].forEach(id =>
+      el(id).addEventListener("click", () => bildirimGoster("Bu bölüm yakında eklenecek")));
     document.querySelectorAll('input[name="ayar-tip"]').forEach(r => r.addEventListener("change", () => {
       ayarAcik = null;
       kalemAyarlariniCiz();
