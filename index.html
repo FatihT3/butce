@@ -301,6 +301,25 @@
       font-size: 15px;
     }
     .cip:active { opacity: .7; }
+    /* Tek sıra, sağa-sola kaydırılan çipler (kalemler, Sürüm 1.3.2). Kenarlara kadar uzanır,
+       kaydırma çubuğu görünmez; boşken de bir çip yüksekliği kadar yer kaplar. */
+    .cipler.tek-sira {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin: 0 -16px;
+      padding: 0 16px 2px;
+      min-height: 40px;
+      scroll-padding: 0 16px;
+    }
+    .cipler.tek-sira::-webkit-scrollbar { display: none; }
+    .cipler.tek-sira .cip { flex: none; white-space: nowrap; }
+    /* Son çipten sonra da kenar boşluğu kalsın (kaydırınca sağ kenara yapışmasın) */
+    .cipler.tek-sira::after { content: ""; flex: none; width: 8px; }
+    /* Yeni Kayıt penceresi sabit yükseklikte (Sürüm 1.3.2): seçime göre büyüyüp küçülmez,
+       içerik sığmazsa pencerenin içinde kayar */
+    #kayit-paneli { height: calc(100% - env(safe-area-inset-top) - 40px); }
     .cip.secili {
       background: var(--vurgu);
       border-color: var(--vurgu);
@@ -819,9 +838,9 @@
       </div>
 
       <!-- Kalem çipleri: seçili grubun kalemleri, en çok kullanılan önde; sonda "Diğer…" -->
-      <div class="alan" id="kalem-blok" hidden>
+      <div class="alan" id="kalem-blok">
         <div class="alan-baslik">Kalem</div>
-        <div class="cipler" id="kalem-cipleri"></div>
+        <div class="cipler tek-sira" id="kalem-cipleri"></div>
         <!-- "Diğer…" seçilince açılır: yazılan ad bu gruba kalıcı kalem olarak eklenir -->
         <div class="satir-ici" id="yeni-kalem" hidden>
           <input type="text" class="kutu" id="f-yeni-kalem" maxlength="30" autocomplete="off" placeholder="Kalem adı">
@@ -951,7 +970,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.3.1";
+    const SURUM = "1.3.2";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1496,12 +1515,20 @@
     }
 
     // Seçili grubun kalem çipleri (en çok kullanılan önde) + "Diğer…"
+    // Kalemler tek sırada, sağa-sola kaydırılır (Sürüm 1.3.2). Kalem bölümü hep yerinde durur
+    // (grup seçilmemişse kısa bir yazı çıkar), böylece pencere büyüyüp küçülmez.
     function kalemleriCiz() {
       const kutu = el("kalem-cipleri");
+      // Aynı grupta yeniden çizerken kaydırma yeri korunur (seçince en başa atlamasın)
+      const ayniGrup = kutu.dataset.grup === String(seciliGrup);
+      const kaydirma = kutu.scrollLeft;
       kutu.innerHTML = "";
+      kutu.dataset.grup = String(seciliGrup);
       const grup = formGruplari(seciliTip()).find(g => g.id === seciliGrup);
-      el("kalem-blok").hidden = !grup;
-      if (!grup) return;
+      if (!grup) {
+        el("kalem-ipucu").textContent = "Önce bir grup seç.";
+        return;
+      }
 
       const sayi = kullanimSayilari();
       const gorunen = grup.kalemler
@@ -1511,6 +1538,15 @@
       gorunen.forEach(k => kutu.appendChild(cipYap(k.ad, k.id === seciliKalem, () => kalemSec(k.id))));
       if (!grup.eski) kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
       el("kalem-ipucu").textContent = gorunen.length ? "" : "Bu grupta henüz kalem yok. \"Diğer…\" ile ekleyebilirsin.";
+
+      if (ayniGrup) {
+        kutu.scrollLeft = kaydirma;
+      } else {
+        kutu.scrollLeft = 0;
+        // Düzenlemede seçili kalem görünmüyorsa ona kaydır
+        const secili = kutu.querySelector(".cip.secili");
+        if (secili && secili.offsetLeft + secili.offsetWidth > kutu.clientWidth) kutu.scrollLeft = secili.offsetLeft - 16;
+      }
     }
 
     function grupSec(id) {
