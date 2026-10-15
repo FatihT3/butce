@@ -832,7 +832,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.2";
+    const SURUM = "1.3";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1435,8 +1435,12 @@
     // Ör. "Ev" seçilince hem Ev giderleri (Kira) hem Ev gelirleri (Kira geliri) listelenir.
     // Seçeneklerde "Gider · / Gelir ·" yazmaz.
     // =====================================================
+    // Tümü seçiliyken (Sürüm 1.3): gelir grupları tek tek listelenmez; tek "Gelirler" seçeneği bütün
+    // gelir kayıtlarını gösterir ("Diğer gelir" vb. ayrı seçenek olmaz). Gider gruplarıyla aynı adlı
+    // gelir grubu (Ev) yine o seçenekte birlikte çıkar.
+    const TUM_GELIRLER = "*gelirler";
     let suzTip = "hepsi";
-    let suzGrup = "";        // grup adının küçük harflisi ("ev"); boşsa tüm gruplar
+    let suzGrup = "";        // grup adının küçük harflisi ("ev"); boşsa tüm gruplar; TUM_GELIRLER: bütün gelirler
 
     // Bir kaydın süzgeçteki grup anahtarı: grubun güncel adı (silinmişse kayıttaki ad), küçük harfle
     const grupAnahtari = (k, kalemler) => kucukHarf(kayitAdlari(k, kalemler).grup);
@@ -1449,7 +1453,8 @@
         const deger = kucukHarf(ad);
         if (!secenekler.some(s => s.deger === deger)) secenekler.push({ deger, ad });
       };
-      const tipler = suzTip === "hepsi" ? ["gider", "gelir"] : [suzTip];
+      // Tümü seçiliyken sadece gider grupları tek tek listelenir, gelirler tek seçenektir
+      const tipler = suzTip === "gelir" ? ["gelir"] : ["gider"];
       tipler.forEach(tip => {
         kalemler[tip].forEach(g => {
           // Gizli grup sadece kaydı varsa seçenek olur
@@ -1459,6 +1464,7 @@
       });
       // Silinmiş gruplardaki eski kayıtlar da süzülebilsin
       kayitlar.filter(k => tipler.includes(k.tip)).forEach(k => ekle(kayitAdlari(k, kalemler).grup));
+      if (suzTip === "hepsi") secenekler.push({ deger: TUM_GELIRLER, ad: "Gelirler" });
 
       if (!secenekler.some(s => s.deger === suzGrup)) suzGrup = "";
       const kutu = el("suz-grup");
@@ -1482,7 +1488,8 @@
 
       const liste = tumu.filter(k =>
         (suzTip === "hepsi" || k.tip === suzTip) &&
-        (!suzGrup || grupAnahtari(k, kalemler) === suzGrup));
+        (!suzGrup ||
+          (suzGrup === TUM_GELIRLER ? k.tip === "gelir" : grupAnahtari(k, kalemler) === suzGrup)));
       if (!liste.length) {
         kutu.innerHTML = '<div class="bos-liste"><p class="bilgi">Bu süzgeçle eşleşen kayıt yok.</p></div>';
         return;
