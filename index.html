@@ -18,6 +18,9 @@
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#161b26" media="(prefers-color-scheme: dark)">
   <title>Bütçe</title>
+  <!-- Ana ekran simgesi (Sürüm 1.0) -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
 
   <!-- ===================================================
        BÖLÜM 2: STİLLER (GÖRÜNÜM)
@@ -31,10 +34,11 @@
       --soluk: #6b7280;
       --cizgi: #e5e7eb;
       --vurgu: #0f766e;    /* Genel vurgu (koyu turkuaz) */
-      --gelir: #15803d;    /* Gelir tutarları (yeşil) */
-      --gider: #c2410c;    /* Gider tutarları (turuncu-kırmızı) */
+      --gelir: #15803d;    /* Gelir (yeşil) */
+      --gider: #c2410c;    /* Gider (turuncu-kırmızı) */
       --buton-yazi: #ffffff;
       --hata: #dc2626;
+      --uyari: #b45309;
     }
 
     /* --- Renkler: telefon karanlık moddaysa koyu tema --- */
@@ -50,6 +54,7 @@
         --gider: #fb923c;
         --buton-yazi: #042f2b;
         --hata: #f87171;
+        --uyari: #fbbf24;
       }
     }
 
@@ -63,6 +68,7 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       -webkit-tap-highlight-color: transparent; /* dokununca gri parlama olmasın */
     }
+    button { font-family: inherit; color: inherit; }
 
     /* Üst başlık: çentik altında kalmasın; iOS 26 durum çubuğunun altındaki
        bulanık şeridin dışında dursun diye üstte geniş boşluk */
@@ -96,14 +102,14 @@
     .gider-renk { color: var(--gider); }
     .vurgu-renk { color: var(--vurgu); }
     .bilgi { color: var(--soluk); font-size: 14px; line-height: 1.5; }
+    .kart-alt { font-size: 13px; color: var(--soluk); margin-top: 6px; line-height: 1.5; white-space: pre-line; }
+    .karsilastirma { font-size: 13px; margin-top: 4px; color: var(--soluk); }
+    .karsilastirma b { font-weight: 600; color: var(--yazi); }
 
-    /* Özet: dönem adı ("Ekim 2026") */
-    .donem-adi { font-size: 17px; font-weight: 600; margin: 0 4px 10px; }
-
-    /* Özet kartları: Gelir ve Gider yan yana */
+    /* Yan yana iki kutu (Gelir-Gider kartları, Tarih-Saat) */
     .yan-yana { display: flex; gap: 10px; }
-    .yan-yana > .kart, .yan-yana > .alan { flex: 1; min-width: 0; }
-    .yan-yana .kart .deger { font-size: 22px; }
+    .yan-yana > .kart, .yan-yana > .alan, .yan-yana > button { flex: 1; min-width: 0; }
+    .yan-yana .kart .deger { font-size: 21px; }
 
     /* Henüz içeriği olmayan sayfalardaki açıklama */
     .bos-liste { text-align: center; padding: 40px 20px; }
@@ -129,12 +135,11 @@
       padding: 8px 0 6px;
       color: var(--soluk);
       font-size: 12px;
-      font-family: inherit;
     }
     nav button .ikon { display: block; font-size: 22px; margin-bottom: 2px; }
     nav button.aktif { color: var(--vurgu); font-weight: 600; }
 
-    /* ---------- AÇILIR PANEL ---------- */
+    /* ---------- AÇILIR PANELLER ---------- */
     /* Arkadaki karartma */
     .perde {
       position: fixed;
@@ -166,10 +171,12 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
       padding: 8px 0 14px;
     }
-    .panel-ust h2 { font-size: 18px; }
+    .panel-ust h2 { font-size: 18px; min-width: 0; overflow-wrap: anywhere; }
     .kapat {
+      flex: none;
       background: var(--arkaplan);
       border: none;
       width: 32px; height: 32px;
@@ -200,10 +207,10 @@
     .ekle-dugmesi:active { transform: scale(.92); }
     .ekle-dugmesi svg { width: 26px; height: 26px; }
 
-    /* ---------- KAYIT FORMU (Sürüm 0.2) ---------- */
+    /* ---------- FORM ÖĞELERİ ---------- */
     .alan { margin-bottom: 14px; }
     .alan > label, .alan-baslik { display: block; font-size: 13px; color: var(--soluk); margin-bottom: 6px; }
-    .alan input[type=text], .alan input[type=date], .alan input[type=time] {
+    .kutu, .alan input[type=text], .alan input[type=date], .alan input[type=time], .alan select {
       width: 100%;
       min-height: 46px;
       font-size: 16px;            /* 16px'ten küçük olursa iPhone kutuya yakınlaştırır */
@@ -217,11 +224,19 @@
       appearance: none;
     }
     .alan input::-webkit-date-and-time-value { text-align: left; }
-    .alan input:focus { outline: 2px solid var(--vurgu); border-color: transparent; }
-    /* Tutar kutusu: büyük yazı */
+    .kutu:focus, .alan input:focus, .alan select:focus { outline: 2px solid var(--vurgu); border-color: transparent; }
     .alan input.tutar-kutusu { font-size: 22px; font-weight: 600; }
+    /* Açılır listede sağda ok işareti */
+    .alan select {
+      padding-right: 36px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%239ca3af' stroke-width='2'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+    .onay-kutusu { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 14px; }
+    .onay-kutusu input { width: 22px; height: 22px; accent-color: var(--vurgu); flex: none; }
 
-    /* Gider / Gelir seçimi (iki parçalı düğme) */
+    /* İki-üç parçalı seçim düğmesi (Gider/Gelir, Ay/Yıl, Yatır/Çek) */
     .secim {
       display: flex;
       background: var(--arkaplan);
@@ -245,10 +260,11 @@
       font-weight: 600;
       box-shadow: 0 1px 3px rgba(0, 0, 0, .15);
     }
-    .secim input[value="gider"]:checked + label { color: var(--gider); }
-    .secim input[value="gelir"]:checked + label { color: var(--gelir); }
+    .secim input[value="gider"]:checked + label, .secim input[value="cek"]:checked + label { color: var(--gider); }
+    .secim input[value="gelir"]:checked + label, .secim input[value="yatir"]:checked + label { color: var(--gelir); }
+    .secim-bosluk { margin-bottom: 12px; }
 
-    /* Grup ve kalem çipleri */
+    /* Çipler (grup, kalem, birim seçimi) */
     .cipler { display: flex; flex-wrap: wrap; gap: 8px; }
     .cip {
       padding: 8px 13px;
@@ -256,9 +272,7 @@
       border-radius: 19px;
       border: 1px solid var(--cizgi);
       background: var(--arkaplan);
-      color: var(--yazi);
       font-size: 15px;
-      font-family: inherit;
     }
     .cip:active { opacity: .7; }
     .cip.secili {
@@ -269,9 +283,9 @@
     }
     .cip.diger { border-style: dashed; color: var(--vurgu); background: none; }
 
-    /* "Diğer…" ile yeni kalem adı yazma kutusu */
-    .yeni-kalem { display: flex; gap: 8px; margin-top: 10px; }
-    .yeni-kalem input { flex: 1; min-width: 0; }
+    /* Küçük satır içi ad kutusu + düğmeler ("Diğer…", kalem ayarları) */
+    .satir-ici { display: flex; gap: 8px; margin-top: 10px; }
+    .satir-ici .kutu { flex: 1; min-width: 0; }
     .kucuk-dugme {
       flex: none;
       padding: 0 14px;
@@ -282,13 +296,16 @@
       color: var(--buton-yazi);
       font-size: 15px;
       font-weight: 600;
-      font-family: inherit;
     }
-    .kucuk-dugme.ikincil { background: var(--arkaplan); color: var(--soluk); border: 1px solid var(--cizgi); }
+    .kucuk-dugme.ikincil { background: var(--arkaplan); color: var(--yazi); border: 1px solid var(--cizgi); font-weight: 500; }
+    .kucuk-dugme.tehlike { background: none; color: var(--hata); border: 1px solid var(--hata); font-weight: 500; }
+    .kucuk-dugme.tehlike.onay { background: var(--hata); color: #fff; }
 
     /* Kutuların altındaki küçük açıklama / hata yazıları */
-    .ipucu { font-size: 13px; color: var(--soluk); margin-top: 6px; min-height: 18px; }
-    .ipucu.hata { color: var(--hata); }
+    .ipucu { font-size: 13px; color: var(--soluk); margin-top: 6px; min-height: 18px; line-height: 1.4; }
+    .ipucu.hata, .durum.hata { color: var(--hata); }
+    .durum { font-size: 13px; color: var(--soluk); min-height: 18px; margin-top: 10px; line-height: 1.4; }
+    .durum.uyari { color: var(--uyari); }
 
     .buton {
       width: 100%;
@@ -299,9 +316,36 @@
       border-radius: 12px;
       background: var(--vurgu);
       color: var(--buton-yazi);
-      font-family: inherit;
     }
     .buton:active { opacity: .8; }
+
+    /* İkinci derece geniş düğme (Yedek al, Kalemleri düzenle…) */
+    .ikincil-dugme {
+      flex: 1;
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1px solid var(--cizgi);
+      background: var(--arkaplan);
+    }
+    .ikincil-dugme:active { opacity: .7; }
+    .dugme-satiri { display: flex; gap: 10px; margin-top: 12px; }
+
+    /* İki dokunuşla silme düğmesi: ilk dokunuşta kırmızıya döner */
+    .sil-dugmesi {
+      width: 100%;
+      margin-top: 10px;
+      padding: 13px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1px solid var(--hata);
+      background: none;
+      color: var(--hata);
+    }
+    .sil-dugmesi.onay { background: var(--hata); color: #fff; }
 
     /* "Kaydedildi" gibi kısa süreli bildirim balonu */
     .bildirim {
@@ -314,11 +358,170 @@
       padding: 10px 18px;
       border-radius: 20px;
       font-size: 14px;
+      max-width: calc(100% - 32px);
       opacity: 0;
       transition: opacity .3s;
       pointer-events: none;
     }
     .bildirim.goster { opacity: 1; z-index: 30; }
+
+    /* ---------- KAYIT LİSTESİ (Sürüm 0.3) ---------- */
+    .suzgec { margin-bottom: 12px; }
+    .suzgec .alan { margin: 10px 0 0; }
+    .ay-baslik { margin: 18px 4px 8px; }
+    .ay-baslik:first-child { margin-top: 0; }
+    .ay-baslik b { font-size: 15px; }
+    .ay-baslik small { display: block; font-size: 12px; color: var(--soluk); margin-top: 2px; }
+
+    .liste-kart {
+      background: var(--kart);
+      border: 1px solid var(--cizgi);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    /* Bir kayıt satırı (dokununca düzenleme açılır) */
+    .satir {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      background: none;
+      border: none;
+      border-top: 1px solid var(--cizgi);
+      text-align: left;
+    }
+    .satir:first-child { border-top: none; }
+    .satir:active { background: var(--arkaplan); }
+    .nokta { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+    .nokta.gider { background: var(--gider); }
+    .nokta.gelir { background: var(--gelir); }
+    .satir-orta { flex: 1; min-width: 0; }
+    .satir-ust { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .satir-alt {
+      font-size: 13px;
+      color: var(--soluk);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .satir-sag { flex: none; text-align: right; font-size: 16px; font-weight: 700; }
+
+    /* ---------- ÖZET (Sürüm 0.5) ---------- */
+    .ay-secici {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .ay-secici span { font-size: 17px; font-weight: 600; }
+    .ay-secici button {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--cizgi);
+      background: var(--kart);
+      font-size: 22px;
+      line-height: 1;
+    }
+    .ay-secici button:disabled { opacity: .3; }
+
+    /* Gruplara göre dağılım: her grup bir satır + çubuk; dokununca kalemleri açılır */
+    .dagilim-satir {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 8px 0;
+    }
+    .dagilim-ust { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; }
+    .dagilim-ust span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dagilim-ust span:last-child { flex: none; font-weight: 600; }
+    .dagilim-ust small { color: var(--soluk); font-weight: 400; }
+    .cubuk-zemin { height: 8px; border-radius: 4px; background: var(--arkaplan); margin-top: 6px; overflow: hidden; }
+    .cubuk { height: 100%; border-radius: 4px; }
+    .cubuk.gider { background: var(--gider); }
+    .cubuk.gelir { background: var(--gelir); }
+    .cubuk.vurgu { background: var(--vurgu); }
+    .dagilim-alt { padding: 0 0 6px 14px; border-left: 2px solid var(--cizgi); margin: 2px 0 6px 2px; }
+    .dagilim-alt .dagilim-ust { font-size: 14px; padding: 5px 0; }
+    .ok { color: var(--soluk); font-size: 12px; margin-left: 4px; }
+
+    /* Grafik (Sürüm 0.6) */
+    .lejant { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--soluk); margin: 2px 0 6px; }
+    .lejant span { display: inline-flex; align-items: center; gap: 6px; }
+    .lejant i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+    .grafik { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
+    .grafik text { font-size: 11px; fill: var(--soluk); font-family: inherit; }
+    .grafik .izgara { stroke: var(--cizgi); stroke-width: 1; }
+    .grafik .soluk { opacity: .35; }
+    .grafik-detay { font-size: 13px; min-height: 38px; line-height: 1.45; margin-top: 4px; }
+    .grafik-detay small { color: var(--soluk); font-size: 12px; }
+
+    /* ---------- BORÇ VE BİRİKİM (Sürüm 0.7 / 0.8) ---------- */
+    .hesap-kart { display: block; width: 100%; text-align: left; }
+    .hesap-kart:active { opacity: .8; }
+    .hesap-ust { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .hesap-ust b { font-size: 16px; min-width: 0; overflow-wrap: anywhere; }
+    .hesap-ust small { flex: none; color: var(--soluk); font-size: 12px; }
+    .hesap-kart .deger { font-size: 24px; margin-top: 6px; }
+    .bitti { color: var(--gelir); font-weight: 600; }
+    .toplam-satir { display: flex; justify-content: space-between; font-size: 15px; padding: 3px 0; }
+    .toplam-satir span:last-child { font-weight: 600; }
+    .hareket { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cizgi); }
+    .hareket:first-child { border-top: none; }
+    .hareket .satir-orta { font-size: 14px; }
+    .hareket .satir-alt { white-space: normal; }
+    .hareket-sil {
+      flex: none;
+      min-width: 34px; height: 34px;
+      padding: 0 8px;
+      border-radius: 17px;
+      border: 1px solid var(--cizgi);
+      background: none;
+      color: var(--soluk);
+      font-size: 13px;
+    }
+    .hareket-sil.onay { background: var(--hata); border-color: var(--hata); color: #fff; }
+    .bolum-baslik { font-size: 13px; color: var(--soluk); margin: 18px 0 6px; }
+
+    /* ---------- KALEM AYARLARI (Sürüm 0.4) ---------- */
+    .ayar-grup { border-top: 1px solid var(--cizgi); padding: 12px 0 6px; }
+    .ayar-grup:first-child { border-top: none; }
+    .ayar-grup-ust { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ayar-grup-ust b { font-size: 16px; }
+    .ayar-satir {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      padding: 10px 2px;
+      background: none;
+      border: none;
+      font-size: 15px;
+      text-align: left;
+    }
+    .ayar-satir span:last-child { color: var(--soluk); }
+    .gizli-yazi { color: var(--soluk); }
+    .gizli-yazi::after { content: " (gizli)"; font-size: 12px; }
+    .ayar-ekle {
+      background: none;
+      border: none;
+      color: var(--vurgu);
+      font-size: 15px;
+      padding: 8px 2px;
+    }
+    .ayar-duzenle {
+      background: var(--arkaplan);
+      border: 1px solid var(--cizgi);
+      border-radius: 12px;
+      padding: 10px;
+      margin: 4px 0 8px;
+    }
+    .ayar-duzenle .satir-ici { margin-top: 0; }
+    .ayar-duzenle .dugmeler { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .ayar-duzenle .kucuk-dugme { min-height: 40px; }
   </style>
 </head>
 <body>
@@ -334,36 +537,120 @@
 
   <main>
     <!-- ===================================================
-         BÖLÜM 4: SAYFA — ÖZET (ana sayfa)
-         Şimdilik bu ayın toplamları; ay/yıl seçimi ve dağılım Sürüm 0.5'te
+         BÖLÜM 4: SAYFA — ÖZET (Sürüm 0.5, grafik 0.6)
          =================================================== -->
     <section class="sayfa aktif" id="sayfa-ozet">
-      <div class="donem-adi" id="ozet-donem"></div>
+      <div class="secim secim-bosluk" id="gorunum-secim">
+        <input type="radio" name="gorunum" id="gorunum-ay" value="ay" checked><label for="gorunum-ay">Ay</label>
+        <input type="radio" name="gorunum" id="gorunum-yil" value="yil"><label for="gorunum-yil">Yıl</label>
+      </div>
+      <!-- Dönem seçici: ‹ Ekim 2026 › ya da ‹ 2026 › -->
+      <div class="ay-secici">
+        <button type="button" id="donem-geri" aria-label="Önceki dönem">‹</button>
+        <span id="donem-adi"></span>
+        <button type="button" id="donem-ileri" aria-label="Sonraki dönem">›</button>
+      </div>
+
       <div class="yan-yana">
         <div class="kart">
           <h2>Gelir</h2>
           <div class="deger gelir-renk" id="ozet-gelir">— ₺</div>
+          <div class="karsilastirma" id="ozet-gelir-fark"></div>
         </div>
         <div class="kart">
           <h2>Gider</h2>
           <div class="deger gider-renk" id="ozet-gider">— ₺</div>
+          <div class="karsilastirma" id="ozet-gider-fark"></div>
         </div>
       </div>
       <div class="kart">
         <h2>Kalan</h2>
         <div class="deger vurgu-renk" id="ozet-kalan">— ₺</div>
+        <div class="kart-alt" id="ozet-kalan-alt"></div>
       </div>
-      <p class="bilgi" id="ozet-bilgi">Kayıt eklemek için sağ alttaki + düğmesine dokun.</p>
+
+      <!-- Ay sonu gider tahmini: sadece içinde bulunulan ay seçiliyken -->
+      <div class="kart" id="kart-tahmin" hidden>
+        <h2>Ay sonu gider tahmini</h2>
+        <div class="deger" id="ozet-tahmin"></div>
+        <div class="kart-alt" id="ozet-tahmin-alt"></div>
+      </div>
+
+      <!-- Gruplara göre dağılım (gruba dokununca kalemleri açılır) -->
+      <div class="kart" id="kart-gider-dagilim" hidden>
+        <h2>Giderler</h2>
+        <div id="gider-dagilim"></div>
+      </div>
+      <div class="kart" id="kart-gelir-dagilim" hidden>
+        <h2>Gelirler</h2>
+        <div id="gelir-dagilim"></div>
+      </div>
+
+      <!-- Aylık gelir-gider grafiği (o yılın 12 ayı) -->
+      <div class="kart" id="kart-grafik" hidden>
+        <h2 id="grafik-baslik">Aylık gelir ve gider</h2>
+        <div class="lejant">
+          <span><i style="background:var(--gelir)"></i>Gelir</span>
+          <span><i style="background:var(--gider)"></i>Gider</span>
+        </div>
+        <svg class="grafik" id="grafik" role="img" aria-label="Aylık gelir ve gider grafiği"></svg>
+        <div class="grafik-detay" id="grafik-detay"></div>
+      </div>
+
+      <!-- Borç ve birikim kısa özeti (her zaman güncel durum) -->
+      <div class="yan-yana" id="ozet-hesaplar" hidden>
+        <button type="button" class="kart hesap-kart" id="ozet-borc-kart">
+          <h2>Kalan borç</h2>
+          <div class="kart-alt" id="ozet-borc"></div>
+        </button>
+        <button type="button" class="kart hesap-kart" id="ozet-birikim-kart">
+          <h2>Birikim</h2>
+          <div class="kart-alt" id="ozet-birikim"></div>
+        </button>
+      </div>
+
+      <p class="bilgi" id="ozet-bos">Kayıt eklemek için sağ alttaki + düğmesine dokun.</p>
     </section>
 
     <!-- ===================================================
-         BÖLÜM 5: SAYFA — KAYITLAR (Sürüm 0.3'te liste)
+         BÖLÜM 5: SAYFA — KAYITLAR (Sürüm 0.3)
          =================================================== -->
     <section class="sayfa" id="sayfa-kayitlar">
-      <div class="bos-liste">
-        <div class="buyuk-ikon">📋</div>
-        <h3 id="kayitlar-baslik">Henüz kayıt yok</h3>
-        <p class="bilgi">Gelir ve giderler burada aylara göre listelenecek (bir sonraki sürüm).</p>
+      <div class="suzgec" id="suzgec">
+        <div class="secim">
+          <input type="radio" name="suz-tip" id="suz-hepsi" value="hepsi" checked><label for="suz-hepsi">Tümü</label>
+          <input type="radio" name="suz-tip" id="suz-gider" value="gider"><label for="suz-gider">Gider</label>
+          <input type="radio" name="suz-tip" id="suz-gelir" value="gelir"><label for="suz-gelir">Gelir</label>
+        </div>
+        <div class="alan">
+          <select id="suz-grup" aria-label="Gruba göre süz"></select>
+        </div>
+      </div>
+      <!-- Liste JavaScript ile doldurulur: aylara göre gruplu, yeniden eskiye -->
+      <div id="kayit-listesi"></div>
+
+      <!-- Kalem ayarları (Sürüm 0.4) -->
+      <div class="kart" style="margin-top:18px">
+        <h2>Kalemler</h2>
+        <p class="bilgi">Kalem ve grupların adını değiştir, gizle, sil ya da yeni grup ekle.</p>
+        <div class="dugme-satiri">
+          <button type="button" class="ikincil-dugme" id="kalemleri-duzenle">Kalemleri düzenle</button>
+        </div>
+      </div>
+
+      <!-- Yedekleme ve Excel (Sürüm 0.9) -->
+      <div class="kart">
+        <h2>Yedekleme</h2>
+        <p class="bilgi" id="yedek-bilgi"></p>
+        <div class="dugme-satiri">
+          <button type="button" class="ikincil-dugme" id="yedek-al">Yedek al</button>
+          <button type="button" class="ikincil-dugme" id="yedek-yukle">Geri yükle</button>
+        </div>
+        <div class="dugme-satiri">
+          <button type="button" class="ikincil-dugme" id="csv-aktar">Excel'e aktar (CSV)</button>
+        </div>
+        <input type="file" id="yedek-dosya" accept=".json,application/json" hidden>
+        <div class="durum" id="yedek-durum"></div>
       </div>
     </section>
 
@@ -371,10 +658,15 @@
          BÖLÜM 6: SAYFA — BORÇ (Sürüm 0.7)
          =================================================== -->
     <section class="sayfa" id="sayfa-borc">
-      <div class="bos-liste">
+      <div class="kart" id="borc-toplam-kart" hidden>
+        <h2>Toplam kalan borç</h2>
+        <div id="borc-toplam"></div>
+      </div>
+      <div id="borc-listesi"></div>
+      <div class="bos-liste" id="borc-bos">
         <div class="buyuk-ikon">💳</div>
-        <h3>Borç takibi</h3>
-        <p class="bilgi">Borçlar, ödemeler ve kalan burada görünecek. TL, Euro, Dolar ya da gram altın olarak tutulabilecek.</p>
+        <h3>Henüz borç yok</h3>
+        <p class="bilgi">Yeni borç eklemek için + düğmesine dokun. TL, Euro, Dolar ya da gram altın (22 / 24 ayar) olarak tutulabilir.</p>
       </div>
     </section>
 
@@ -382,23 +674,27 @@
          BÖLÜM 7: SAYFA — BİRİKİM (Sürüm 0.8)
          =================================================== -->
     <section class="sayfa" id="sayfa-birikim">
-      <div class="bos-liste">
+      <div class="kart" id="birikim-toplam-kart" hidden>
+        <h2>Toplam birikim</h2>
+        <div id="birikim-toplam"></div>
+      </div>
+      <div id="birikim-listesi"></div>
+      <div class="bos-liste" id="birikim-bos">
         <div class="buyuk-ikon">🏦</div>
-        <h3>Birikim</h3>
-        <p class="bilgi">Birikim kutuları ve yatırma/çekme hareketleri burada görünecek. TL, Euro, Dolar ya da gram altın olarak tutulabilecek.</p>
+        <h3>Henüz birikim yok</h3>
+        <p class="bilgi">Yeni birikim kutusu eklemek için + düğmesine dokun. TL, Euro, Dolar ya da gram altın (22 / 24 ayar) olarak tutulabilir.</p>
       </div>
     </section>
   </main>
 
   <!-- ===================================================
-       BÖLÜM 8: AÇILIR PANEL — YENİ KAYIT (Sürüm 0.2)
-       + düğmesine basınca alttan kayarak açılır
+       BÖLÜM 8: AÇILIR PANEL — KAYIT (yeni / düzenleme)
        =================================================== -->
   <div class="perde" id="perde"></div>
-  <div class="panel" id="ekle-paneli" role="dialog" aria-modal="true" aria-labelledby="panel-baslik">
+  <div class="panel" id="kayit-paneli" role="dialog" aria-modal="true" aria-labelledby="kayit-panel-baslik">
     <div class="panel-ust">
-      <h2 id="panel-baslik">Yeni Kayıt</h2>
-      <button type="button" class="kapat" id="panel-kapat" aria-label="Kapat">✕</button>
+      <h2 id="kayit-panel-baslik">Yeni Kayıt</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
     </div>
 
     <form id="kayit-formu" novalidate>
@@ -423,10 +719,8 @@
         <div class="alan-baslik">Kalem</div>
         <div class="cipler" id="kalem-cipleri"></div>
         <!-- "Diğer…" seçilince açılır: yazılan ad bu gruba kalıcı kalem olarak eklenir -->
-        <div class="yeni-kalem" id="yeni-kalem" hidden>
-          <div class="alan" style="flex:1;margin:0">
-            <input type="text" id="f-yeni-kalem" maxlength="30" autocomplete="off" placeholder="Kalem adı">
-          </div>
+        <div class="satir-ici" id="yeni-kalem" hidden>
+          <input type="text" class="kutu" id="f-yeni-kalem" maxlength="30" autocomplete="off" placeholder="Kalem adı">
           <button type="button" class="kucuk-dugme" id="yeni-kalem-ekle">Ekle</button>
           <button type="button" class="kucuk-dugme ikincil" id="yeni-kalem-iptal" aria-label="Vazgeç">✕</button>
         </div>
@@ -439,7 +733,7 @@
         <input type="text" inputmode="decimal" id="f-tutar" class="tutar-kutusu" placeholder="0,00" autocomplete="off">
       </div>
 
-      <!-- Tarih ve saat (açılışta şu anki zamanla dolar) -->
+      <!-- Tarih ve saat (yeni kayıtta şu anki zamanla dolar) -->
       <div class="yan-yana">
         <div class="alan">
           <label for="f-tarih">Tarih</label>
@@ -459,11 +753,41 @@
 
       <button type="submit" class="buton">Kaydet</button>
       <div class="ipucu hata" id="form-hata"></div>
+      <!-- Sadece düzenlemede görünür. İlk dokunuşta onay ister, ikinci dokunuşta siler. -->
+      <button type="button" class="sil-dugmesi" id="kayit-sil" hidden>Kaydı sil</button>
     </form>
   </div>
 
   <!-- ===================================================
-       BÖLÜM 9: ALT SEKME ÇUBUĞU
+       BÖLÜM 9: AÇILIR PANEL — KALEM AYARLARI (Sürüm 0.4)
+       =================================================== -->
+  <div class="panel" id="kalem-paneli" role="dialog" aria-modal="true" aria-labelledby="kalem-panel-baslik">
+    <div class="panel-ust">
+      <h2 id="kalem-panel-baslik">Kalemler</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="secim secim-bosluk">
+      <input type="radio" name="ayar-tip" id="ayar-gider" value="gider" checked><label for="ayar-gider">Gider</label>
+      <input type="radio" name="ayar-tip" id="ayar-gelir" value="gelir"><label for="ayar-gelir">Gelir</label>
+    </div>
+    <p class="bilgi">Bir kaleme dokunarak adını değiştir, gizle ya da sil. Hazır kalemler silinmez, gizlenir. Eski kayıtlar silinen kalemle birlikte kaybolmaz.</p>
+    <div id="kalem-ayar-listesi"></div>
+  </div>
+
+  <!-- ===================================================
+       BÖLÜM 10: AÇILIR PANEL — BORÇ / BİRİKİM
+       İçeriği duruma göre JavaScript ile yazılır (yeni, düzenle, ayrıntı)
+       =================================================== -->
+  <div class="panel" id="hesap-paneli" role="dialog" aria-modal="true" aria-labelledby="hesap-panel-baslik">
+    <div class="panel-ust">
+      <h2 id="hesap-panel-baslik"></h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div id="hesap-panel-icerik"></div>
+  </div>
+
+  <!-- ===================================================
+       BÖLÜM 11: ALT SEKME ÇUBUĞU
        data-sayfa = açılacak sayfanın id'sinin sonu
        =================================================== -->
   <nav>
@@ -481,7 +805,7 @@
     </button>
   </nav>
 
-  <!-- Yüzen "Ekle" düğmesi (sağ alt köşe) -->
+  <!-- Yüzen "Ekle" düğmesi: açık sekmeye göre kayıt / borç / birikim kutusu ekler -->
   <button class="ekle-dugmesi" id="ekle-dugmesi" type="button" aria-label="Yeni kayıt ekle">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
       <path d="M12 5v14M5 12h14"/>
@@ -489,31 +813,13 @@
   </button>
 
   <!-- ===================================================
-       BÖLÜM 10: JAVASCRIPT (UYGULAMA MANTIĞI)
+       BÖLÜM 12: JAVASCRIPT (UYGULAMA MANTIĞI)
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "0.2";
+    const SURUM = "1.0";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
-
-    // --- Sekme geçişi ---
-    // Alttaki bir düğmeye basılınca ilgili sayfayı gösterir, diğerlerini gizler
-    function sayfaAc(ad, baslik) {
-      document.querySelectorAll(".sayfa").forEach(s => s.classList.remove("aktif"));
-      el("sayfa-" + ad).classList.add("aktif");
-
-      document.querySelectorAll("nav button").forEach(b => {
-        b.classList.toggle("aktif", b.dataset.sayfa === ad);
-      });
-
-      el("baslik").textContent = baslik;
-      window.scrollTo(0, 0);
-    }
-
-    document.querySelectorAll("nav button[data-sayfa]").forEach(buton => {
-      buton.addEventListener("click", () => sayfaAc(buton.dataset.sayfa, buton.dataset.baslik));
-    });
 
     // Safari'den verileri kendiliğinden silmemesini rica et
     if (navigator.storage && navigator.storage.persist) {
@@ -521,50 +827,153 @@
     }
 
     // =====================================================
-    // VERİ: KAYITLAR (Sürüm 0.2)
-    // Her kayıt: { id, tip: "gider"|"gelir", grup, grupAd, kalemId, kalemAd, tutar, tarih, saat, not }
-    // Kalemin ve grubun adı da saklanır: kalem sonradan silinse/adı değişse de eski kayıt okunur kalır.
+    // GENEL YARDIMCILAR
     // =====================================================
-    const KAYIT_ANAHTARI = "butceKayitlari_v1";
+    const tlBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const tamSayi = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 });
+    const AY_ADLARI = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
+                       "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    const ikiHane = n => String(n).padStart(2, "0");
+    const tl = n => tlBicim.format(n) + " ₺";
 
-    function kayitlariOku() {
-      try {
-        const veri = localStorage.getItem(KAYIT_ANAHTARI);
-        const liste = veri ? JSON.parse(veri) : [];
-        return Array.isArray(liste) ? liste : [];
-      } catch (e) {
-        console.error("Kayıtlar okunamadı:", e);
-        return [];
-      }
+    // HTML'e yazılacak metindeki özel karakterleri zararsız hale getirir
+    function guvenli(metin) {
+      return String(metin == null ? "" : metin).replace(/[&<>"']/g, c =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
-    function kayitlariYaz(kayitlar) {
-      try {
-        localStorage.setItem(KAYIT_ANAHTARI, JSON.stringify(kayitlar));
-        return true;
-      } catch (e) {
-        alert("Kayıt yapılamadı. Telefonda yer kalmamış olabilir.");
-        return false;
+    // Yazılan sayıyı çevirir:
+    // "32,15" → 32.15 | "32.15" → 32.15 | "1.234,56" → 1234.56 | "1.500" → 1500 | "1500" → 1500
+    function sayiyaCevir(metin) {
+      if (!metin) return NaN;
+      let s = String(metin).trim().replace(/\s/g, "").replace(/[₺€$]/g, "");
+      if (s.includes(",")) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+        s = s.replace(/\./g, "");          // nokta binlik ayırıcı olarak yazılmış
       }
+      if (!/^\d*\.?\d+$/.test(s)) return NaN;
+      return parseFloat(s);
     }
+    // Sayıyı kutuya geri yazarken: 1250.5 → "1250,5"
+    const kutuyaYaz = n => String(n).replace(".", ",");
+
+    function bugun() {
+      const s = new Date();
+      return s.getFullYear() + "-" + ikiHane(s.getMonth() + 1) + "-" + ikiHane(s.getDate());
+    }
+    function simdikiSaat() {
+      const s = new Date();
+      return ikiHane(s.getHours()) + ":" + ikiHane(s.getMinutes());
+    }
+    function buAy() { return bugun().slice(0, 7); }
+    // "2026-10" → bir ay ileri/geri
+    function ayKaydir(ay, fark) {
+      const [y, a] = ay.split("-").map(Number);
+      const t = new Date(y, a - 1 + fark, 1);
+      return t.getFullYear() + "-" + ikiHane(t.getMonth() + 1);
+    }
+    const ayYazisi = ay => AY_ADLARI[+ay.slice(5, 7) - 1] + " " + ay.slice(0, 4);
+    const kisaAy = ay => AY_ADLARI[+ay.slice(5, 7) - 1].slice(0, 3);
+    // "2026-10-15" → "15 Eki"
+    const kisaTarih = t => +t.slice(8, 10) + " " + kisaAy(t);
+    // "2026-10-15" → "15 Ekim 2026"
+    const uzunTarih = t => +t.slice(8, 10) + " " + AY_ADLARI[+t.slice(5, 7) - 1] + " " + t.slice(0, 4);
 
     // Benzersiz kimlik: zaman + rastgele ek (aynı milisaniyede iki kayıt çakışmasın)
     function yeniId(onEk) {
       return onEk + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     }
 
+    // Telefona (localStorage) okuma / yazma
+    function depoOku(anahtar, bos) {
+      try {
+        const v = localStorage.getItem(anahtar);
+        return v ? JSON.parse(v) : bos;
+      } catch (e) {
+        console.error("Okunamadı:", anahtar, e);
+        return bos;
+      }
+    }
+    function depoYaz(anahtar, veri) {
+      try {
+        localStorage.setItem(anahtar, JSON.stringify(veri));
+        return true;
+      } catch (e) {
+        alert("Kaydedilemedi. Telefonda yer kalmamış olabilir.");
+        return false;
+      }
+    }
+
+    // Ekranın altında kısa süreli bildirim balonu
+    const bildirim = document.createElement("div");
+    bildirim.className = "bildirim";
+    document.body.appendChild(bildirim);
+    function bildirimGoster(mesaj) {
+      bildirim.textContent = mesaj;
+      bildirim.classList.add("goster");
+      clearTimeout(bildirim.zamanlayici);
+      bildirim.zamanlayici = setTimeout(() => bildirim.classList.remove("goster"), 1800);
+    }
+
+    // İki dokunuşla onay: ilk dokunuşta düğme kırmızıya döner, 3 sn içinde ikinci dokunuş işi yapar
+    // (confirm() kullanılmaz: ana ekrandan açılan uygulamada çirkin görünür)
+    function ikiDokunus(dugme, onayYazisi, is) {
+      if (dugme.dataset.onay === "1") { is(); return; }
+      const eski = dugme.textContent;
+      dugme.dataset.onay = "1";
+      dugme.classList.add("onay");
+      dugme.textContent = onayYazisi;
+      clearTimeout(dugme.zamanlayici);
+      dugme.zamanlayici = setTimeout(() => {
+        dugme.dataset.onay = "";
+        dugme.classList.remove("onay");
+        dugme.textContent = eski;
+      }, 3000);
+    }
+
+    // =====================================================
+    // VERİ: KAYITLAR
+    // Her kayıt: { id, tip: "gider"|"gelir", grup, grupAd, kalemId, kalemAd, tutar, tarih, saat, not }
+    // Borç ödemesinden yazılan giderde ayrıca: borcId, odemeId
+    // Grubun ve kalemin adı da saklanır: kalem sonradan silinse de eski kayıt okunur kalır.
+    // =====================================================
+    const KAYIT_ANAHTARI = "butceKayitlari_v1";
+
+    function kayitlariOku() {
+      const liste = depoOku(KAYIT_ANAHTARI, []);
+      return Array.isArray(liste) ? liste : [];
+    }
+    const kayitlariYaz = kayitlar => depoYaz(KAYIT_ANAHTARI, kayitlar);
+
     function kayitEkle(kayit) {
       const kayitlar = kayitlariOku();
       kayit.id = yeniId("r");
       kayitlar.push(kayit);
+      return kayitlariYaz(kayitlar) ? kayit.id : null;
+    }
+    function kayitGuncelle(id, yeniBilgiler) {
+      const kayitlar = kayitlariOku();
+      const sira = kayitlar.findIndex(k => k.id === id);
+      if (sira === -1) return false;
+      kayitlar[sira] = { ...kayitlar[sira], ...yeniBilgiler, id: id };
       return kayitlariYaz(kayitlar);
+    }
+    function kayitSil(id) {
+      return kayitlariYaz(kayitlariOku().filter(k => k.id !== id));
+    }
+    // Tarih + saate göre eskiden yeniye
+    function siraliKayitlar() {
+      return kayitlariOku().sort((a, b) =>
+        (a.tarih + (a.saat || "") + a.id).localeCompare(b.tarih + (b.saat || "") + b.id));
     }
 
     // =====================================================
-    // VERİ: KALEMLER (Sürüm 0.2)
+    // VERİ: KALEMLER
     // Hazır liste koddadır; telefonda saklanan listeyle birleştirilir.
-    // Kullanıcının "Diğer…" ile eklediği kalemler (ozel: true) sadece telefonda durur.
+    // Kullanıcının eklediği kalem ve gruplar (ozel: true) sadece telefonda durur.
     // Kişiye/arabaya özel kalemler buraya YAZILMAZ, kullanıcı kendisi ekler.
+    // Hazır kalem/grup "silinmez", gizlenir (yoksa bir sonraki açılışta hazır listeden geri gelirdi).
     // =====================================================
     const KALEM_ANAHTARI = "butceKalemler_v1";
 
@@ -581,16 +990,20 @@
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
       gelir: [
-        { id: "gelirler",  ad: "Gelirler",      kalemler: [["maas", "Maaş"], ["emekli", "Emekli maaşı"], ["ozelders", "Özel ders"], ["kiragelir", "Kira geliri"]] },
+        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"], ["emekli", "Emekli maaşı"], ["ozelders", "Özel ders"], ["kiragelir", "Kira geliri"]] },
         { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
       ]
     };
+    // Borç ödemesi gider olarak yazılırken kullanılan kalem
+    const BORC_GIDER = { grup: "kredi", kalemId: "gider.kredi.kredi" };
 
-    // Hazır listeyi saklanan yapıya çevirir: kalem kimliği "grup.kalem" olur (gruplar arası çakışmasın)
+    // Hazır grubu saklanan yapıya çevirir: kalem kimliği "tip.grup.kalem" olur (gruplar arası çakışmasın)
     function hazirGrup(tip, g) {
       return {
         id: g.id,
         ad: g.ad,
+        ozel: false,
+        gizli: false,
         kalemler: g.kalemler.map(([id, ad]) => ({ id: tip + "." + g.id + "." + id, ad, ozel: false, gizli: false }))
       };
     }
@@ -598,21 +1011,21 @@
     // Kalemleri okur. Saklanan listede olmayan hazır grup/kalem varsa ekler
     // (sonraki sürümlerde yeni hazır kalem eklenirse telefona da gelsin diye).
     function kalemleriOku() {
-      let saklanan = null;
-      try { saklanan = JSON.parse(localStorage.getItem(KALEM_ANAHTARI)); } catch (e) {}
+      const saklanan = depoOku(KALEM_ANAHTARI, null);
       const sonuc = { gider: [], gelir: [] };
-
       ["gider", "gelir"].forEach(tip => {
         const eski = saklanan && Array.isArray(saklanan[tip]) ? saklanan[tip] : [];
-        const liste = eski.map(g => ({ ...g, kalemler: Array.isArray(g.kalemler) ? g.kalemler : [] }));
+        const liste = eski
+          .filter(g => g && typeof g.id === "string")
+          .map(g => ({ ...g, kalemler: Array.isArray(g.kalemler) ? g.kalemler.filter(k => k && typeof k.id === "string") : [] }));
         HAZIR_KALEMLER[tip].forEach((hg, sira) => {
           const hazir = hazirGrup(tip, hg);
-          const var_olan = liste.find(g => g.id === hazir.id);
-          if (!var_olan) {
+          const varOlan = liste.find(g => g.id === hazir.id);
+          if (!varOlan) {
             liste.splice(Math.min(sira, liste.length), 0, hazir);
           } else {
             hazir.kalemler.forEach(hk => {
-              if (!var_olan.kalemler.some(k => k.id === hk.id)) var_olan.kalemler.push(hk);
+              if (!varOlan.kalemler.some(k => k.id === hk.id)) varOlan.kalemler.push(hk);
             });
           }
         });
@@ -620,24 +1033,17 @@
       });
       return sonuc;
     }
+    const kalemleriYaz = kalemler => depoYaz(KALEM_ANAHTARI, kalemler);
 
-    function kalemleriYaz(kalemler) {
-      try {
-        localStorage.setItem(KALEM_ANAHTARI, JSON.stringify(kalemler));
-        return true;
-      } catch (e) {
-        alert("Kalem kaydedilemedi. Telefonda yer kalmamış olabilir.");
-        return false;
-      }
-    }
+    const kucukHarf = s => s.toLocaleLowerCase("tr-TR");
+    const adTemizle = s => String(s || "").trim().replace(/\s+/g, " ").slice(0, 30);
 
-    // Bir gruba kullanıcının yazdığı kalemi ekler. Aynı adda kalem varsa onu döndürür (çift olmasın).
+    // Bir gruba kalem ekler. Aynı adda kalem varsa onu döndürür (gizliyse yeniden gösterir).
     function ozelKalemEkle(tip, grupId, ad) {
       const kalemler = kalemleriOku();
       const grup = kalemler[tip].find(g => g.id === grupId);
       if (!grup) return null;
-      const kucuk = s => s.toLocaleLowerCase("tr-TR");
-      const ayni = grup.kalemler.find(k => kucuk(k.ad) === kucuk(ad));
+      const ayni = grup.kalemler.find(k => kucukHarf(k.ad) === kucukHarf(ad));
       if (ayni) {
         if (ayni.gizli) { ayni.gizli = false; kalemleriYaz(kalemler); }
         return ayni;
@@ -654,42 +1060,140 @@
       return sayi;
     }
 
-    // =====================================================
-    // SAYI VE TARİH YARDIMCILARI
-    // =====================================================
-    const tlBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const AY_ADLARI = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-                       "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-    const ikiHane = n => String(n).padStart(2, "0");
-
-    // Yazılan tutarı sayıya çevirir:
-    // "32,15" → 32.15 | "32.15" → 32.15 | "1.234,56" → 1234.56 | "1.500" → 1500 | "1500" → 1500
-    function sayiyaCevir(metin) {
-      if (!metin) return NaN;
-      let s = metin.trim().replace(/\s/g, "").replace(/₺/g, "");
-      if (s.includes(",")) {
-        s = s.replace(/\./g, "").replace(",", ".");
-      } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
-        s = s.replace(/\./g, "");          // nokta binlik ayırıcı olarak yazılmış
-      }
-      if (!/^\d*\.?\d+$/.test(s)) return NaN;
-      return parseFloat(s);
-    }
-
-    function bugun() {
-      const s = new Date();
-      return s.getFullYear() + "-" + ikiHane(s.getMonth() + 1) + "-" + ikiHane(s.getDate());
+    // Kaydın grup ve kalem adı: kalem hâlâ varsa güncel adı (adı değiştirilmiş olabilir), yoksa kayıttaki ad
+    function kayitAdlari(k, kalemler) {
+      const g = (kalemler[k.tip] || []).find(x => x.id === k.grup);
+      const kal = g && g.kalemler.find(x => x.id === k.kalemId);
+      return { grup: g ? g.ad : (k.grupAd || "—"), kalem: kal ? kal.ad : (k.kalemAd || "—") };
     }
 
     // =====================================================
-    // KAYIT FORMU (Sürüm 0.2)
+    // VERİ: BORÇ VE BİRİKİM (Sürüm 0.7 / 0.8)
+    // Borç: { id, ad, birim, toplam, not, odemeler: [ { id, tarih, miktar, not, kayitId } ] }
+    // Birikim: { id, ad, birim, not, hareketler: [ { id, tarih, miktar (+ yatırma / − çekme), not } ] }
+    // Birimler birbirine çevrilmez; toplamlar birim birim gösterilir.
+    // =====================================================
+    const BORC_ANAHTARI = "butceBorclar_v1";
+    const BIRIKIM_ANAHTARI = "butceBirikimler_v1";
+
+    const BIRIMLER = {
+      TL:      { ad: "TL",                   kisa: "₺" },
+      EUR:     { ad: "Euro",                 kisa: "€" },
+      USD:     { ad: "Dolar",                kisa: "$" },
+      ALTIN22: { ad: "Gram altın (22 ayar)", kisa: "gr 22 ayar", altin: true },
+      ALTIN24: { ad: "Gram altın (24 ayar)", kisa: "gr 24 ayar", altin: true }
+    };
+    const BIRIM_SIRASI = Object.keys(BIRIMLER);
+    const altinBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+    // 1250 TL → "1.250,00 ₺" | 12.5 ALTIN22 → "12,5 gr 22 ayar"
+    function miktarYazisi(n, birim) {
+      const b = BIRIMLER[birim] || BIRIMLER.TL;
+      return (b.altin ? altinBicim.format(n) : tlBicim.format(n)) + " " + b.kisa;
+    }
+
+    function borclariOku() {
+      const l = depoOku(BORC_ANAHTARI, []);
+      return Array.isArray(l) ? l.map(b => ({ ...b, odemeler: Array.isArray(b.odemeler) ? b.odemeler : [] })) : [];
+    }
+    const borclariYaz = l => depoYaz(BORC_ANAHTARI, l);
+    function birikimleriOku() {
+      const l = depoOku(BIRIKIM_ANAHTARI, []);
+      return Array.isArray(l) ? l.map(b => ({ ...b, hareketler: Array.isArray(b.hareketler) ? b.hareketler : [] })) : [];
+    }
+    const birikimleriYaz = l => depoYaz(BIRIKIM_ANAHTARI, l);
+
+    const yuvarla = n => Math.round(n * 1000) / 1000;
+    const odenen = b => yuvarla(b.odemeler.reduce((t, o) => t + (o.miktar || 0), 0));
+    const kalanBorc = b => yuvarla(Math.max(0, b.toplam - odenen(b)));
+    const bakiye = b => yuvarla(b.hareketler.reduce((t, h) => t + (h.miktar || 0), 0));
+
+    // Birim birim toplam: { TL: 1500, ALTIN22: 10 } → satırlar
+    function birimToplamlari(liste, deger) {
+      const t = {};
+      liste.forEach(x => { t[x.birim] = (t[x.birim] || 0) + deger(x); });
+      return BIRIM_SIRASI.filter(b => t[b] > 0.0001).map(b => ({ birim: b, miktar: yuvarla(t[b]) }));
+    }
+
+    // =====================================================
+    // SEKME GEÇİŞİ
+    // =====================================================
+    let aktifSayfa = "ozet";
+    function sayfaAc(ad) {
+      aktifSayfa = ad;
+      document.querySelectorAll(".sayfa").forEach(s => s.classList.remove("aktif"));
+      el("sayfa-" + ad).classList.add("aktif");
+      document.querySelectorAll("nav button").forEach(b => b.classList.toggle("aktif", b.dataset.sayfa === ad));
+      const buton = document.querySelector('nav button[data-sayfa="' + ad + '"]');
+      el("baslik").textContent = buton.dataset.baslik;
+      el("ekle-dugmesi").setAttribute("aria-label",
+        ad === "borc" ? "Yeni borç ekle" : ad === "birikim" ? "Yeni birikim ekle" : "Yeni kayıt ekle");
+      window.scrollTo(0, 0);
+      // Gizliyken çizilen grafiğin genişliği yanlış olur: Özet açılınca yeniden çiz
+      if (ad === "ozet") ozetGuncelle();
+    }
+    document.querySelectorAll("nav button[data-sayfa]").forEach(b =>
+      b.addEventListener("click", () => sayfaAc(b.dataset.sayfa)));
+
+    // + düğmesi: açık sekmeye göre
+    el("ekle-dugmesi").addEventListener("click", () => {
+      if (aktifSayfa === "borc") borcFormuAc(null);
+      else if (aktifSayfa === "birikim") birikimFormuAc(null);
+      else kayitPaneliAc(null);
+    });
+
+    // =====================================================
+    // PANELLER (aç / kapat)
+    // =====================================================
+    let acikPanel = null;
+    function panelAc(id) {
+      if (acikPanel && acikPanel !== id) el(acikPanel).classList.remove("acik");
+      acikPanel = id;
+      el(id).scrollTop = 0;
+      el(id).classList.add("acik");
+      el("perde").classList.add("acik");
+      document.body.classList.add("panel-acik");
+    }
+    function panelKapat() {
+      document.activeElement && document.activeElement.blur(); // klavyeyi kapat
+      if (acikPanel) el(acikPanel).classList.remove("acik");
+      acikPanel = null;
+      el("perde").classList.remove("acik");
+      document.body.classList.remove("panel-acik");
+    }
+    el("perde").addEventListener("click", panelKapat);   // karartmaya dokununca kapanır
+    document.querySelectorAll("[data-kapat]").forEach(b => b.addEventListener("click", panelKapat));
+
+    // =====================================================
+    // KAYIT FORMU (Sürüm 0.2, 0.3'te düzenleme ve silme)
     // Sıra: Gider/Gelir → grup → kalem (ya da "Diğer…" ile yeni kalem) → tutar → tarih/saat → not
     // =====================================================
     const form = el("kayit-formu");
     let seciliGrup = null;     // seçili grubun kimliği
     let seciliKalem = null;    // seçili kalemin kimliği
+    let duzenlenen = null;     // düzenlenen kayıt (yeni kayıtta null)
 
     const seciliTip = () => form.querySelector('input[name="tip"]:checked').value;
+
+    // Formda gösterilecek gruplar: gizli olmayanlar. Düzenlenen kaydın grubu/kalemi gizlenmiş ya da
+    // silinmişse o da gösterilir (kayıt bozulmadan kaydedilebilsin).
+    function formGruplari(tip) {
+      const tumu = kalemleriOku()[tip];
+      const gruplar = tumu.filter(g => !g.gizli).map(g => ({ ...g, kalemler: g.kalemler.filter(k => !k.gizli) }));
+      if (duzenlenen && duzenlenen.tip === tip) {
+        const asil = tumu.find(g => g.id === duzenlenen.grup);
+        let g = gruplar.find(x => x.id === duzenlenen.grup);
+        if (!g) {
+          g = { id: duzenlenen.grup, ad: asil ? asil.ad : duzenlenen.grupAd, kalemler: [], eski: !asil };
+          gruplar.push(g);
+        }
+        if (!g.kalemler.some(k => k.id === duzenlenen.kalemId)) {
+          const asilKalem = asil && asil.kalemler.find(k => k.id === duzenlenen.kalemId);
+          g.kalemler.push({ id: duzenlenen.kalemId, ad: asilKalem ? asilKalem.ad : duzenlenen.kalemAd });
+        }
+      }
+      return gruplar;
+    }
 
     function cipYap(yazi, secili, tiklaninca, ekSinif) {
       const b = document.createElement("button");
@@ -700,33 +1204,28 @@
       return b;
     }
 
-    // Grup çiplerini çizer
     function gruplariCiz() {
       const kutu = el("grup-cipleri");
       kutu.innerHTML = "";
-      kalemleriOku()[seciliTip()].filter(g => !g.gizli).forEach(g => {
-        kutu.appendChild(cipYap(g.ad, g.id === seciliGrup, () => grupSec(g.id)));
-      });
+      formGruplari(seciliTip()).forEach(g =>
+        kutu.appendChild(cipYap(g.ad, g.id === seciliGrup, () => grupSec(g.id))));
     }
 
-    // Seçili grubun kalem çiplerini çizer (gizli olanlar hariç, en çok kullanılan önde)
+    // Seçili grubun kalem çipleri (en çok kullanılan önde) + "Diğer…"
     function kalemleriCiz() {
-      const blok = el("kalem-blok");
       const kutu = el("kalem-cipleri");
       kutu.innerHTML = "";
-      const grup = kalemleriOku()[seciliTip()].find(g => g.id === seciliGrup);
-      blok.hidden = !grup;
+      const grup = formGruplari(seciliTip()).find(g => g.id === seciliGrup);
+      el("kalem-blok").hidden = !grup;
       if (!grup) return;
 
       const sayi = kullanimSayilari();
       const gorunen = grup.kalemler
         .map((k, sira) => ({ ...k, sira }))
-        .filter(k => !k.gizli)
         .sort((a, b) => (sayi[b.id] || 0) - (sayi[a.id] || 0) || a.sira - b.sira);
 
       gorunen.forEach(k => kutu.appendChild(cipYap(k.ad, k.id === seciliKalem, () => kalemSec(k.id))));
-      kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
-
+      if (!grup.eski) kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
       el("kalem-ipucu").textContent = gorunen.length ? "" : "Bu grupta henüz kalem yok. \"Diğer…\" ile ekleyebilirsin.";
     }
 
@@ -737,9 +1236,8 @@
       gruplariCiz();
       kalemleriCiz();
       // Grubun tek kalemi varsa (ör. Ev → Kira) onu kendiliğinden seç
-      const grup = kalemleriOku()[seciliTip()].find(g => g.id === id);
-      const gorunen = grup ? grup.kalemler.filter(k => !k.gizli) : [];
-      if (!seciliKalem && gorunen.length === 1) kalemSec(gorunen[0].id);
+      const grup = formGruplari(seciliTip()).find(g => g.id === id);
+      if (!seciliKalem && grup && grup.kalemler.length === 1) kalemSec(grup.kalemler[0].id);
     }
 
     function kalemSec(id) {
@@ -749,19 +1247,16 @@
       el("form-hata").textContent = "";
     }
 
-    // "Diğer…": ad yazma kutusunu açar
     function yeniKalemAc() {
       el("yeni-kalem").hidden = false;
       el("f-yeni-kalem").value = "";
       el("f-yeni-kalem").focus();
     }
-    function yeniKalemKapat() {
-      el("yeni-kalem").hidden = true;
-    }
+    function yeniKalemKapat() { el("yeni-kalem").hidden = true; }
 
     // Yazılan adı gruba kalıcı kalem olarak ekler ve seçer
     function yeniKalemKaydet() {
-      const ad = el("f-yeni-kalem").value.trim().replace(/\s+/g, " ");
+      const ad = adTemizle(el("f-yeni-kalem").value);
       if (!ad) { el("f-yeni-kalem").focus(); return; }
       const kalem = ozelKalemEkle(seciliTip(), seciliGrup, ad);
       if (kalem) {
@@ -775,12 +1270,10 @@
       if (olay.key === "Enter") { olay.preventDefault(); yeniKalemKaydet(); }
     });
 
-    // Bir tipte en son kullanılan grup (form açılınca o grup hazır seçili gelsin)
+    // Bir tipte en son kullanılan grup (yeni kayıtta o grup hazır seçili gelsin)
     function sonGrup(tip) {
-      const son = kayitlariOku().filter(k => k.tip === tip)
-        .sort((a, b) => (a.tarih + a.saat + a.id).localeCompare(b.tarih + b.saat + b.id)).pop();
-      const gruplar = kalemleriOku()[tip];
-      if (son && gruplar.some(g => g.id === son.grup && !g.gizli)) return son.grup;
+      const son = siraliKayitlar().filter(k => k.tip === tip).pop();
+      if (son && formGruplari(tip).some(g => g.id === son.grup)) return son.grup;
       return null;
     }
 
@@ -794,33 +1287,33 @@
     }
     form.querySelectorAll('input[name="tip"]').forEach(r => r.addEventListener("change", tipDegisti));
 
-    function formuSifirla() {
-      el("tip-gider").checked = true;
-      const simdi = new Date();
-      el("f-tarih").value = bugun();
-      el("f-saat").value = ikiHane(simdi.getHours()) + ":" + ikiHane(simdi.getMinutes());
-      el("f-tutar").value = "";
-      el("f-not").value = "";
-      tipDegisti();
+    // Paneli açar: kayit verilirse "düzenleme" modunda, o kaydın bilgileriyle
+    function kayitPaneliAc(kayit) {
+      duzenlenen = kayit || null;
+      el("kayit-panel-baslik").textContent = kayit ? "Kaydı Düzenle" : "Yeni Kayıt";
+      el("kayit-sil").hidden = !kayit;
+      el("form-hata").textContent = "";
+      if (kayit) {
+        el("tip-" + kayit.tip).checked = true;
+        seciliGrup = kayit.grup;
+        seciliKalem = kayit.kalemId;
+        yeniKalemKapat();
+        gruplariCiz();
+        kalemleriCiz();
+        el("f-tutar").value = kutuyaYaz(kayit.tutar);
+        el("f-tarih").value = kayit.tarih;
+        el("f-saat").value = kayit.saat || "";
+        el("f-not").value = kayit.not || "";
+      } else {
+        el("tip-gider").checked = true;
+        el("f-tarih").value = bugun();
+        el("f-saat").value = simdikiSaat();
+        el("f-tutar").value = "";
+        el("f-not").value = "";
+        tipDegisti();
+      }
+      panelAc("kayit-paneli");
     }
-
-    // --- Açılır panel ---
-    function paneliAc() {
-      formuSifirla();
-      el("ekle-paneli").scrollTop = 0;
-      el("ekle-paneli").classList.add("acik");
-      el("perde").classList.add("acik");
-      document.body.classList.add("panel-acik");
-    }
-    function paneliKapat() {
-      document.activeElement && document.activeElement.blur(); // klavyeyi kapat
-      el("ekle-paneli").classList.remove("acik");
-      el("perde").classList.remove("acik");
-      document.body.classList.remove("panel-acik");
-    }
-    el("ekle-dugmesi").addEventListener("click", paneliAc);
-    el("panel-kapat").addEventListener("click", paneliKapat);
-    el("perde").addEventListener("click", paneliKapat);   // karartmaya dokununca da kapanır
 
     // "Kaydet"
     form.addEventListener("submit", olay => {
@@ -828,8 +1321,7 @@
       const hataGoster = mesaj => { el("form-hata").textContent = mesaj; };
 
       const tip = seciliTip();
-      const kalemler = kalemleriOku()[tip];
-      const grup = kalemler.find(g => g.id === seciliGrup);
+      const grup = formGruplari(tip).find(g => g.id === seciliGrup);
       const kalem = grup && grup.kalemler.find(k => k.id === seciliKalem);
       const tutar = sayiyaCevir(el("f-tutar").value);
       const tarih = el("f-tarih").value;
@@ -852,56 +1344,1121 @@
         not: el("f-not").value.trim()
       };
 
-      if (kayitEkle(kayit)) {
-        paneliKapat();
-        bildirimGoster("✓ Kaydedildi");
+      const basarili = duzenlenen ? kayitGuncelle(duzenlenen.id, kayit) : kayitEkle(kayit);
+      if (basarili) {
+        const mesaj = duzenlenen ? "✓ Güncellendi" : "✓ Kaydedildi";
+        panelKapat();
+        bildirimGoster(mesaj);
         hepsiniGuncelle();
       }
     });
 
-    // Ekranın altında kısa süreli bildirim balonu
-    const bildirim = document.createElement("div");
-    bildirim.className = "bildirim";
-    document.body.appendChild(bildirim);
-    function bildirimGoster(mesaj) {
-      bildirim.textContent = mesaj;
-      bildirim.classList.add("goster");
-      clearTimeout(bildirim.zamanlayici);
-      bildirim.zamanlayici = setTimeout(() => bildirim.classList.remove("goster"), 1800);
-    }
+    el("kayit-sil").addEventListener("click", () => {
+      ikiDokunus(el("kayit-sil"), "Silmek için tekrar dokun", () => {
+        if (duzenlenen && kayitSil(duzenlenen.id)) {
+          panelKapat();
+          bildirimGoster("Kayıt silindi");
+          hepsiniGuncelle();
+        }
+      });
+    });
 
     // =====================================================
-    // ÖZET (geçici, Sürüm 0.2): bu ayın gelir, gider ve kalanı
-    // Ay/yıl seçimi, grup dağılımı ve karşılaştırma Sürüm 0.5'te
+    // KAYITLAR SAYFASI (Sürüm 0.3)
+    // Aylara göre gruplu, yeniden eskiye. Ay başlığında o ayın gelir / gider / kalanı.
+    // Süzme: Tümü / Gider / Gelir ve gruba göre.
     // =====================================================
+    let suzTip = "hepsi";
+    let suzGrup = "";        // "gider:mutfak" biçiminde; boşsa tüm gruplar
+
+    function grupSecenekleriniDoldur() {
+      const kalemler = kalemleriOku();
+      const kayitlar = kayitlariOku();
+      const secenekler = [];
+      ["gider", "gelir"].forEach(tip => {
+        if (suzTip !== "hepsi" && suzTip !== tip) return;
+        const gorulen = new Set();
+        kalemler[tip].forEach(g => {
+          if (g.gizli && !kayitlar.some(k => k.tip === tip && k.grup === g.id)) return;
+          gorulen.add(g.id);
+          secenekler.push({ deger: tip + ":" + g.id, ad: (suzTip === "hepsi" ? (tip === "gider" ? "Gider · " : "Gelir · ") : "") + g.ad });
+        });
+        // Silinmiş gruplardaki eski kayıtlar da süzülebilsin
+        kayitlar.filter(k => k.tip === tip && !gorulen.has(k.grup)).forEach(k => {
+          gorulen.add(k.grup);
+          secenekler.push({ deger: tip + ":" + k.grup, ad: (suzTip === "hepsi" ? (tip === "gider" ? "Gider · " : "Gelir · ") : "") + (k.grupAd || "—") });
+        });
+      });
+      if (!secenekler.some(s => s.deger === suzGrup)) suzGrup = "";
+      const kutu = el("suz-grup");
+      kutu.innerHTML = '<option value="">Tüm gruplar</option>' +
+        secenekler.map(s => '<option value="' + guvenli(s.deger) + '">' + guvenli(s.ad) + "</option>").join("");
+      kutu.value = suzGrup;
+    }
+
+    function listeGuncelle() {
+      grupSecenekleriniDoldur();
+      const kalemler = kalemleriOku();
+      const tumu = siraliKayitlar().reverse();
+      const kutu = el("kayit-listesi");
+      el("suzgec").hidden = !tumu.length;
+
+      if (!tumu.length) {
+        kutu.innerHTML = '<div class="bos-liste"><div class="buyuk-ikon">📋</div><h3>Henüz kayıt yok</h3>' +
+          '<p class="bilgi">Gelir ve gider eklemek için + düğmesine dokun.</p></div>';
+        return;
+      }
+
+      const liste = tumu.filter(k =>
+        (suzTip === "hepsi" || k.tip === suzTip) &&
+        (!suzGrup || (k.tip + ":" + k.grup) === suzGrup));
+      if (!liste.length) {
+        kutu.innerHTML = '<div class="bos-liste"><p class="bilgi">Bu süzgeçle eşleşen kayıt yok.</p></div>';
+        return;
+      }
+
+      // Aylara ayır (liste zaten yeniden eskiye sıralı)
+      const aylar = [];
+      liste.forEach(k => {
+        const ay = k.tarih.slice(0, 7);
+        if (!aylar.length || aylar[aylar.length - 1].ay !== ay) aylar.push({ ay, kayitlar: [] });
+        aylar[aylar.length - 1].kayitlar.push(k);
+      });
+
+      kutu.innerHTML = aylar.map(a => {
+        const gelir = a.kayitlar.filter(k => k.tip === "gelir").reduce((t, k) => t + k.tutar, 0);
+        const gider = a.kayitlar.filter(k => k.tip === "gider").reduce((t, k) => t + k.tutar, 0);
+        let ozet;
+        if (suzTip === "hepsi" && !suzGrup) {
+          ozet = "Gelir " + tl(gelir) + " · Gider " + tl(gider) + " · Kalan " + tl(gelir - gider);
+        } else {
+          ozet = a.kayitlar.length + " kayıt · toplam " + tl(gelir + gider);
+        }
+        const satirlar = a.kayitlar.map(k => {
+          const ad = kayitAdlari(k, kalemler);
+          const alt = [ad.grup, kisaTarih(k.tarih) + (k.saat ? " " + k.saat : ""), k.not].filter(Boolean).join(" · ");
+          return '<button type="button" class="satir" data-id="' + guvenli(k.id) + '">' +
+            '<span class="nokta ' + k.tip + '"></span>' +
+            '<div class="satir-orta"><div class="satir-ust">' + guvenli(ad.kalem) + '</div>' +
+            '<div class="satir-alt">' + guvenli(alt) + "</div></div>" +
+            '<div class="satir-sag ' + k.tip + '-renk">' + (k.tip === "gelir" ? "+" : "−") + tl(k.tutar) + "</div></button>";
+        }).join("");
+        return '<div class="ay-baslik"><b>' + ayYazisi(a.ay) + "</b><small>" + guvenli(ozet) + "</small></div>" +
+          '<div class="liste-kart">' + satirlar + "</div>";
+      }).join("");
+    }
+
+    // Satıra dokununca düzenleme paneli
+    el("kayit-listesi").addEventListener("click", olay => {
+      const satir = olay.target.closest(".satir");
+      if (!satir) return;
+      const kayit = kayitlariOku().find(k => k.id === satir.dataset.id);
+      if (kayit) kayitPaneliAc(kayit);
+    });
+    document.querySelectorAll('input[name="suz-tip"]').forEach(r => r.addEventListener("change", () => {
+      suzTip = document.querySelector('input[name="suz-tip"]:checked').value;
+      listeGuncelle();
+    }));
+    el("suz-grup").addEventListener("change", () => { suzGrup = el("suz-grup").value; listeGuncelle(); });
+
+    // =====================================================
+    // KALEM AYARLARI (Sürüm 0.4)
+    // Kalem / grup: adını değiştir, gizle-göster, sil (sadece kullanıcının eklediği), yeni ekle.
+    // Bir satıra dokununca altında küçük düzenleme kutusu açılır (aynı anda bir tane).
+    // Açık kutu anahtarı: "g:grup" (grup), "k:grup:kalem" (kalem), "yk:grup" (yeni kalem), "yg" (yeni grup)
+    // =====================================================
+    let ayarAcik = null;
+    const ayarTip = () => document.querySelector('input[name="ayar-tip"]:checked').value;
+
+    function ayarKutusu(anahtar, ad, secenekler) {
+      return '<div class="ayar-duzenle" data-anahtar="' + guvenli(anahtar) + '">' +
+        '<div class="satir-ici"><input type="text" class="kutu" id="ayar-ad" maxlength="30" autocomplete="off" value="' +
+        guvenli(ad) + '" placeholder="' + guvenli(secenekler.ipucu || "Ad") + '"></div>' +
+        '<div class="dugmeler">' +
+        '<button type="button" class="kucuk-dugme" data-islem="kaydet">Kaydet</button>' +
+        (secenekler.gizle != null ? '<button type="button" class="kucuk-dugme ikincil" data-islem="gizle">' +
+          (secenekler.gizle ? "Göster" : "Gizle") + "</button>" : "") +
+        (secenekler.sil ? '<button type="button" class="kucuk-dugme tehlike" data-islem="sil">Sil</button>' : "") +
+        '<button type="button" class="kucuk-dugme ikincil" data-islem="vazgec">Vazgeç</button>' +
+        '</div><div class="ipucu hata" id="ayar-hata"></div></div>';
+    }
+
+    function kalemAyarlariniCiz() {
+      const tip = ayarTip();
+      const kalemler = kalemleriOku()[tip];
+      const sayi = kullanimSayilari();
+      let html = "";
+      kalemler.forEach(g => {
+        html += '<div class="ayar-grup"><div class="ayar-grup-ust"><b class="' + (g.gizli ? "gizli-yazi" : "") + '">' +
+          guvenli(g.ad) + '</b><button type="button" class="ayar-ekle" data-ac="g:' + guvenli(g.id) + '">Grubu düzenle</button></div>';
+        if (ayarAcik === "g:" + g.id) {
+          html += ayarKutusu(ayarAcik, g.ad, { gizle: !!g.gizli, sil: !!g.ozel, ipucu: "Grup adı" });
+        }
+        g.kalemler.forEach(k => {
+          const anahtar = "k:" + g.id + ":" + k.id;
+          html += '<button type="button" class="ayar-satir" data-ac="' + guvenli(anahtar) + '"><span class="' +
+            (k.gizli ? "gizli-yazi" : "") + '">' + guvenli(k.ad) + "</span><span>" +
+            (sayi[k.id] ? sayi[k.id] + " kayıt " : "") + "›</span></button>";
+          if (ayarAcik === anahtar) html += ayarKutusu(anahtar, k.ad, { gizle: !!k.gizli, sil: !!k.ozel, ipucu: "Kalem adı" });
+        });
+        html += '<button type="button" class="ayar-ekle" data-ac="yk:' + guvenli(g.id) + '">+ Kalem ekle</button>';
+        if (ayarAcik === "yk:" + g.id) html += ayarKutusu(ayarAcik, "", { ipucu: "Yeni kalem adı" });
+        html += "</div>";
+      });
+      html += '<div class="ayar-grup"><button type="button" class="ayar-ekle" data-ac="yg">+ Yeni grup ekle</button>';
+      if (ayarAcik === "yg") html += ayarKutusu("yg", "", { ipucu: "Yeni grup adı" });
+      html += "</div>";
+      el("kalem-ayar-listesi").innerHTML = html;
+      const kutu = el("ayar-ad");
+      if (kutu && !kutu.value) kutu.focus();
+    }
+
+    function kalemPaneliAc() {
+      ayarAcik = null;
+      el("ayar-gider").checked = true;
+      kalemAyarlariniCiz();
+      panelAc("kalem-paneli");
+    }
+    el("kalemleri-duzenle").addEventListener("click", kalemPaneliAc);
+    document.querySelectorAll('input[name="ayar-tip"]').forEach(r => r.addEventListener("change", () => {
+      ayarAcik = null;
+      kalemAyarlariniCiz();
+    }));
+
+    // Kalem ayarı işlemi: anahtar ve işlem adına göre
+    function kalemAyarIslemi(anahtar, islem, dugme) {
+      const tip = ayarTip();
+      const kalemler = kalemleriOku();
+      const gruplar = kalemler[tip];
+      const parca = anahtar.split(":");
+      const hata = m => { el("ayar-hata").textContent = m; };
+      const bitir = mesaj => {
+        if (!kalemleriYaz(kalemler)) return;
+        ayarAcik = null;
+        kalemAyarlariniCiz();
+        hepsiniGuncelle();
+        if (mesaj) bildirimGoster(mesaj);
+      };
+
+      if (islem === "vazgec") { ayarAcik = null; kalemAyarlariniCiz(); return; }
+      const ad = adTemizle(el("ayar-ad").value);
+
+      if (parca[0] === "yg") {                           // yeni grup
+        if (!ad) return hata("Grup adı yazın.");
+        if (gruplar.some(g => kucukHarf(g.ad) === kucukHarf(ad))) return hata("Bu adda bir grup zaten var.");
+        gruplar.push({ id: yeniId("g"), ad, ozel: true, gizli: false, kalemler: [] });
+        return bitir("✓ Grup eklendi");
+      }
+
+      const grup = gruplar.find(g => g.id === parca[1]);
+      if (!grup) { ayarAcik = null; kalemAyarlariniCiz(); return; }
+
+      if (parca[0] === "yk") {                           // yeni kalem
+        if (!ad) return hata("Kalem adı yazın.");
+        if (grup.kalemler.some(k => kucukHarf(k.ad) === kucukHarf(ad))) return hata("Bu grupta aynı adda kalem var.");
+        grup.kalemler.push({ id: yeniId("k"), ad, ozel: true, gizli: false });
+        return bitir("✓ Kalem eklendi");
+      }
+
+      if (parca[0] === "g") {                            // grup düzenle
+        if (islem === "kaydet") {
+          if (!ad) return hata("Grup adı boş olamaz.");
+          if (gruplar.some(g => g !== grup && kucukHarf(g.ad) === kucukHarf(ad))) return hata("Bu adda bir grup zaten var.");
+          grup.ad = ad;
+          return bitir("✓ Kaydedildi");
+        }
+        if (islem === "gizle") { grup.gizli = !grup.gizli; return bitir(grup.gizli ? "Grup gizlendi" : "Grup gösteriliyor"); }
+        if (islem === "sil" && grup.ozel) {
+          return ikiDokunus(dugme, "Emin misin? Tekrar dokun", () => {
+            kalemler[tip] = gruplar.filter(g => g !== grup);
+            bitir("Grup silindi");
+          });
+        }
+        return;
+      }
+
+      if (parca[0] === "k") {                            // kalem düzenle
+        const kalem = grup.kalemler.find(k => k.id === parca[2]);
+        if (!kalem) return;
+        if (islem === "kaydet") {
+          if (!ad) return hata("Kalem adı boş olamaz.");
+          if (grup.kalemler.some(k => k !== kalem && kucukHarf(k.ad) === kucukHarf(ad))) return hata("Bu grupta aynı adda kalem var.");
+          kalem.ad = ad;
+          return bitir("✓ Kaydedildi");
+        }
+        if (islem === "gizle") { kalem.gizli = !kalem.gizli; return bitir(kalem.gizli ? "Kalem gizlendi" : "Kalem gösteriliyor"); }
+        if (islem === "sil" && kalem.ozel) {
+          return ikiDokunus(dugme, "Emin misin? Tekrar dokun", () => {
+            grup.kalemler = grup.kalemler.filter(k => k !== kalem);
+            bitir("Kalem silindi");
+          });
+        }
+      }
+    }
+
+    el("kalem-ayar-listesi").addEventListener("click", olay => {
+      const ac = olay.target.closest("[data-ac]");
+      if (ac) {
+        ayarAcik = ayarAcik === ac.dataset.ac ? null : ac.dataset.ac;
+        kalemAyarlariniCiz();
+        return;
+      }
+      const dugme = olay.target.closest("[data-islem]");
+      if (dugme) kalemAyarIslemi(dugme.closest(".ayar-duzenle").dataset.anahtar, dugme.dataset.islem, dugme);
+    });
+    el("kalem-ayar-listesi").addEventListener("keydown", olay => {
+      if (olay.key === "Enter" && olay.target.id === "ayar-ad") {
+        olay.preventDefault();
+        kalemAyarIslemi(olay.target.closest(".ayar-duzenle").dataset.anahtar, "kaydet");
+      }
+    });
+
+    // =====================================================
+    // ÖZET (Sürüm 0.5) + GRAFİK (Sürüm 0.6)
+    // Ay / Yıl görünümü, ‹ dönem › seçici, Gelir-Gider-Kalan, önceki döneme göre karşılaştırma,
+    // ay sonu gider tahmini, gruplara göre dağılım (gruba dokununca kalemler), aylık grafik.
+    // =====================================================
+    let gorunum = "ay";      // "ay" ya da "yil"
+    let seciliAy = buAy();   // "2026-10" (yıl görünümünde yıl buradan alınır)
+    const acikDagilim = new Set();   // açılmış gruplar: "gider:mutfak"
+
+    // Seçili dönem ve karşılaştırılacak önceki dönem.
+    // Yıl görünümünde bu yıl seçiliyse geçen yılın AYNI DÖNEMİ (Ocak–bu ay) ile karşılaştırılır.
+    function donemBilgisi() {
+      if (gorunum === "ay") {
+        const onceki = ayKaydir(seciliAy, -1);
+        return {
+          ad: ayYazisi(seciliAy),
+          icinde: k => k.tarih.startsWith(seciliAy),
+          oncekiIcinde: k => k.tarih.startsWith(onceki),
+          karsilastirmaAdi: "Geçen aya göre"
+        };
+      }
+      const yil = seciliAy.slice(0, 4);
+      const oncekiYil = String(+yil - 1);
+      const buYilMi = yil === buAy().slice(0, 4);
+      const sonAy = buAy().slice(5, 7);
+      return {
+        ad: yil,
+        icinde: k => k.tarih.startsWith(yil),
+        oncekiIcinde: k => k.tarih.startsWith(oncekiYil) && (!buYilMi || k.tarih.slice(5, 7) <= sonAy),
+        karsilastirmaAdi: buYilMi ? "Geçen yılın aynı dönemine göre" : "Geçen yıla göre"
+      };
+    }
+
+    // "Geçen aya göre ▲ %12 (+150,00 ₺)". Önceki dönemde kayıt yoksa boş.
+    function farkYazisi(simdi, onceki, d) {
+      if (!(onceki > 0) || !(simdi > 0)) return "";
+      const fark = simdi - onceki;
+      const yuzde = Math.round(Math.abs(fark) / onceki * 100);
+      if (yuzde === 0) return d.karsilastirmaAdi + ": <b>aynı</b>";
+      return d.karsilastirmaAdi + ": <b>" + (fark > 0 ? "▲ %" : "▼ %") + yuzde + "</b> (" +
+        (fark > 0 ? "+" : "−") + tl(Math.abs(fark)) + ")";
+    }
+
+    const toplaTip = (liste, tip) => liste.filter(k => k.tip === tip).reduce((t, k) => t + (k.tutar || 0), 0);
+
     function ozetGuncelle() {
-      const s = new Date();
-      const donem = s.getFullYear() + "-" + ikiHane(s.getMonth() + 1);
-      el("ozet-donem").textContent = AY_ADLARI[s.getMonth()] + " " + s.getFullYear();
+      const sirali = siraliKayitlar();
+      const kalemler = kalemleriOku();
+      const d = donemBilgisi();
+      const donem = sirali.filter(d.icinde);
+      const onceki = sirali.filter(d.oncekiIcinde);
 
-      const tumu = kayitlariOku();
-      const buAy = tumu.filter(k => (k.tarih || "").startsWith(donem));
-      const topla = tip => buAy.filter(k => k.tip === tip).reduce((t, k) => t + (k.tutar || 0), 0);
-      const gelir = topla("gelir");
-      const gider = topla("gider");
+      // Dönem başlığı ve oklar (ileri en fazla bu ay/yıl, geri en eski kayda kadar)
+      el("donem-adi").textContent = d.ad;
+      const enEskiAy = sirali.length ? sirali[0].tarih.slice(0, 7) : buAy();
+      if (gorunum === "ay") {
+        el("donem-ileri").disabled = seciliAy >= buAy();
+        el("donem-geri").disabled = seciliAy <= enEskiAy;
+      } else {
+        el("donem-ileri").disabled = seciliAy.slice(0, 4) >= buAy().slice(0, 4);
+        el("donem-geri").disabled = seciliAy.slice(0, 4) <= enEskiAy.slice(0, 4);
+      }
 
-      el("ozet-gelir").textContent = tlBicim.format(gelir) + " ₺";
-      el("ozet-gider").textContent = tlBicim.format(gider) + " ₺";
-      el("ozet-kalan").textContent = tlBicim.format(gelir - gider) + " ₺";
-      // Gider gelirden fazlaysa "Kalan" gider renginde yazılır
+      const gelir = toplaTip(donem, "gelir");
+      const gider = toplaTip(donem, "gider");
+      el("ozet-gelir").textContent = tl(gelir);
+      el("ozet-gider").textContent = tl(gider);
+      el("ozet-gelir-fark").innerHTML = farkYazisi(gelir, toplaTip(onceki, "gelir"), d);
+      el("ozet-gider-fark").innerHTML = farkYazisi(gider, toplaTip(onceki, "gider"), d);
+      el("ozet-kalan").textContent = tl(gelir - gider);
+      // Gider gelirden fazlaysa "Kalan" gider renginde
       el("ozet-kalan").className = "deger " + (gelir - gider < 0 ? "gider-renk" : "vurgu-renk");
-      el("ozet-bilgi").textContent = buAy.length
-        ? "Bu ay " + buAy.length + " kayıt var."
-        : "Kayıt eklemek için sağ alttaki + düğmesine dokun.";
+      el("ozet-kalan-alt").textContent = !donem.length
+        ? (gorunum === "ay" ? "Bu ayda kayıt yok." : "Bu yılda kayıt yok.")
+        : (gelir > 0 ? "Gelirden harcanan: %" + Math.round(gider / gelir * 100) + " · " : "") + donem.length + " kayıt";
 
-      el("kayitlar-baslik").textContent = tumu.length ? "Toplam " + tumu.length + " kayıt var" : "Henüz kayıt yok";
+      tahminGoster(sirali, gider);
+      dagilimCiz("gider", donem, kalemler);
+      dagilimCiz("gelir", donem, kalemler);
+      grafikCiz(sirali);
+      hesapOzetiGoster();
+      el("ozet-bos").hidden = sirali.length > 0;
     }
 
-    function hepsiniGuncelle() {
+    // -----------------------------------------------------
+    // AY SONU GİDER TAHMİNİ — sadece içinde bulunulan ay seçiliyken.
+    // Her kalem için: bu ay şimdiye kadar harcanan ile son 3 tam ayın aylık ortalamasından BÜYÜK olanı.
+    // Böylece kira gibi ayda bir ödenen kalem iki kez sayılmaz, market gibi kalemler de ayın kalanı için eklenir.
+    // Son 3 ayda hiç gider yoksa gösterilmez.
+    // -----------------------------------------------------
+    function tahminGoster(sirali, buAyGider) {
+      el("kart-tahmin").hidden = true;
+      if (gorunum !== "ay" || seciliAy !== buAy()) return;
+      const giderler = sirali.filter(k => k.tip === "gider");
+      const ucAy = [1, 2, 3].map(i => ayKaydir(seciliAy, -i));
+      const gecmis = giderler.filter(k => ucAy.includes(k.tarih.slice(0, 7)));
+      if (!gecmis.length) return;
+      // Kayıt tutulan ilk aydan önceki aylar ortalamaya katılmaz
+      const enEski = giderler[0].tarih.slice(0, 7);
+      const aySayisi = ucAy.filter(a => a >= enEski).length || 1;
+
+      const ortalama = {}, buAyKalem = {};
+      gecmis.forEach(k => { ortalama[k.kalemId] = (ortalama[k.kalemId] || 0) + k.tutar / aySayisi; });
+      giderler.filter(k => k.tarih.startsWith(seciliAy)).forEach(k => { buAyKalem[k.kalemId] = (buAyKalem[k.kalemId] || 0) + k.tutar; });
+      const kalemlerin = new Set([...Object.keys(ortalama), ...Object.keys(buAyKalem)]);
+      let tahmin = 0;
+      kalemlerin.forEach(id => { tahmin += Math.max(ortalama[id] || 0, buAyKalem[id] || 0); });
+
+      el("kart-tahmin").hidden = false;
+      el("ozet-tahmin").textContent = "≈ " + tamSayi.format(Math.round(tahmin / 10) * 10) + " ₺";
+      el("ozet-tahmin-alt").textContent = "Şu ana kadar " + tl(buAyGider) + ". Son " +
+        (aySayisi === 1 ? "ayın" : aySayisi + " ayın") + " kalem ortalamalarına göre.";
+    }
+
+    // -----------------------------------------------------
+    // GRUPLARA GÖRE DAĞILIM: her grup bir satır (tutar, yüzde, çubuk); dokununca kalemleri açılır
+    // -----------------------------------------------------
+    function dagilimCiz(tip, donem, kalemler) {
+      const liste = donem.filter(k => k.tip === tip);
+      el("kart-" + tip + "-dagilim").hidden = !liste.length;
+      if (!liste.length) { el(tip + "-dagilim").innerHTML = ""; return; }
+
+      const toplam = liste.reduce((t, k) => t + k.tutar, 0);
+      const gruplar = {};
+      liste.forEach(k => {
+        const ad = kayitAdlari(k, kalemler);
+        const g = gruplar[k.grup] || (gruplar[k.grup] = { id: k.grup, ad: ad.grup, tutar: 0, kalemler: {} });
+        g.tutar += k.tutar;
+        const kal = g.kalemler[k.kalemId] || (g.kalemler[k.kalemId] = { ad: ad.kalem, tutar: 0, sayi: 0 });
+        kal.tutar += k.tutar;
+        kal.sayi++;
+      });
+      const sirali = Object.values(gruplar).sort((a, b) => b.tutar - a.tutar);
+      const enCok = sirali[0].tutar;
+
+      el(tip + "-dagilim").innerHTML = sirali.map(g => {
+        const anahtar = tip + ":" + g.id;
+        const acik = acikDagilim.has(anahtar);
+        let html = '<button type="button" class="dagilim-satir" data-anahtar="' + guvenli(anahtar) + '" aria-expanded="' + acik + '">' +
+          '<div class="dagilim-ust"><span>' + guvenli(g.ad) + '<span class="ok">' + (acik ? "▾" : "▸") + "</span></span>" +
+          "<span>" + tl(g.tutar) + " <small>%" + Math.round(g.tutar / toplam * 100) + "</small></span></div>" +
+          '<div class="cubuk-zemin"><div class="cubuk ' + tip + '" style="width:' + Math.max(1, g.tutar / enCok * 100) + '%"></div></div></button>';
+        if (acik) {
+          html += '<div class="dagilim-alt">' + Object.values(g.kalemler).sort((a, b) => b.tutar - a.tutar).map(k =>
+            '<div class="dagilim-ust"><span>' + guvenli(k.ad) + (k.sayi > 1 ? " <small>(" + k.sayi + ")</small>" : "") +
+            "</span><span>" + tl(k.tutar) + "</span></div>").join("") + "</div>";
+        }
+        return html;
+      }).join("");
+    }
+    ["gider", "gelir"].forEach(tip => el(tip + "-dagilim").addEventListener("click", olay => {
+      const satir = olay.target.closest(".dagilim-satir");
+      if (!satir) return;
+      const a = satir.dataset.anahtar;
+      acikDagilim.has(a) ? acikDagilim.delete(a) : acikDagilim.add(a);
+      ozetGuncelle();
+    }));
+
+    // -----------------------------------------------------
+    // GRAFİK: seçili yılın 12 ayı, her ayda yan yana gelir (yeşil) ve gider (turuncu) çubuğu.
+    // Kütüphanesiz SVG, çevrimdışı da çalışır. Bir aya dokununca altında rakamları yazar.
+    // Ay görünümünde seçili ay baştan seçili gelir.
+    // -----------------------------------------------------
+    const SVG_NS = "http://www.w3.org/2000/svg";
+    const G_YUKSEKLIK = 180, G_SOL = 44, G_SAG = 8, G_UST = 10, G_ALT = 22;
+    const kisaSayi = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
+    let grafikSecim = null;   // "2026-03" gibi; null ise seçim yok
+
+    function guzelAdim(aralik) {
+      const ham = aralik / 3;
+      const us = Math.pow(10, Math.floor(Math.log10(ham)));
+      const oran = ham / us;
+      return (oran <= 1 ? 1 : oran <= 2 ? 2 : oran <= 2.5 ? 2.5 : oran <= 5 ? 5 : 10) * us;
+    }
+    function svgEleman(ad, ozellikler, ebeveyn) {
+      const e = document.createElementNS(SVG_NS, ad);
+      Object.entries(ozellikler).forEach(([k, v]) => e.setAttribute(k, v));
+      if (ebeveyn) ebeveyn.appendChild(e);
+      return e;
+    }
+    // Üstü yuvarlak çubuk
+    function cubukYolu(x, y, g, taban) {
+      const h = taban - y;
+      const r = Math.min(3, h / 2, g / 2);
+      return "M" + x + "," + taban + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y +
+        "H" + (x + g - r) + "Q" + (x + g) + "," + y + " " + (x + g) + "," + (y + r) + "V" + taban + "Z";
+    }
+
+    function grafikVerisi(sirali) {
+      const yil = seciliAy.slice(0, 4);
+      return Array.from({ length: 12 }, (_, i) => {
+        const ay = yil + "-" + ikiHane(i + 1);
+        const liste = sirali.filter(k => k.tarih.startsWith(ay));
+        return { ay, gelir: toplaTip(liste, "gelir"), gider: toplaTip(liste, "gider"), sayi: liste.length };
+      });
+    }
+
+    function grafikCiz(sirali) {
+      const veri = grafikVerisi(sirali);
+      const veriVar = veri.some(v => v.sayi > 0);
+      el("kart-grafik").hidden = !veriVar;
+      if (!veriVar) return;
+      if (grafikSecim && grafikSecim.slice(0, 4) !== seciliAy.slice(0, 4)) grafikSecim = null;
+      const secili = veri.findIndex(v => v.ay === grafikSecim);
+      el("grafik-baslik").textContent = "Aylık gelir ve gider (" + seciliAy.slice(0, 4) + ")";
+
+      const svg = el("grafik");
+      svg.innerHTML = "";
+      const G = Math.max(260, svg.clientWidth || svg.parentNode.clientWidth - 32 || 320);
+      svg.setAttribute("viewBox", "0 0 " + G + " " + G_YUKSEKLIK);
+      svg.setAttribute("height", G_YUKSEKLIK);
+      const enCok = Math.max(...veri.map(v => Math.max(v.gelir, v.gider)));
+      const adim = guzelAdim(enCok);
+      const ust = Math.ceil(enCok / adim) * adim;
+      const taban = G_YUKSEKLIK - G_ALT;
+      const yOlcek = v => taban - v / ust * (taban - G_UST);
+      const dilim = (G - G_SOL - G_SAG) / 12;
+      const xOrta = i => G_SOL + dilim * (i + 0.5);
+
+      for (let v = 0; v <= ust + adim / 1000; v += adim) {
+        svgEleman("line", { class: "izgara", x1: G_SOL, x2: G - G_SAG, y1: yOlcek(v), y2: yOlcek(v) }, svg);
+        const t = svgEleman("text", { x: G_SOL - 6, y: yOlcek(v) + 4, "text-anchor": "end" }, svg);
+        t.textContent = v >= 1000 ? kisaSayi.format(v / 1000) + " bin" : kisaSayi.format(v);
+      }
+      const g = Math.max(3, Math.min(11, dilim * 0.32));
+      veri.forEach((v, i) => {
+        const t = svgEleman("text", { x: xOrta(i), y: G_YUKSEKLIK - 6, "text-anchor": "middle" }, svg);
+        t.textContent = dilim >= 22 || i % 2 === 0 ? kisaAy(v.ay) : "";
+        const grup = svgEleman("g", secili >= 0 && i !== secili ? { class: "soluk" } : {}, svg);
+        if (v.gelir > 0) svgEleman("path", { d: cubukYolu(xOrta(i) - g - 1, Math.min(yOlcek(v.gelir), taban - 1), g, taban), fill: "var(--gelir)" }, grup);
+        if (v.gider > 0) svgEleman("path", { d: cubukYolu(xOrta(i) + 1, Math.min(yOlcek(v.gider), taban - 1), g, taban), fill: "var(--gider)" }, grup);
+      });
+
+      if (secili >= 0) {
+        const v = veri[secili];
+        el("grafik-detay").innerHTML = "<b>" + ayYazisi(v.ay) + "</b>" + (v.sayi
+          ? "<br><small>Gelir " + tl(v.gelir) + " · Gider " + tl(v.gider) + " · Kalan " + tl(v.gelir - v.gider) + "</small>"
+          : " · kayıt yok");
+      } else {
+        el("grafik-detay").innerHTML = "<small>Ayrıntı için bir aya dokun.</small>";
+      }
+    }
+
+    el("grafik").addEventListener("click", olay => {
+      const svg = olay.currentTarget;
+      const kutu = svg.getBoundingClientRect();
+      const G = svg.viewBox.baseVal.width || kutu.width;
+      const x = (olay.clientX - kutu.left) / kutu.width * G;
+      const i = Math.floor((x - G_SOL) / ((G - G_SOL - G_SAG) / 12));
+      if (i < 0 || i > 11) return;
+      const ay = seciliAy.slice(0, 4) + "-" + ikiHane(i + 1);
+      grafikSecim = grafikSecim === ay ? null : ay;   // aynı aya ikinci dokunuş seçimi kaldırır
+      grafikCiz(siraliKayitlar());
+    });
+
+    // Ekran döndürülünce grafik yeni genişliğe göre çizilsin
+    let boyutZamanlayici = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(boyutZamanlayici);
+      boyutZamanlayici = setTimeout(() => { if (aktifSayfa === "ozet") ozetGuncelle(); }, 150);
+    });
+
+    // Dönem okları: ay görünümünde bir ay, yıl görünümünde bir yıl kayar
+    function donemKaydir(fark) {
+      seciliAy = gorunum === "ay" ? ayKaydir(seciliAy, fark) : ayKaydir(seciliAy, fark * 12);
+      if (seciliAy > buAy()) seciliAy = buAy();
+      grafikSecim = gorunum === "ay" ? seciliAy : null;
       ozetGuncelle();
     }
+    el("donem-geri").addEventListener("click", () => donemKaydir(-1));
+    el("donem-ileri").addEventListener("click", () => donemKaydir(+1));
+    el("gorunum-secim").addEventListener("change", () => {
+      gorunum = el("gorunum-yil").checked ? "yil" : "ay";
+      grafikSecim = gorunum === "ay" ? seciliAy : null;
+      ozetGuncelle();
+    });
+    grafikSecim = seciliAy;
 
+    // Özet'teki borç / birikim kartları (güncel durum, dönemden bağımsız)
+    function hesapOzetiGoster() {
+      const borc = birimToplamlari(borclariOku(), kalanBorc);
+      const birikim = birimToplamlari(birikimleriOku(), bakiye);
+      el("ozet-hesaplar").hidden = !borclariOku().length && !birikimleriOku().length;
+      el("ozet-borc").textContent = borc.length ? borc.map(t => miktarYazisi(t.miktar, t.birim)).join("\n") : "Borç yok";
+      el("ozet-birikim").textContent = birikim.length ? birikim.map(t => miktarYazisi(t.miktar, t.birim)).join("\n") : "—";
+    }
+    el("ozet-borc-kart").addEventListener("click", () => sayfaAc("borc"));
+    el("ozet-birikim-kart").addEventListener("click", () => sayfaAc("birikim"));
+
+    // =====================================================
+    // BORÇ VE BİRİKİM SAYFALARI + PANELİ (Sürüm 0.7 / 0.8)
+    // Panel içeriği duruma göre yazılır; düğmeler data-islem ile çalışır.
+    // =====================================================
+    let hesapDurum = null;   // { tur: "borc"|"birikim", ekran: "form"|"detay", id }
+
+    function birimCipleri(secili, kilitli) {
+      return '<div class="cipler" id="h-birim">' + BIRIM_SIRASI.map(b =>
+        '<button type="button" class="cip' + (b === secili ? " secili" : "") + '" data-birim="' + b + '"' +
+        (kilitli && b !== secili ? " disabled" : "") + ">" + BIRIMLER[b].ad + "</button>").join("") + "</div>";
+    }
+    function toplamSatirlari(liste) {
+      return liste.map(t => '<div class="toplam-satir"><span>' + BIRIMLER[t.birim].ad + "</span><span>" +
+        miktarYazisi(t.miktar, t.birim) + "</span></div>").join("");
+    }
+
+    // --- Borç sayfası ---
+    function borcListesiCiz() {
+      const borclar = borclariOku();
+      el("borc-bos").hidden = borclar.length > 0;
+      const toplam = birimToplamlari(borclar, kalanBorc);
+      el("borc-toplam-kart").hidden = !borclar.length;
+      el("borc-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam) : '<div class="bitti">✓ Bütün borçlar bitti</div>';
+      // Bitmemiş borçlar önde
+      const sirali = borclar.slice().sort((a, b) => (kalanBorc(a) <= 0) - (kalanBorc(b) <= 0));
+      el("borc-listesi").innerHTML = sirali.map(b => {
+        const kalan = kalanBorc(b);
+        const oran = b.toplam > 0 ? Math.min(100, odenen(b) / b.toplam * 100) : 0;
+        return '<button type="button" class="kart hesap-kart" data-id="' + guvenli(b.id) + '">' +
+          '<div class="hesap-ust"><b>' + guvenli(b.ad) + "</b><small>" + BIRIMLER[b.birim].ad + "</small></div>" +
+          (kalan > 0
+            ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>"
+            : '<div class="deger bitti">✓ Bitti</div>') +
+          '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) + "</div>" +
+          '<div class="cubuk-zemin"><div class="cubuk gelir" style="width:' + oran + '%"></div></div></button>';
+      }).join("");
+    }
+    el("borc-listesi").addEventListener("click", olay => {
+      const k = olay.target.closest("[data-id]");
+      if (k) borcDetayAc(k.dataset.id);
+    });
+
+    function borcFormuAc(id) {
+      const b = id ? borclariOku().find(x => x.id === id) : null;
+      hesapDurum = { tur: "borc", ekran: "form", id: b ? b.id : null, birim: b ? b.birim : "TL" };
+      el("hesap-panel-baslik").textContent = b ? "Borcu Düzenle" : "Yeni Borç";
+      el("hesap-panel-icerik").innerHTML =
+        '<div class="alan"><label for="h-ad">Borç adı</label><input type="text" id="h-ad" maxlength="40" autocomplete="off" placeholder="Örn. Kredi kartı borcu" value="' + guvenli(b ? b.ad : "") + '"></div>' +
+        '<div class="alan"><div class="alan-baslik">Birim</div>' + birimCipleri(hesapDurum.birim, b && b.odemeler.length) +
+        (b && b.odemeler.length ? '<div class="ipucu">Ödeme girilmiş borcun birimi değiştirilemez.</div>' : "") + "</div>" +
+        '<div class="alan"><label for="h-miktar" id="h-miktar-etiket">Toplam borç</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0" value="' + (b ? kutuyaYaz(b.toplam) : "") + '"></div>' +
+        '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off" value="' + guvenli(b ? b.not || "" : "") + '"></div>' +
+        '<button type="button" class="buton" data-islem="borc-kaydet">Kaydet</button>' +
+        '<div class="ipucu hata" id="h-hata"></div>' +
+        (b ? '<button type="button" class="sil-dugmesi" data-islem="borc-sil">Borcu sil</button>' : "");
+      panelAc("hesap-paneli");
+    }
+
+    function borcDetayAc(id) {
+      const b = borclariOku().find(x => x.id === id);
+      if (!b) { panelKapat(); return; }
+      hesapDurum = { tur: "borc", ekran: "detay", id: b.id };
+      const kalan = kalanBorc(b);
+      const tlMi = b.birim === "TL";
+      el("hesap-panel-baslik").textContent = b.ad;
+      const odemeler = b.odemeler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id));
+      el("hesap-panel-icerik").innerHTML =
+        '<div class="kart" style="margin-bottom:6px"><h2>Kalan</h2>' +
+        (kalan > 0 ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>" : '<div class="deger bitti">✓ Bitti</div>') +
+        '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) +
+        (b.not ? "\n" + guvenli(b.not) : "") + "</div></div>" +
+        (kalan > 0
+          ? '<div class="bolum-baslik">Ödeme ekle</div>' +
+            '<div class="yan-yana"><div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[b.birim].kisa + ')</label><input type="text" inputmode="decimal" id="h-miktar" autocomplete="off" placeholder="0"></div>' +
+            '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div></div>' +
+            '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off"></div>' +
+            (tlMi ? '<label class="onay-kutusu"><input type="checkbox" id="h-gider">Gider olarak da kaydet (Kredi ve kart → Kredi)</label>' : "") +
+            '<button type="button" class="buton" data-islem="odeme-ekle">Ödemeyi kaydet</button>' +
+            '<div class="ipucu hata" id="h-hata"></div>'
+          : "") +
+        '<div class="bolum-baslik">Ödemeler</div>' +
+        (odemeler.length ? odemeler.map(o =>
+          '<div class="hareket"><div class="satir-orta"><b>' + miktarYazisi(o.miktar, b.birim) + "</b>" +
+          '<div class="satir-alt">' + guvenli([uzunTarih(o.tarih), o.not, o.kayitId ? "gider olarak da yazıldı" : ""].filter(Boolean).join(" · ")) + "</div></div>" +
+          '<button type="button" class="hareket-sil" data-islem="odeme-sil" data-hid="' + guvenli(o.id) + '" aria-label="Ödemeyi sil">✕</button></div>').join("")
+          : '<p class="bilgi">Henüz ödeme yok.</p>') +
+        '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-islem="borc-duzenle">Borcu düzenle</button></div>';
+      panelAc("hesap-paneli");
+    }
+
+    // --- Birikim sayfası ---
+    function birikimListesiCiz() {
+      const liste = birikimleriOku();
+      el("birikim-bos").hidden = liste.length > 0;
+      const toplam = birimToplamlari(liste, bakiye);
+      el("birikim-toplam-kart").hidden = !liste.length;
+      el("birikim-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam) : '<p class="bilgi">Kutularda henüz birikim yok.</p>';
+      el("birikim-listesi").innerHTML = liste.map(b => {
+        const son = b.hareketler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id))[0];
+        return '<button type="button" class="kart hesap-kart" data-id="' + guvenli(b.id) + '">' +
+          '<div class="hesap-ust"><b>' + guvenli(b.ad) + "</b><small>" + BIRIMLER[b.birim].ad + "</small></div>" +
+          '<div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
+          '<div class="kart-alt">' + (son ? "Son hareket: " + uzunTarih(son.tarih) + " (" + (son.miktar > 0 ? "+" : "−") +
+            miktarYazisi(Math.abs(son.miktar), b.birim) + ")" : "Henüz hareket yok") + "</div></button>";
+      }).join("");
+    }
+    el("birikim-listesi").addEventListener("click", olay => {
+      const k = olay.target.closest("[data-id]");
+      if (k) birikimDetayAc(k.dataset.id);
+    });
+
+    function birikimFormuAc(id) {
+      const b = id ? birikimleriOku().find(x => x.id === id) : null;
+      hesapDurum = { tur: "birikim", ekran: "form", id: b ? b.id : null, birim: b ? b.birim : "TL" };
+      el("hesap-panel-baslik").textContent = b ? "Birikimi Düzenle" : "Yeni Birikim";
+      el("hesap-panel-icerik").innerHTML =
+        '<div class="alan"><label for="h-ad">Ad</label><input type="text" id="h-ad" maxlength="40" autocomplete="off" placeholder="Örn. Banka hesabı" value="' + guvenli(b ? b.ad : "") + '"></div>' +
+        '<div class="alan"><div class="alan-baslik">Birim</div>' + birimCipleri(hesapDurum.birim, b && b.hareketler.length) +
+        (b && b.hareketler.length ? '<div class="ipucu">Hareket girilmiş kutunun birimi değiştirilemez.</div>' : "") + "</div>" +
+        (b ? "" : '<div class="alan"><label for="h-miktar" id="h-miktar-etiket">Şu anki miktar (isteğe bağlı)</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0"></div>') +
+        '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off" value="' + guvenli(b ? b.not || "" : "") + '"></div>' +
+        '<button type="button" class="buton" data-islem="birikim-kaydet">Kaydet</button>' +
+        '<div class="ipucu hata" id="h-hata"></div>' +
+        (b ? '<button type="button" class="sil-dugmesi" data-islem="birikim-sil">Birikimi sil</button>' : "");
+      panelAc("hesap-paneli");
+    }
+
+    function birikimDetayAc(id) {
+      const b = birikimleriOku().find(x => x.id === id);
+      if (!b) { panelKapat(); return; }
+      hesapDurum = { tur: "birikim", ekran: "detay", id: b.id };
+      el("hesap-panel-baslik").textContent = b.ad;
+      const hareketler = b.hareketler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id));
+      el("hesap-panel-icerik").innerHTML =
+        '<div class="kart" style="margin-bottom:6px"><h2>Bakiye</h2><div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
+        (b.not ? '<div class="kart-alt">' + guvenli(b.not) + "</div>" : "") + "</div>" +
+        '<div class="bolum-baslik">Hareket ekle</div>' +
+        '<div class="secim secim-bosluk"><input type="radio" name="h-yon" id="h-yatir" value="yatir" checked><label for="h-yatir">Yatır</label>' +
+        '<input type="radio" name="h-yon" id="h-cek" value="cek"><label for="h-cek">Çek</label></div>' +
+        '<div class="yan-yana"><div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[b.birim].kisa + ')</label><input type="text" inputmode="decimal" id="h-miktar" autocomplete="off" placeholder="0"></div>' +
+        '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div></div>' +
+        '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off"></div>' +
+        '<button type="button" class="buton" data-islem="hareket-ekle">Kaydet</button>' +
+        '<div class="ipucu hata" id="h-hata"></div>' +
+        '<div class="bolum-baslik">Hareketler</div>' +
+        (hareketler.length ? hareketler.map(h =>
+          '<div class="hareket"><div class="satir-orta"><b class="' + (h.miktar > 0 ? "gelir-renk" : "gider-renk") + '">' +
+          (h.miktar > 0 ? "+" : "−") + miktarYazisi(Math.abs(h.miktar), b.birim) + "</b>" +
+          '<div class="satir-alt">' + guvenli([uzunTarih(h.tarih), h.not].filter(Boolean).join(" · ")) + "</div></div>" +
+          '<button type="button" class="hareket-sil" data-islem="hareket-sil" data-hid="' + guvenli(h.id) + '" aria-label="Hareketi sil">✕</button></div>').join("")
+          : '<p class="bilgi">Henüz hareket yok.</p>') +
+        '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-islem="birikim-duzenle">Birikimi düzenle</button></div>';
+      panelAc("hesap-paneli");
+    }
+
+    // Panel içindeki bütün düğmeler
+    el("hesap-panel-icerik").addEventListener("click", olay => {
+      const birimDugme = olay.target.closest("[data-birim]");
+      if (birimDugme && !birimDugme.disabled) {
+        hesapDurum.birim = birimDugme.dataset.birim;
+        el("h-birim").querySelectorAll(".cip").forEach(c => c.classList.toggle("secili", c === birimDugme));
+        return;
+      }
+      const dugme = olay.target.closest("[data-islem]");
+      if (dugme) hesapIslemi(dugme.dataset.islem, dugme);
+    });
+
+    function hesapIslemi(islem, dugme) {
+      const hata = m => { const h = el("h-hata"); if (h) h.textContent = m; };
+      const deger = id => (el(id) ? el(id).value : "");
+      const yenile = mesaj => {
+        hepsiniGuncelle();
+        if (mesaj) bildirimGoster(mesaj);
+      };
+
+      // ---- Borç ----
+      if (islem === "borc-kaydet") {
+        const ad = deger("h-ad").trim().replace(/\s+/g, " ");
+        const toplam = sayiyaCevir(deger("h-miktar"));
+        if (!ad) return hata("Borç adını yazın.");
+        if (!(toplam > 0)) return hata("Toplam borcu girin.");
+        const borclar = borclariOku();
+        if (hesapDurum.id) {
+          const b = borclar.find(x => x.id === hesapDurum.id);
+          if (!b) return panelKapat();
+          if (toplam < odenen(b)) return hata("Toplam, ödenenden (" + miktarYazisi(odenen(b), b.birim) + ") az olamaz.");
+          Object.assign(b, { ad, toplam: yuvarla(toplam), not: deger("h-not").trim() });
+          if (!b.odemeler.length) b.birim = hesapDurum.birim;
+          if (!borclariYaz(borclar)) return;
+          yenile("✓ Kaydedildi");
+          return borcDetayAc(b.id);
+        }
+        borclar.push({ id: yeniId("b"), ad, birim: hesapDurum.birim, toplam: yuvarla(toplam), not: deger("h-not").trim(), odemeler: [] });
+        if (!borclariYaz(borclar)) return;
+        panelKapat();
+        return yenile("✓ Borç eklendi");
+      }
+      if (islem === "borc-duzenle") return borcFormuAc(hesapDurum.id);
+      if (islem === "borc-sil") {
+        return ikiDokunus(dugme, "Silmek için tekrar dokun", () => {
+          if (!borclariYaz(borclariOku().filter(x => x.id !== hesapDurum.id))) return;
+          panelKapat();
+          yenile("Borç silindi");
+        });
+      }
+      if (islem === "odeme-ekle") {
+        const borclar = borclariOku();
+        const b = borclar.find(x => x.id === hesapDurum.id);
+        if (!b) return panelKapat();
+        const miktar = sayiyaCevir(deger("h-miktar"));
+        const tarih = deger("h-tarih");
+        if (!(miktar > 0)) return hata("Ödeme miktarını girin.");
+        if (!tarih) return hata("Tarih girin.");
+        if (miktar > kalanBorc(b) + 0.001) return hata("Ödeme kalan borçtan (" + miktarYazisi(kalanBorc(b), b.birim) + ") fazla olamaz.");
+        const odeme = { id: yeniId("o"), tarih, miktar: yuvarla(miktar), not: deger("h-not").trim() };
+        // İstenirse aynı tutar gider olarak da yazılır (sadece TL borçta)
+        if (b.birim === "TL" && el("h-gider") && el("h-gider").checked) {
+          const grup = kalemleriOku().gider.find(g => g.id === BORC_GIDER.grup);
+          const kalem = grup && grup.kalemler.find(k => k.id === BORC_GIDER.kalemId);
+          const kayitId = kayitEkle({
+            tip: "gider", grup: BORC_GIDER.grup, grupAd: grup ? grup.ad : "Kredi ve kart",
+            kalemId: BORC_GIDER.kalemId, kalemAd: kalem ? kalem.ad : "Kredi",
+            tutar: Math.round(miktar * 100) / 100, tarih, saat: simdikiSaat(),
+            not: ("Borç ödemesi: " + b.ad + (odeme.not ? " · " + odeme.not : "")).slice(0, 100),
+            borcId: b.id, odemeId: odeme.id
+          });
+          if (kayitId) odeme.kayitId = kayitId;
+        }
+        b.odemeler.push(odeme);
+        if (!borclariYaz(borclar)) return;
+        yenile(kalanBorc(b) <= 0 ? "✓ Borç bitti!" : "✓ Ödeme kaydedildi");
+        return borcDetayAc(b.id);
+      }
+      if (islem === "odeme-sil") {
+        return ikiDokunus(dugme, "Sil?", () => {
+          const borclar = borclariOku();
+          const b = borclar.find(x => x.id === hesapDurum.id);
+          if (!b) return;
+          const o = b.odemeler.find(x => x.id === dugme.dataset.hid);
+          b.odemeler = b.odemeler.filter(x => x !== o);
+          if (!borclariYaz(borclar)) return;
+          // Bu ödemeyle birlikte yazılan gider kaydı da silinir
+          if (o && o.kayitId) kayitSil(o.kayitId);
+          yenile("Ödeme silindi");
+          borcDetayAc(b.id);
+        });
+      }
+
+      // ---- Birikim ----
+      if (islem === "birikim-kaydet") {
+        const ad = deger("h-ad").trim().replace(/\s+/g, " ");
+        if (!ad) return hata("Ad yazın.");
+        const liste = birikimleriOku();
+        if (hesapDurum.id) {
+          const b = liste.find(x => x.id === hesapDurum.id);
+          if (!b) return panelKapat();
+          Object.assign(b, { ad, not: deger("h-not").trim() });
+          if (!b.hareketler.length) b.birim = hesapDurum.birim;
+          if (!birikimleriYaz(liste)) return;
+          yenile("✓ Kaydedildi");
+          return birikimDetayAc(b.id);
+        }
+        const ilk = deger("h-miktar").trim() ? sayiyaCevir(deger("h-miktar")) : 0;
+        if (isNaN(ilk) || ilk < 0) return hata("Miktarı kontrol edin.");
+        const yeni = { id: yeniId("s"), ad, birim: hesapDurum.birim, not: deger("h-not").trim(), hareketler: [] };
+        if (ilk > 0) yeni.hareketler.push({ id: yeniId("h"), tarih: bugun(), miktar: yuvarla(ilk), not: "Başlangıç" });
+        liste.push(yeni);
+        if (!birikimleriYaz(liste)) return;
+        panelKapat();
+        return yenile("✓ Birikim eklendi");
+      }
+      if (islem === "birikim-duzenle") return birikimFormuAc(hesapDurum.id);
+      if (islem === "birikim-sil") {
+        return ikiDokunus(dugme, "Silmek için tekrar dokun", () => {
+          if (!birikimleriYaz(birikimleriOku().filter(x => x.id !== hesapDurum.id))) return;
+          panelKapat();
+          yenile("Birikim silindi");
+        });
+      }
+      if (islem === "hareket-ekle") {
+        const liste = birikimleriOku();
+        const b = liste.find(x => x.id === hesapDurum.id);
+        if (!b) return panelKapat();
+        const miktar = sayiyaCevir(deger("h-miktar"));
+        const tarih = deger("h-tarih");
+        const cek = el("h-cek").checked;
+        if (!(miktar > 0)) return hata("Miktarı girin.");
+        if (!tarih) return hata("Tarih girin.");
+        if (cek && miktar > bakiye(b) + 0.001) return hata("Çekilen miktar bakiyeden (" + miktarYazisi(bakiye(b), b.birim) + ") fazla olamaz.");
+        b.hareketler.push({ id: yeniId("h"), tarih, miktar: yuvarla(cek ? -miktar : miktar), not: deger("h-not").trim() });
+        if (!birikimleriYaz(liste)) return;
+        yenile(cek ? "✓ Çekim kaydedildi" : "✓ Yatırma kaydedildi");
+        return birikimDetayAc(b.id);
+      }
+      if (islem === "hareket-sil") {
+        return ikiDokunus(dugme, "Sil?", () => {
+          const liste = birikimleriOku();
+          const b = liste.find(x => x.id === hesapDurum.id);
+          if (!b) return;
+          b.hareketler = b.hareketler.filter(x => x.id !== dugme.dataset.hid);
+          if (!birikimleriYaz(liste)) return;
+          yenile("Hareket silindi");
+          birikimDetayAc(b.id);
+        });
+      }
+    }
+    el("hesap-panel-icerik").addEventListener("keydown", olay => {
+      if (olay.key !== "Enter" || olay.target.tagName !== "INPUT") return;
+      olay.preventDefault();
+      const ana = el("hesap-panel-icerik").querySelector(".buton[data-islem]");
+      if (ana) ana.click();
+    });
+
+    // =====================================================
+    // YEDEKLEME VE EXCEL (Sürüm 0.9)
+    // Yedek al: kayıtlar + kalemler + borçlar + birikimler tek JSON dosyasına yazılır,
+    //           iPhone paylaşım menüsü açılır ("Dosyalara Kaydet"). Paylaşım yoksa indirilir.
+    // Geri yükle: dosyadakiler mevcut verilere EKLENİR. Aynı kimlikli olan tekrar eklenmez,
+    //             hiçbir şey silinmez.
+    // Excel: kayıtlar CSV olarak (Türkçe Excel biçimi: ";" ayırıcı, ondalık virgül, GG.AA.YYYY).
+    // =====================================================
+    const SON_YEDEK_ANAHTARI = "butceSonYedek_v1";
+
+    function yedekDurum(mesaj, tur) {
+      el("yedek-durum").textContent = mesaj;
+      el("yedek-durum").className = "durum" + (tur ? " " + tur : "");
+    }
+
+    function yedekBilgisiGoster() {
+      const son = depoOku(SON_YEDEK_ANAHTARI, null);
+      const sayi = kayitlariOku().length;
+      let yazi = sayi + " kayıt, " + borclariOku().length + " borç, " + birikimleriOku().length + " birikim telefonda. ";
+      if (!son) {
+        yazi += sayi ? "Henüz yedek alınmadı." : "";
+      } else {
+        const gun = Math.floor((Date.now() - new Date(son)) / 86400000);
+        yazi += "Son yedek: " + uzunTarih(son.slice(0, 10)) + (gun > 30 ? " (bir aydan eski, yeni yedek al)" : "");
+      }
+      el("yedek-bilgi").textContent = yazi.trim();
+    }
+
+    const dosyaTarihi = () => bugun();
+
+    // Dosyayı iPhone paylaşım menüsüyle verir; yoksa indirir. Başarılıysa true.
+    async function dosyaVer(dosya) {
+      if (navigator.canShare && navigator.canShare({ files: [dosya] })) {
+        try {
+          await navigator.share({ files: [dosya] });
+          return true;
+        } catch (e) {
+          if (e.name !== "AbortError") yedekDurum("Paylaşım açılamadı: " + e.message, "hata");
+          return false;   // AbortError: kullanıcı paylaşımı kapattı
+        }
+      }
+      const adres = URL.createObjectURL(dosya);
+      const a = document.createElement("a");
+      a.href = adres;
+      a.download = dosya.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(adres), 2000);
+      return true;
+    }
+
+    function yedekVerisi() {
+      return {
+        uygulama: "butce",
+        surum: SURUM,
+        yedekTarihi: new Date().toISOString(),
+        kayitlar: kayitlariOku(),
+        kalemler: depoOku(KALEM_ANAHTARI, null) || kalemleriOku(),
+        borclar: borclariOku(),
+        birikimler: birikimleriOku()
+      };
+    }
+
+    el("yedek-al").addEventListener("click", async () => {
+      const veri = yedekVerisi();
+      if (!veri.kayitlar.length && !veri.borclar.length && !veri.birikimler.length) {
+        return yedekDurum("Yedeklenecek veri yok.", "uyari");
+      }
+      const dosyaAdi = "butce-yedek-" + dosyaTarihi() + ".json";
+      const dosya = new File([JSON.stringify(veri, null, 1)], dosyaAdi, { type: "application/json" });
+      if (await dosyaVer(dosya)) {
+        depoYaz(SON_YEDEK_ANAHTARI, veri.yedekTarihi);
+        yedekBilgisiGoster();
+        yedekDurum("✓ Yedeklendi (" + dosyaAdi + ").");
+      }
+    });
+
+    // --- Excel (CSV) ---
+    function csvHucre(deger) {
+      const s = deger == null ? "" : String(deger);
+      return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+    const csvSayi = n => typeof n === "number" && isFinite(n) ? n.toFixed(2).replace(".", ",") : "";
+
+    function csvOlustur(kayitlar) {
+      const kalemler = kalemleriOku();
+      const satirlar = [["Tarih", "Saat", "Tür", "Grup", "Kalem", "Tutar (₺)", "Not"]];
+      kayitlar.forEach(k => {
+        const ad = kayitAdlari(k, kalemler);
+        satirlar.push([
+          k.tarih.slice(8, 10) + "." + k.tarih.slice(5, 7) + "." + k.tarih.slice(0, 4),
+          k.saat || "",
+          k.tip === "gelir" ? "Gelir" : "Gider",
+          ad.grup,
+          ad.kalem,
+          csvSayi(k.tutar),
+          k.not || ""
+        ]);
+      });
+      // Başta UTF-8 işareti (BOM): Türkçe harfler Excel'de bozuk çıkmasın
+      return "﻿" + satirlar.map(s => s.map(csvHucre).join(";")).join("\r\n") + "\r\n";
+    }
+
+    el("csv-aktar").addEventListener("click", async () => {
+      const kayitlar = siraliKayitlar();
+      if (!kayitlar.length) return yedekDurum("Aktarılacak kayıt yok.", "uyari");
+      const dosyaAdi = "butce-kayitlari-" + dosyaTarihi() + ".csv";
+      if (await dosyaVer(new File([csvOlustur(kayitlar)], dosyaAdi, { type: "text/csv" }))) {
+        yedekDurum("✓ " + kayitlar.length + " kayıt Excel dosyasına aktarıldı (" + dosyaAdi + ").");
+      }
+    });
+
+    // --- Geri yükleme: yapısı doğru olan veriler alınır, sadece bilinen alanlar ---
+    const metin = (s, uzunluk) => typeof s === "string" ? s.slice(0, uzunluk) : "";
+    const tarihMi = t => typeof t === "string" && /^\d{4}-\d{2}-\d{2}$/.test(t);
+    const kimlikMi = s => typeof s === "string" && s.length > 0 && s.length < 80;
+
+    function kayitTemizle(k) {
+      if (!k || !kimlikMi(k.id) || !["gelir", "gider"].includes(k.tip) || !tarihMi(k.tarih) ||
+          typeof k.tutar !== "number" || !(k.tutar > 0) || !kimlikMi(k.grup) || !kimlikMi(k.kalemId)) return null;
+      const temiz = {
+        id: k.id, tip: k.tip, grup: k.grup, grupAd: metin(k.grupAd, 30), kalemId: k.kalemId, kalemAd: metin(k.kalemAd, 30),
+        tutar: Math.round(k.tutar * 100) / 100, tarih: k.tarih, saat: /^\d{2}:\d{2}$/.test(k.saat) ? k.saat : "",
+        not: metin(k.not, 100)
+      };
+      if (kimlikMi(k.borcId)) temiz.borcId = k.borcId;
+      if (kimlikMi(k.odemeId)) temiz.odemeId = k.odemeId;
+      return temiz;
+    }
+
+    function yedektenYukle(veri) {
+      const sayac = { kayit: 0, kalem: 0, borc: 0, birikim: 0, atlanan: 0 };
+
+      // Kayıtlar
+      if (Array.isArray(veri.kayitlar)) {
+        const mevcut = kayitlariOku();
+        const kimlikler = new Set(mevcut.map(k => k.id));
+        veri.kayitlar.forEach(k => {
+          const t = kayitTemizle(k);
+          if (!t) { sayac.atlanan++; return; }
+          if (kimlikler.has(t.id)) return;
+          mevcut.push(t); kimlikler.add(t.id); sayac.kayit++;
+        });
+        if (sayac.kayit) kayitlariYaz(mevcut);
+      }
+
+      // Kalemler: olmayan grup ve kalemler eklenir, var olanların adı değiştirilmez
+      if (veri.kalemler && typeof veri.kalemler === "object") {
+        const kalemler = kalemleriOku();
+        let degisti = false;
+        ["gider", "gelir"].forEach(tip => {
+          (Array.isArray(veri.kalemler[tip]) ? veri.kalemler[tip] : []).forEach(g => {
+            if (!g || !kimlikMi(g.id) || !metin(g.ad, 30)) return;
+            let grup = kalemler[tip].find(x => x.id === g.id);
+            if (!grup) {
+              grup = { id: g.id, ad: metin(g.ad, 30), ozel: true, gizli: !!g.gizli, kalemler: [] };
+              kalemler[tip].push(grup); degisti = true;
+            }
+            (Array.isArray(g.kalemler) ? g.kalemler : []).forEach(k => {
+              if (!k || !kimlikMi(k.id) || !metin(k.ad, 30) || grup.kalemler.some(x => x.id === k.id)) return;
+              grup.kalemler.push({ id: k.id, ad: metin(k.ad, 30), ozel: !!k.ozel, gizli: !!k.gizli });
+              degisti = true; sayac.kalem++;
+            });
+          });
+        });
+        if (degisti) kalemleriYaz(kalemler);
+      }
+
+      // Borçlar ve birikimler: yeni olan eklenir; var olanın eksik ödeme/hareketleri eklenir
+      function hesapBirlestir(gelen, mevcut, liste, sayacAdi) {
+        (Array.isArray(gelen) ? gelen : []).forEach(h => {
+          if (!h || !kimlikMi(h.id) || !metin(h.ad, 40) || !BIRIMLER[h.birim]) { sayac.atlanan++; return; }
+          const temizHareket = x => x && kimlikMi(x.id) && tarihMi(x.tarih) && typeof x.miktar === "number" && x.miktar !== 0
+            ? { id: x.id, tarih: x.tarih, miktar: yuvarla(x.miktar), not: metin(x.not, 100), ...(kimlikMi(x.kayitId) ? { kayitId: x.kayitId } : {}) }
+            : null;
+          let var_ = mevcut.find(x => x.id === h.id);
+          if (!var_) {
+            var_ = { id: h.id, ad: metin(h.ad, 40), birim: h.birim, not: metin(h.not, 100), [liste]: [] };
+            if (liste === "odemeler") {
+              if (!(typeof h.toplam === "number" && h.toplam > 0)) { sayac.atlanan++; return; }
+              var_.toplam = yuvarla(h.toplam);
+            }
+            mevcut.push(var_); sayac[sayacAdi]++;
+          }
+          (Array.isArray(h[liste]) ? h[liste] : []).forEach(x => {
+            const t = temizHareket(x);
+            if (t && (liste === "hareketler" || t.miktar > 0) && !var_[liste].some(y => y.id === t.id)) var_[liste].push(t);
+          });
+        });
+      }
+      if (Array.isArray(veri.borclar)) {
+        const borclar = borclariOku();
+        hesapBirlestir(veri.borclar, borclar, "odemeler", "borc");
+        borclariYaz(borclar);
+      }
+      if (Array.isArray(veri.birikimler)) {
+        const liste = birikimleriOku();
+        hesapBirlestir(veri.birikimler, liste, "hareketler", "birikim");
+        birikimleriYaz(liste);
+      }
+      return sayac;
+    }
+
+    el("yedek-yukle").addEventListener("click", () => el("yedek-dosya").click());
+    el("yedek-dosya").addEventListener("change", async () => {
+      const dosya = el("yedek-dosya").files[0];
+      el("yedek-dosya").value = "";
+      if (!dosya) return;
+      try {
+        const veri = JSON.parse(await dosya.text());
+        if (!veri || veri.uygulama !== "butce") throw new Error("bu bir Bütçe yedek dosyası değil");
+        const s = yedektenYukle(veri);
+        hepsiniGuncelle();
+        const parcalar = [];
+        if (s.kayit) parcalar.push(s.kayit + " kayıt");
+        if (s.kalem) parcalar.push(s.kalem + " kalem");
+        if (s.borc) parcalar.push(s.borc + " borç");
+        if (s.birikim) parcalar.push(s.birikim + " birikim");
+        yedekDurum((parcalar.length ? "✓ Eklendi: " + parcalar.join(", ") + "." : "Yeni veri yok, hepsi zaten telefonda.") +
+          (s.atlanan ? " " + s.atlanan + " bozuk öğe atlandı." : ""), s.atlanan ? "uyari" : "");
+      } catch (e) {
+        yedekDurum(e instanceof SyntaxError
+          ? "Dosya okunamadı: dosya bozuk ya da yedek dosyası değil."
+          : "Dosya okunamadı: " + e.message + ".", "hata");
+      }
+    });
+
+    // =====================================================
+    // HEPSİNİ GÜNCELLE + BAŞLANGIÇ
+    // =====================================================
+    function hepsiniGuncelle() {
+      ozetGuncelle();
+      listeGuncelle();
+      borcListesiCiz();
+      birikimListesiCiz();
+      yedekBilgisiGoster();
+    }
     hepsiniGuncelle();
+
+    // Çevrimdışı çalışma (Sürüm 1.0): sadece https ya da localhost'ta
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+      navigator.serviceWorker.register("sw.js").catch(e => console.error("Çevrimdışı mod açılamadı:", e));
+    }
   </script>
 </body>
 </html>
