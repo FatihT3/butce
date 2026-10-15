@@ -831,8 +831,8 @@
         </div>
       </div>
 
-      <!-- Grup çipleri (JavaScript ile doldurulur) -->
-      <div class="alan">
+      <!-- Grup çipleri (JavaScript ile doldurulur). Gelirde gizlidir (Sürüm 1.3.3): gelirde sadece kalem seçilir -->
+      <div class="alan" id="grup-blok">
         <div class="alan-baslik">Grup</div>
         <div class="cipler" id="grup-cipleri"></div>
       </div>
@@ -970,7 +970,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.3.2";
+    const SURUM = "1.3.3";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1507,39 +1507,63 @@
       return b;
     }
 
+    // Gelirde grup sorulmaz (Sürüm 1.3.3): bütün gelir kalemleri tek sırada gösterilir,
+    // seçilen kalemin grubu arka planda kayda yazılır.
+    const gelirModu = () => seciliTip() === "gelir";
+
     function gruplariCiz() {
+      el("grup-blok").hidden = gelirModu();
       const kutu = el("grup-cipleri");
       kutu.innerHTML = "";
       formGruplari(seciliTip()).forEach(g =>
         kutu.appendChild(cipYap(g.ad, g.id === seciliGrup, () => grupSec(g.id))));
     }
 
-    // Seçili grubun kalem çipleri (en çok kullanılan önde) + "Diğer…"
+    // Gelirde "Diğer…" ile yazılan yeni kalemin gideceği grup: "Diğer gelir" (gizli değilse), yoksa ilk grup
+    function yeniGelirGrubu() {
+      const gruplar = formGruplari("gelir").filter(g => !g.eski);
+      return (gruplar.find(g => g.id === "digergelir") || gruplar[0] || {}).id || null;
+    }
+
+    // Seçili grubun kalem çipleri (en çok kullanılan önde) + "Diğer…"; gelirde bütün gelir kalemleri.
     // Kalemler tek sırada, sağa-sola kaydırılır (Sürüm 1.3.2). Kalem bölümü hep yerinde durur
     // (grup seçilmemişse kısa bir yazı çıkar), böylece pencere büyüyüp küçülmez.
     function kalemleriCiz() {
       const kutu = el("kalem-cipleri");
-      // Aynı grupta yeniden çizerken kaydırma yeri korunur (seçince en başa atlamasın)
-      const ayniGrup = kutu.dataset.grup === String(seciliGrup);
+      const gelir = gelirModu();
+      // Aynı listeyi yeniden çizerken kaydırma yeri korunur (seçince en başa atlamasın)
+      const anahtar = gelir ? "*gelir" : String(seciliGrup);
+      const ayniListe = kutu.dataset.grup === anahtar;
       const kaydirma = kutu.scrollLeft;
       kutu.innerHTML = "";
-      kutu.dataset.grup = String(seciliGrup);
-      const grup = formGruplari(seciliTip()).find(g => g.id === seciliGrup);
-      if (!grup) {
-        el("kalem-ipucu").textContent = "Önce bir grup seç.";
-        return;
+      kutu.dataset.grup = anahtar;
+
+      let kalemler, digerVar;
+      if (gelir) {
+        const gruplar = formGruplari("gelir");
+        kalemler = gruplar.flatMap(g => g.kalemler.map(k => ({ ...k, grupId: g.id })));
+        digerVar = !!yeniGelirGrubu();
+      } else {
+        const grup = formGruplari(seciliTip()).find(g => g.id === seciliGrup);
+        if (!grup) {
+          el("kalem-ipucu").textContent = "Önce bir grup seç.";
+          return;
+        }
+        kalemler = grup.kalemler.map(k => ({ ...k, grupId: grup.id }));
+        digerVar = !grup.eski;
       }
 
       const sayi = kullanimSayilari();
-      const gorunen = grup.kalemler
+      const gorunen = kalemler
         .map((k, sira) => ({ ...k, sira }))
         .sort((a, b) => (sayi[b.id] || 0) - (sayi[a.id] || 0) || a.sira - b.sira);
 
-      gorunen.forEach(k => kutu.appendChild(cipYap(k.ad, k.id === seciliKalem, () => kalemSec(k.id))));
-      if (!grup.eski) kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
-      el("kalem-ipucu").textContent = gorunen.length ? "" : "Bu grupta henüz kalem yok. \"Diğer…\" ile ekleyebilirsin.";
+      gorunen.forEach(k => kutu.appendChild(cipYap(k.ad, k.id === seciliKalem, () => kalemSec(k.id, k.grupId))));
+      if (digerVar) kutu.appendChild(cipYap("Diğer…", false, yeniKalemAc, "diger"));
+      el("kalem-ipucu").textContent = gorunen.length ? "" :
+        (gelir ? "Henüz gelir kalemi yok." : "Bu grupta henüz kalem yok.") + " \"Diğer…\" ile ekleyebilirsin.";
 
-      if (ayniGrup) {
+      if (ayniListe) {
         kutu.scrollLeft = kaydirma;
       } else {
         kutu.scrollLeft = 0;
@@ -1557,11 +1581,13 @@
       kalemleriCiz();
       // Grubun tek kalemi varsa (ör. Ev → Kira) onu kendiliğinden seç
       const grup = formGruplari(seciliTip()).find(g => g.id === id);
-      if (!seciliKalem && grup && grup.kalemler.length === 1) kalemSec(grup.kalemler[0].id);
+      if (!seciliKalem && grup && grup.kalemler.length === 1) kalemSec(grup.kalemler[0].id, id);
     }
 
-    function kalemSec(id) {
+    // grupId: kalemin grubu (gelirde grup seçilmediği için kalemle birlikte gelir)
+    function kalemSec(id, grupId) {
       seciliKalem = id;
+      if (grupId) seciliGrup = grupId;
       yeniKalemKapat();
       kalemleriCiz();
       el("form-hata").textContent = "";
@@ -1574,13 +1600,21 @@
     }
     function yeniKalemKapat() { el("yeni-kalem").hidden = true; }
 
-    // Yazılan adı gruba kalıcı kalem olarak ekler ve seçer
+    // Yazılan adı gruba kalıcı kalem olarak ekler ve seçer.
+    // Gelirde: aynı adda gelir kalemi zaten varsa (hangi grupta olursa olsun) o seçilir, yoksa "Diğer gelir"e eklenir.
     function yeniKalemKaydet() {
       const ad = adTemizle(el("f-yeni-kalem").value);
       if (!ad) { el("f-yeni-kalem").focus(); return; }
-      const kalem = ozelKalemEkle(seciliTip(), seciliGrup, ad);
+      let grupId = seciliGrup;
+      if (gelirModu()) {
+        const var_olan = formGruplari("gelir").flatMap(g => g.kalemler.map(k => ({ k, g })))
+          .find(x => kucukHarf(x.k.ad) === kucukHarf(ad));
+        if (var_olan) { kalemSec(var_olan.k.id, var_olan.g.id); return; }
+        grupId = yeniGelirGrubu();
+      }
+      const kalem = ozelKalemEkle(seciliTip(), grupId, ad);
       if (kalem) {
-        kalemSec(kalem.id);
+        kalemSec(kalem.id, grupId);
         bildirimGoster("✓ \"" + kalem.ad + "\" listeye eklendi");
       }
     }
@@ -1590,7 +1624,7 @@
       if (olay.key === "Enter") { olay.preventDefault(); yeniKalemKaydet(); }
     });
 
-    // Bir tipte en son kullanılan grup (yeni kayıtta o grup hazır seçili gelsin)
+    // Bir tipte en son kullanılan grup (yeni giderde o grup hazır seçili gelsin)
     function sonGrup(tip) {
       const son = siraliKayitlar().filter(k => k.tip === tip).pop();
       if (son && formGruplari(tip).some(g => g.id === son.grup)) return son.grup;
@@ -1598,7 +1632,8 @@
     }
 
     function tipDegisti() {
-      seciliGrup = sonGrup(seciliTip());
+      // Gelirde grup yok: kalem seçilince grubu belli olur
+      seciliGrup = gelirModu() ? null : sonGrup(seciliTip());
       seciliKalem = null;
       yeniKalemKapat();
       gruplariCiz();
@@ -1646,7 +1681,7 @@
       const tutar = sayiyaCevir(el("f-tutar").value);
       const tarih = el("f-tarih").value;
 
-      if (!grup)                 return hataGoster("Bir grup seçin.");
+      if (!grup && !gelirModu()) return hataGoster("Bir grup seçin.");
       if (!kalem)                return hataGoster("Bir kalem seçin ya da \"Diğer…\" ile ekleyin.");
       if (!(tutar > 0))          return hataGoster("Tutarı girin.");
       if (tutar > 100000000)     return hataGoster("Tutar çok büyük, kontrol edin.");
