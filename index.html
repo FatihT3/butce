@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+
+  <!-- ===================================================
+       BÖLÜM 1: iPhone / PWA AYARLARI
+       Ana ekrana eklenince tam ekran açılması için gereken etiketler
+       =================================================== -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- Durum çubuğu (saat, pil) düz renkte dursun; içerik altına girip bulanıklaşmasın -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Ana ekranda simgenin altında görünecek isim -->
+  <meta name="apple-mobile-web-app-title" content="Bütçe">
+  <!-- Durum çubuğunun rengi: başlık çubuğuyla aynı (açık / koyu tema) -->
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#161b26" media="(prefers-color-scheme: dark)">
+  <title>Bütçe</title>
+
+  <!-- ===================================================
+       BÖLÜM 2: STİLLER (GÖRÜNÜM)
+       =================================================== -->
+  <style>
+    /* --- Renkler: açık tema --- */
+    :root {
+      --arkaplan: #f3f4f6;
+      --kart: #ffffff;
+      --yazi: #111827;
+      --soluk: #6b7280;
+      --cizgi: #e5e7eb;
+      --vurgu: #0f766e;    /* Genel vurgu (koyu turkuaz) */
+      --gelir: #15803d;    /* Gelir tutarları (yeşil) */
+      --gider: #c2410c;    /* Gider tutarları (turuncu-kırmızı) */
+      --buton-yazi: #ffffff;
+    }
+
+    /* --- Renkler: telefon karanlık moddaysa koyu tema --- */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --arkaplan: #0b0f17;
+        --kart: #161b26;
+        --yazi: #f3f4f6;
+        --soluk: #9ca3af;
+        --cizgi: #263041;
+        --vurgu: #2dd4bf;
+        --gelir: #4ade80;
+        --gider: #fb923c;
+        --buton-yazi: #042f2b;
+      }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--arkaplan);
+      color: var(--yazi);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent; /* dokununca gri parlama olmasın */
+    }
+
+    /* Üst başlık: çentik altında kalmasın; iOS 26 durum çubuğunun altındaki
+       bulanık şeridin dışında dursun diye üstte geniş boşluk */
+    header {
+      padding: calc(env(safe-area-inset-top) + 34px) 16px 12px;
+      background: var(--kart);
+      border-bottom: 1px solid var(--cizgi);
+    }
+    header h1 { font-size: 20px; -webkit-font-smoothing: antialiased; }
+    header small { color: var(--soluk); font-size: 12px; }
+
+    /* Sayfa içeriği: alttaki sekme çubuğu ve + düğmesi son satırı kapatmasın */
+    main {
+      padding: 16px 16px calc(env(safe-area-inset-bottom) + 160px);
+    }
+
+    /* Sekmelerden sadece aktif olan görünür */
+    .sayfa { display: none; }
+    .sayfa.aktif { display: block; }
+
+    .kart {
+      background: var(--kart);
+      border: 1px solid var(--cizgi);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .kart h2 { font-size: 15px; color: var(--soluk); font-weight: 500; margin-bottom: 6px; }
+    .kart .deger { font-size: 28px; font-weight: 700; }
+    .gelir-renk { color: var(--gelir); }
+    .gider-renk { color: var(--gider); }
+    .vurgu-renk { color: var(--vurgu); }
+    .bilgi { color: var(--soluk); font-size: 14px; line-height: 1.5; }
+
+    /* Özet kartları: Gelir ve Gider yan yana */
+    .yan-yana { display: flex; gap: 10px; }
+    .yan-yana .kart { flex: 1; min-width: 0; }
+    .yan-yana .kart .deger { font-size: 22px; }
+
+    /* Henüz içeriği olmayan sayfalardaki açıklama */
+    .bos-liste { text-align: center; padding: 40px 20px; }
+    .bos-liste .buyuk-ikon { font-size: 40px; margin-bottom: 10px; }
+    .bos-liste h3 { font-size: 17px; }
+    .bos-liste .bilgi { margin-top: 6px; }
+
+    /* Alt sekme çubuğu (iPhone ana ekran çizgisinin üstünde dursun) */
+    nav {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      background: var(--kart);
+      border-top: 1px solid var(--cizgi);
+      /* iPhone ev çizgisi için boşluk: tamamı değil, yarısı kadar */
+      padding-bottom: calc(env(safe-area-inset-bottom) * 0.5);
+      z-index: 6;
+    }
+    nav button {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 8px 0 6px;
+      color: var(--soluk);
+      font-size: 12px;
+      font-family: inherit;
+    }
+    nav button .ikon { display: block; font-size: 22px; margin-bottom: 2px; }
+    nav button.aktif { color: var(--vurgu); font-weight: 600; }
+
+    /* ---------- AÇILIR PANEL ---------- */
+    /* Arkadaki karartma */
+    .perde {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+      z-index: 10;
+    }
+    .perde.acik { opacity: 1; pointer-events: auto; }
+
+    /* Alttan kayarak açılan panel */
+    .panel {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      max-height: calc(100% - env(safe-area-inset-top) - 16px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      background: var(--kart);
+      border-radius: 18px 18px 0 0;
+      padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px);
+      transform: translateY(105%);
+      transition: transform .3s ease;
+      z-index: 20;
+    }
+    .panel.acik { transform: translateY(0); }
+    .panel-ust {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0 14px;
+    }
+    .panel-ust h2 { font-size: 18px; }
+    .kapat {
+      background: var(--arkaplan);
+      border: none;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      font-size: 16px;
+      color: var(--soluk);
+    }
+    /* Panel açıkken arkadaki sayfa kaymasın */
+    body.panel-acik { overflow: hidden; }
+
+    /* Sağ altta, sekme çubuğunun üstünde yüzen "Ekle" düğmesi */
+    .ekle-dugmesi {
+      position: fixed;
+      right: 20px;
+      bottom: calc(env(safe-area-inset-bottom) * 0.5 + 76px);
+      width: 58px; height: 58px;
+      border-radius: 50%;
+      border: none;
+      background: var(--vurgu);
+      color: var(--buton-yazi);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .3);
+      z-index: 5;
+      transition: transform .15s;
+    }
+    .ekle-dugmesi:active { transform: scale(.92); }
+    .ekle-dugmesi svg { width: 26px; height: 26px; }
+  </style>
+</head>
+<body>
+
+  <!-- ===================================================
+       BÖLÜM 3: ÜST BAŞLIK
+       =================================================== -->
+  <header>
+    <h1 id="baslik">Özet</h1>
+    <!-- Sürüm numarası: güncellemenin telefona gelip gelmediğini anlamak için -->
+    <small id="surum"></small>
+  </header>
+
+  <main>
+    <!-- ===================================================
+         BÖLÜM 4: SAYFA — ÖZET (ana sayfa)
+         Sürüm 0.5'te gerçek rakamlarla dolacak; şimdilik boş kartlar
+         =================================================== -->
+    <section class="sayfa aktif" id="sayfa-ozet">
+      <div class="yan-yana">
+        <div class="kart">
+          <h2>Gelir</h2>
+          <div class="deger gelir-renk">— ₺</div>
+        </div>
+        <div class="kart">
+          <h2>Gider</h2>
+          <div class="deger gider-renk">— ₺</div>
+        </div>
+      </div>
+      <div class="kart">
+        <h2>Kalan</h2>
+        <div class="deger vurgu-renk">— ₺</div>
+      </div>
+      <p class="bilgi">Kayıt eklemek için sağ alttaki + düğmesine dokun. Kayıt formu bir sonraki sürümde gelecek.</p>
+    </section>
+
+    <!-- ===================================================
+         BÖLÜM 5: SAYFA — KAYITLAR (Sürüm 0.3'te liste)
+         =================================================== -->
+    <section class="sayfa" id="sayfa-kayitlar">
+      <div class="bos-liste">
+        <div class="buyuk-ikon">📋</div>
+        <h3>Henüz kayıt yok</h3>
+        <p class="bilgi">Gelir ve giderler burada aylara göre listelenecek.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         BÖLÜM 6: SAYFA — BORÇ (Sürüm 0.7)
+         =================================================== -->
+    <section class="sayfa" id="sayfa-borc">
+      <div class="bos-liste">
+        <div class="buyuk-ikon">💳</div>
+        <h3>Borç takibi</h3>
+        <p class="bilgi">Borçlar, ödemeler ve kalan burada görünecek. TL, Euro, Dolar ya da gram altın olarak tutulabilecek.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================
+         BÖLÜM 7: SAYFA — BİRİKİM (Sürüm 0.8)
+         =================================================== -->
+    <section class="sayfa" id="sayfa-birikim">
+      <div class="bos-liste">
+        <div class="buyuk-ikon">🏦</div>
+        <h3>Birikim</h3>
+        <p class="bilgi">Birikim kutuları ve yatırma/çekme hareketleri burada görünecek. TL, Euro, Dolar ya da gram altın olarak tutulabilecek.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================
+       BÖLÜM 8: AÇILIR PANEL — YENİ KAYIT
+       + düğmesine basınca alttan kayarak açılır. Form Sürüm 0.2'de gelecek.
+       =================================================== -->
+  <div class="perde" id="perde"></div>
+  <div class="panel" id="ekle-paneli" role="dialog" aria-modal="true" aria-labelledby="panel-baslik">
+    <div class="panel-ust">
+      <h2 id="panel-baslik">Yeni Kayıt</h2>
+      <button type="button" class="kapat" id="panel-kapat" aria-label="Kapat">✕</button>
+    </div>
+    <div class="bos-liste">
+      <p class="bilgi">Kayıt formu (gelir/gider, kalem seçimi, tutar, tarih) bir sonraki sürümde burada olacak.</p>
+    </div>
+  </div>
+
+  <!-- ===================================================
+       BÖLÜM 9: ALT SEKME ÇUBUĞU
+       data-sayfa = açılacak sayfanın id'sinin sonu
+       =================================================== -->
+  <nav>
+    <button class="aktif" data-sayfa="ozet" data-baslik="Özet">
+      <span class="ikon">📊</span>Özet
+    </button>
+    <button data-sayfa="kayitlar" data-baslik="Kayıtlar">
+      <span class="ikon">📋</span>Kayıtlar
+    </button>
+    <button data-sayfa="borc" data-baslik="Borç">
+      <span class="ikon">💳</span>Borç
+    </button>
+    <button data-sayfa="birikim" data-baslik="Birikim">
+      <span class="ikon">🏦</span>Birikim
+    </button>
+  </nav>
+
+  <!-- Yüzen "Ekle" düğmesi (sağ alt köşe) -->
+  <button class="ekle-dugmesi" id="ekle-dugmesi" type="button" aria-label="Yeni kayıt ekle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+  </button>
+
+  <!-- ===================================================
+       BÖLÜM 10: JAVASCRIPT (UYGULAMA MANTIĞI)
+       =================================================== -->
+  <script>
+    // --- Sürüm: her güncellemede bu numarayı artıracağız ---
+    const SURUM = "0.1";
+    document.getElementById("surum").textContent = "Sürüm " + SURUM;
+
+    // --- Sekme geçişi ---
+    // Alttaki bir düğmeye basılınca ilgili sayfayı gösterir, diğerlerini gizler
+    function sayfaAc(ad, baslik) {
+      document.querySelectorAll(".sayfa").forEach(s => s.classList.remove("aktif"));
+      document.getElementById("sayfa-" + ad).classList.add("aktif");
+
+      document.querySelectorAll("nav button").forEach(b => {
+        b.classList.toggle("aktif", b.dataset.sayfa === ad);
+      });
+
+      document.getElementById("baslik").textContent = baslik;
+      window.scrollTo(0, 0);
+    }
+
+    document.querySelectorAll("nav button[data-sayfa]").forEach(buton => {
+      buton.addEventListener("click", () => sayfaAc(buton.dataset.sayfa, buton.dataset.baslik));
+    });
+
+    // --- Açılır panel ---
+    const perde = document.getElementById("perde");
+    const panel = document.getElementById("ekle-paneli");
+
+    function paneliAc() {
+      perde.classList.add("acik");
+      panel.classList.add("acik");
+      document.body.classList.add("panel-acik");
+    }
+
+    function paneliKapat() {
+      perde.classList.remove("acik");
+      panel.classList.remove("acik");
+      document.body.classList.remove("panel-acik");
+    }
+
+    document.getElementById("ekle-dugmesi").addEventListener("click", paneliAc);
+    document.getElementById("panel-kapat").addEventListener("click", paneliKapat);
+    perde.addEventListener("click", paneliKapat);   // karartmaya dokununca da kapanır
+  </script>
+</body>
+</html>
