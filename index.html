@@ -832,7 +832,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.1";
+    const SURUM = "1.2";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1007,7 +1007,9 @@
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
       gelir: [
-        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"], ["emekli", "Emekli maaşı"], ["ozelders", "Özel ders"], ["kiragelir", "Kira geliri"]] },
+        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"], ["emekli", "Emekli maaşı"], ["ozelders", "Özel ders"]] },
+        // Kira geliri gelirde de "Ev" grubunda: Kayıtlar'da "Ev" süzülünce kira gideri ve geliri birlikte çıkar (Sürüm 1.2)
+        { id: "ev",         ad: "Ev",           kalemler: [["kiragelir", "Kira geliri"]] },
         { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
       ]
     };
@@ -1051,6 +1053,49 @@
       return sonuc;
     }
     const kalemleriYaz = kalemler => depoYaz(KALEM_ANAHTARI, kalemler);
+
+    // -----------------------------------------------------
+    // VERİ GEÇİŞİ (Sürüm 1.2): "Kira geliri" Gelirler grubundan gelirdeki "Ev" grubuna taşındı.
+    // Telefondaki kalem (adı değiştirilmiş olsa bile) ve o kalemle girilmiş kayıtlar yeni yere geçer.
+    // Bir kez çalışır; yedekten gelen eski kayıtlar da kayitGoc ile çevrilir.
+    // -----------------------------------------------------
+    const ESKI_KIRA_GELIRI = "gelir.gelirler.kiragelir";
+    const YENI_KIRA_GELIRI = "gelir.ev.kiragelir";
+    const GOC_ANAHTARI = "butceGoc_v1";
+
+    function kayitGoc(k) {
+      if (k && k.kalemId === ESKI_KIRA_GELIRI) {
+        k.kalemId = YENI_KIRA_GELIRI;
+        k.grup = "ev";
+        k.grupAd = "Ev";
+      }
+      return k;
+    }
+
+    function verileriGecir() {
+      if (depoOku(GOC_ANAHTARI, 0) >= 1) return;
+      const saklanan = depoOku(KALEM_ANAHTARI, null);
+      if (saklanan && Array.isArray(saklanan.gelir)) {
+        const eskiGrup = saklanan.gelir.find(g => g && g.id === "gelirler");
+        const kalem = eskiGrup && Array.isArray(eskiGrup.kalemler) && eskiGrup.kalemler.find(k => k && k.id === ESKI_KIRA_GELIRI);
+        if (kalem) {
+          eskiGrup.kalemler = eskiGrup.kalemler.filter(k => k !== kalem);
+          let ev = saklanan.gelir.find(g => g && g.id === "ev");
+          if (!ev) {
+            ev = { id: "ev", ad: "Ev", ozel: false, gizli: false, kalemler: [] };
+            saklanan.gelir.splice(saklanan.gelir.indexOf(eskiGrup) + 1, 0, ev);
+          }
+          ev.kalemler.push({ ...kalem, id: YENI_KIRA_GELIRI });
+          if (!kalemleriYaz(saklanan)) return;
+        }
+      }
+      const kayitlar = kayitlariOku();
+      if (kayitlar.some(k => k.kalemId === ESKI_KIRA_GELIRI)) {
+        kayitlar.forEach(kayitGoc);
+        if (!kayitlariYaz(kayitlar)) return;
+      }
+      depoYaz(GOC_ANAHTARI, 1);
+    }
 
     const kucukHarf = s => s.toLocaleLowerCase("tr-TR");
     const adTemizle = s => String(s || "").trim().replace(/\s+/g, " ").slice(0, 30);
@@ -1386,28 +1431,35 @@
     // KAYITLAR SAYFASI (Sürüm 0.3)
     // Aylara göre gruplu, yeniden eskiye. Ay başlığında o ayın gelir / gider / kalanı.
     // Süzme: Tümü / Gider / Gelir ve gruba göre.
+    // Grup süzgeci grup ADINA göredir (Sürüm 1.2): gider ve gelirde aynı adlı grup tek seçenek olur.
+    // Ör. "Ev" seçilince hem Ev giderleri (Kira) hem Ev gelirleri (Kira geliri) listelenir.
+    // Seçeneklerde "Gider · / Gelir ·" yazmaz.
     // =====================================================
     let suzTip = "hepsi";
-    let suzGrup = "";        // "gider:mutfak" biçiminde; boşsa tüm gruplar
+    let suzGrup = "";        // grup adının küçük harflisi ("ev"); boşsa tüm gruplar
+
+    // Bir kaydın süzgeçteki grup anahtarı: grubun güncel adı (silinmişse kayıttaki ad), küçük harfle
+    const grupAnahtari = (k, kalemler) => kucukHarf(kayitAdlari(k, kalemler).grup);
 
     function grupSecenekleriniDoldur() {
       const kalemler = kalemleriOku();
       const kayitlar = kayitlariOku();
       const secenekler = [];
-      ["gider", "gelir"].forEach(tip => {
-        if (suzTip !== "hepsi" && suzTip !== tip) return;
-        const gorulen = new Set();
+      const ekle = ad => {
+        const deger = kucukHarf(ad);
+        if (!secenekler.some(s => s.deger === deger)) secenekler.push({ deger, ad });
+      };
+      const tipler = suzTip === "hepsi" ? ["gider", "gelir"] : [suzTip];
+      tipler.forEach(tip => {
         kalemler[tip].forEach(g => {
+          // Gizli grup sadece kaydı varsa seçenek olur
           if (g.gizli && !kayitlar.some(k => k.tip === tip && k.grup === g.id)) return;
-          gorulen.add(g.id);
-          secenekler.push({ deger: tip + ":" + g.id, ad: (suzTip === "hepsi" ? (tip === "gider" ? "Gider · " : "Gelir · ") : "") + g.ad });
-        });
-        // Silinmiş gruplardaki eski kayıtlar da süzülebilsin
-        kayitlar.filter(k => k.tip === tip && !gorulen.has(k.grup)).forEach(k => {
-          gorulen.add(k.grup);
-          secenekler.push({ deger: tip + ":" + k.grup, ad: (suzTip === "hepsi" ? (tip === "gider" ? "Gider · " : "Gelir · ") : "") + (k.grupAd || "—") });
+          ekle(g.ad);
         });
       });
+      // Silinmiş gruplardaki eski kayıtlar da süzülebilsin
+      kayitlar.filter(k => tipler.includes(k.tip)).forEach(k => ekle(kayitAdlari(k, kalemler).grup));
+
       if (!secenekler.some(s => s.deger === suzGrup)) suzGrup = "";
       const kutu = el("suz-grup");
       kutu.innerHTML = '<option value="">Tüm gruplar</option>' +
@@ -1430,7 +1482,7 @@
 
       const liste = tumu.filter(k =>
         (suzTip === "hepsi" || k.tip === suzTip) &&
-        (!suzGrup || (k.tip + ":" + k.grup) === suzGrup));
+        (!suzGrup || grupAnahtari(k, kalemler) === suzGrup));
       if (!liste.length) {
         kutu.innerHTML = '<div class="bos-liste"><p class="bilgi">Bu süzgeçle eşleşen kayıt yok.</p></div>';
         return;
@@ -1447,12 +1499,16 @@
       kutu.innerHTML = aylar.map(a => {
         const gelir = a.kayitlar.filter(k => k.tip === "gelir").reduce((t, k) => t + k.tutar, 0);
         const gider = a.kayitlar.filter(k => k.tip === "gider").reduce((t, k) => t + k.tutar, 0);
-        let ozet;
-        if (suzTip === "hepsi" && !suzGrup) {
-          ozet = "Gelir " + tl(gelir) + " · Gider " + tl(gider) + " · Kalan " + tl(gelir - gider);
-        } else {
-          ozet = a.kayitlar.length + " kayıt · toplam " + tl(gelir + gider);
-        }
+        // Ay başlığı: listede gelir varsa Gelir, gider varsa Gider, ikisi de varsa Kalan
+        const parcalar = [];
+        if (suzGrup || suzTip !== "hepsi") parcalar.push(a.kayitlar.length + " kayıt");
+        const gelirVar = a.kayitlar.some(k => k.tip === "gelir");
+        const giderVar = a.kayitlar.some(k => k.tip === "gider");
+        const hepsi = suzTip === "hepsi" && !suzGrup;
+        if (gelirVar || hepsi) parcalar.push("Gelir " + tl(gelir));
+        if (giderVar || hepsi) parcalar.push("Gider " + tl(gider));
+        if ((gelirVar && giderVar) || hepsi) parcalar.push("Kalan " + tl(gelir - gider));
+        const ozet = parcalar.join(" · ");
         const satirlar = a.kayitlar.map(k => {
           const ad = kayitAdlari(k, kalemler);
           const alt = [ad.grup, kisaTarih(k.tarih) + (k.saat ? " " + k.saat : ""), k.not].filter(Boolean).join(" · ");
@@ -2353,6 +2409,7 @@
     const kimlikMi = s => typeof s === "string" && s.length > 0 && s.length < 80;
 
     function kayitTemizle(k) {
+      if (k && typeof k === "object") k = kayitGoc({ ...k });   // eski sürüm yedeği: Kira geliri → Ev
       if (!k || !kimlikMi(k.id) || !["gelir", "gider"].includes(k.tip) || !tarihMi(k.tarih) ||
           typeof k.tutar !== "number" || !(k.tutar > 0) || !kimlikMi(k.grup) || !kimlikMi(k.kalemId)) return null;
       const temiz = {
@@ -2395,6 +2452,7 @@
             }
             (Array.isArray(g.kalemler) ? g.kalemler : []).forEach(k => {
               if (!k || !kimlikMi(k.id) || !metin(k.ad, 30) || grup.kalemler.some(x => x.id === k.id)) return;
+              if (k.id === ESKI_KIRA_GELIRI) return;   // 1.2'den beri gelirdeki Ev grubunda
               grup.kalemler.push({ id: k.id, ad: metin(k.ad, 30), ozel: !!k.ozel, gizli: !!k.gizli });
               degisti = true; sayac.kalem++;
             });
@@ -2472,6 +2530,7 @@
       birikimListesiCiz();
       yedekBilgisiGoster();
     }
+    verileriGecir();
     hepsiniGuncelle();
 
     // Çevrimdışı çalışma (Sürüm 1.0): sadece https ya da localhost'ta
