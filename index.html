@@ -345,6 +345,9 @@
     .kucuk-dugme.ikincil { background: var(--arkaplan); color: var(--yazi); border: 1px solid var(--cizgi); font-weight: 500; }
     .kucuk-dugme.tehlike { background: none; color: var(--hata); border: 1px solid var(--hata); font-weight: 500; }
     .kucuk-dugme.tehlike.onay { background: var(--hata); color: #fff; }
+    .buton.tehlike-buton { background: var(--hata); color: #fff; }
+    .tamami-dugme { margin-top: 8px; background: none; border: 1px solid var(--vurgu); color: var(--vurgu); border-radius: 16px;
+      padding: 6px 12px; font-size: 13px; font-weight: 600; }
 
     /* Kutuların altındaki küçük açıklama / hata yazıları */
     .ipucu { font-size: 13px; color: var(--soluk); margin-top: 6px; min-height: 18px; line-height: 1.4; }
@@ -452,6 +455,26 @@
       text-overflow: ellipsis;
     }
     .satir-sag { flex: none; text-align: right; font-size: 16px; font-weight: 700; }
+
+    /* Özet: planlanan satırı (Sürüm 1.9) */
+    .planlanan { font-size: 12px; color: var(--soluk); margin-top: 6px; line-height: 1.4; }
+    .planlanan:empty { display: none; }
+    .ozet-etiket { font-size: 11px; color: var(--soluk); font-weight: 500; }
+
+    /* ---------- TEKRARLAYAN İŞLEMLER (Sürüm 1.8) ---------- */
+    .gun .tg.planli { opacity: .45; font-style: italic; }
+    .satir.planli { opacity: .55; }
+    .satir.planli.kesin { opacity: 1; }
+    .satir.atlandi .satir-ust, .satir.atlandi .satir-sag { text-decoration: line-through; }
+    .planli-dugme { flex: none; background: none; border: 1px solid var(--cizgi); border-radius: 14px;
+      padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--vurgu); margin-left: 6px; }
+    .tekrar-kart { display: block; width: 100%; text-align: left; }
+    .tekrar-kart .tekrar-ust { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+    .tekrar-kart .tekrar-ust b { font-size: 16px; }
+    .tekrar-kart .tekrar-ust span { font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .tekrar-kart.durdu { opacity: .55; }
+    .gun-secimi { display: flex; gap: 6px; flex-wrap: wrap; }
+    .gun-secimi .cip { min-width: 44px; text-align: center; padding: 8px 6px; }
 
     /* ---------- KURLAR (Sürüm 1.7) ---------- */
     .kur-satiri { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 10px;
@@ -598,6 +621,16 @@
     .bitti { color: var(--gelir); font-weight: 600; }
     .toplam-satir { display: flex; justify-content: space-between; font-size: 15px; padding: 3px 0; }
     .toplam-satir span:last-child { font-weight: 600; }
+    /* 1.10: birikim toplamında miktarın altında küçük TL karşılığı */
+    .toplam-satir .toplam-sag { text-align: right; }
+    .toplam-sag .tl-karsilik { display: block; font-weight: 400; font-size: 12px; margin-top: 0; }
+    /* 1.10: birikim kartında ad + altında birim (sol üst), sağda bağlı banka */
+    .birikim-ust { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .birikim-ust .sol { min-width: 0; }
+    .birikim-ust .sol b { display: block; font-size: 16px; overflow-wrap: anywhere; }
+    .birikim-ust .sol small, .birikim-ust > small { color: var(--soluk); font-size: 12px; }
+    .birikim-ust > small { flex: none; text-align: right; max-width: 45%; overflow-wrap: anywhere; }
+    .kart h2 small { font-weight: 400; color: var(--soluk); text-transform: none; letter-spacing: 0; }
     .hareket { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--cizgi); }
     .hareket:first-child { border-top: none; }
     .hareket .satir-orta { font-size: 14px; }
@@ -756,20 +789,26 @@
 
       <div class="yan-yana">
         <div class="kart">
-          <h2>Gelir</h2>
+          <h2>Gelir <span class="ozet-etiket">gerçekleşen</span></h2>
           <div class="deger gelir-renk" id="ozet-gelir">— ₺</div>
           <div class="karsilastirma" id="ozet-gelir-fark"></div>
+          <div class="planlanan" id="ozet-gelir-plan"></div>
         </div>
         <div class="kart">
-          <h2>Gider</h2>
+          <h2>Gider <span class="ozet-etiket">gerçekleşen</span></h2>
           <div class="deger gider-renk" id="ozet-gider">— ₺</div>
           <div class="karsilastirma" id="ozet-gider-fark"></div>
+          <div class="planlanan" id="ozet-gider-plan"></div>
         </div>
       </div>
       <div class="kart">
         <h2>Kalan</h2>
         <div class="deger vurgu-renk" id="ozet-kalan">— ₺</div>
         <div class="kart-alt" id="ozet-kalan-alt"></div>
+        <!-- Sürüm 1.9: hesaptan yapılan borç ödemeleri (gider sayılmaz) ve sonrası -->
+        <div class="kart-alt" id="ozet-borc-odeme" hidden></div>
+        <!-- Sürüm 1.9: planlananlarla birlikte (ileri tarihli kayıtlar + bütçeye dahil tekrarlar) -->
+        <div class="planlanan" id="ozet-kalan-plan"></div>
       </div>
 
       <!-- Ay sonu gider tahmini: sadece içinde bulunulan ay seçiliyken -->
@@ -855,7 +894,7 @@
         </button>
         <button type="button" class="ayar-ogesi" id="tekrar-ac">
           <span class="ayar-ikon" style="background:#7c3aed">🔁</span>
-          <span class="ayar-yazi"><b>Tekrarlayan işlemler</b><small>Her ay yinelenen gelir ve giderler</small></span>
+          <span class="ayar-yazi"><b>Tekrarlayan işlemler</b><small id="tekrar-ozet">Her ay yinelenen gelir ve giderler</small></span>
           <span class="ayar-ok">›</span>
         </button>
       </div>
@@ -899,6 +938,20 @@
          BÖLÜM 7c: SAYFA — YEDEKLEME (Ayarlar'ın alt sayfası, Sürüm 1.3.1)
          Üstteki "‹ Ayarlar" ile geri dönülür
          =================================================== -->
+    <!-- ===================================================
+         BÖLÜM 7d: SAYFA — TEKRARLAYAN İŞLEMLER (Ayarlar'ın alt sayfası, Sürüm 1.8)
+         Kurallar listesi; + ile yeni kural. Günü gelen işlem uygulama açılınca kendiliğinden kayıt olur.
+         =================================================== -->
+    <section class="sayfa" id="sayfa-tekrarlar">
+      <div id="tekrar-listesi"></div>
+      <div class="bos-liste" id="tekrar-bos">
+        <div class="buyuk-ikon">🔁</div>
+        <h3>Henüz tekrarlayan işlem yok</h3>
+        <p class="bilgi">Maaş, kira, faturalar gibi düzenli gelir ve giderleri eklemek için + düğmesine dokun.
+          Günü gelince uygulama açıldığında kendiliğinden kaydedilir.</p>
+      </div>
+    </section>
+
     <section class="sayfa" id="sayfa-yedekleme">
       <p class="bilgi" id="yedek-bilgi" style="margin:0 4px 12px"></p>
       <div class="ayar-listesi">
@@ -934,7 +987,7 @@
       <div class="bos-liste" id="borc-bos">
         <div class="buyuk-ikon">💳</div>
         <h3>Henüz borç yok</h3>
-        <p class="bilgi">Yeni borç eklemek için + düğmesine dokun. TL, Euro, Dolar ya da gram altın (22 / 24 ayar) olarak tutulabilir.</p>
+        <p class="bilgi">Yeni borç ya da kredi eklemek için + düğmesine dokun. Borç TL, Euro, Dolar ya da gram altın (22 / 24 ayar) olarak tutulabilir.</p>
       </div>
     </section>
 
@@ -978,7 +1031,7 @@
           <label for="tip-gelir">Gelir</label>
           <!-- Sürüm 1.6: hesaplar arası para aktarma (gelir/gider sayılmaz) -->
           <input type="radio" name="tip" id="tip-havale" value="havale">
-          <label for="tip-havale">Havale</label>
+          <label for="tip-havale" id="tip-havale-etiket">Havale</label>
         </div>
       </div>
 
@@ -1017,6 +1070,8 @@
         <div class="alan">
           <div class="alan-baslik">Nereye</div>
           <div class="cipler tek-sira" id="havale-hedef"></div>
+          <!-- Hedef borçlu kredi kartıysa: tek dokunuşla bütün borç (Sürüm 1.9) -->
+          <button type="button" class="tamami-dugme" id="havale-tamami" hidden></button>
         </div>
       </div>
 
@@ -1029,13 +1084,48 @@
       <!-- Tarih ve saat (yeni kayıtta şu anki zamanla dolar) -->
       <div class="yan-yana">
         <div class="alan">
-          <label for="f-tarih">Tarih</label>
+          <label for="f-tarih" id="f-tarih-etiket">Tarih</label>
           <input type="date" id="f-tarih">
         </div>
-        <div class="alan">
+        <div class="alan" id="f-saat-alan">
           <label for="f-saat">Saat</label>
           <input type="time" id="f-saat">
         </div>
+        <!-- Tekrarda saat yerine bitiş tarihi (isteğe bağlı) -->
+        <div class="alan" id="t-bitis-alan" hidden>
+          <label for="t-bitis">Bitiş (isteğe bağlı)</label>
+          <input type="date" id="t-bitis">
+        </div>
+      </div>
+
+      <!-- Tekrar ayarları (Sürüm 1.8): sadece tekrarlayan işlem eklerken/düzenlerken görünür -->
+      <div id="tekrar-blok" hidden>
+        <div class="alan">
+          <div class="alan-baslik">Sıklık</div>
+          <div class="cipler" id="t-siklik"></div>
+        </div>
+        <div class="alan" id="t-hafta-alan">
+          <div class="alan-baslik">Haftanın günü</div>
+          <div class="gun-secimi" id="t-hafta"></div>
+        </div>
+        <div class="alan" id="t-gunsayi-alan" hidden>
+          <label for="t-gunsayi">Kaç günde bir</label>
+          <input type="text" inputmode="numeric" id="t-gunsayi" autocomplete="off" placeholder="Örn. 15">
+        </div>
+        <div class="yan-yana" id="t-gun-satiri">
+          <div class="alan" id="t-ay-alan">
+            <label for="t-ay">Ay</label>
+            <select id="t-ay"></select>
+          </div>
+          <div class="alan">
+            <label for="t-gun">Ayın günü</label>
+            <select id="t-gun"></select>
+          </div>
+        </div>
+        <div class="ipucu" id="t-ipucu" style="margin:-6px 0 12px"></div>
+        <label class="onay-kutusu"><input type="checkbox" id="t-takvim" checked>Gelecek tarihleri takvimde planlı olarak göster</label>
+        <!-- Sürüm 1.8.1: onaylı tekrar gelecek aylarda gerçek gelir/gider gibi sayılır (yine atlanabilir) -->
+        <label class="onay-kutusu"><input type="checkbox" id="t-kesin">Gelecek aylarda gelir/gider olarak say</label>
       </div>
 
       <!-- Not: isteğe bağlı -->
@@ -1048,6 +1138,8 @@
       <div class="ipucu hata" id="form-hata"></div>
       <!-- Sadece düzenlemede görünür. İlk dokunuşta onay ister, ikinci dokunuşta siler. -->
       <button type="button" class="sil-dugmesi" id="kayit-sil" hidden>Kaydı sil</button>
+      <!-- Tekrar düzenlenirken: durdur / devam ettir -->
+      <button type="button" class="ikincil-dugme" id="tekrar-durdur" hidden style="width:100%;margin-top:10px"></button>
     </form>
   </div>
 
@@ -1164,7 +1256,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.7.1";
+    const SURUM = "1.11";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1360,34 +1452,122 @@
     const havaleleriYaz = l => depoYaz(HAVALE_ANAHTARI, l);
     const havaleSil = id => havaleleriYaz(havaleleriOku().filter(h => h.id !== id));
 
-    // Hesaptan yapılmış TL borç ödemeleri (Sürüm 1.6.1). Ödeme "gider olarak da" yazıldıysa ve o kayıt duruyorsa
-    // hesaptan düşme o gider kaydıyla olur; burada ikinci kez sayılmaz.
-    function borcOdemeleri() {
+    // -----------------------------------------------------
+    // HESAP HAREKETLERİ (Sürüm 1.9): bir hesabın bakiyesini değiştiren her şey tek listede.
+    //   kayit      gelir (+) / gider (−)                      kayıtta hesapId
+    //   havale     kaynak (−) / hedef (+)
+    //   borcgiris  borç alınınca hesaba giren para (+)        borçta girisHesapId, girisMiktar, girisTarih (TL)
+    //   borcodeme  borç ödemesi (−)                           ödemede hesapId (TL)
+    //   birikim    birikime yatırma (−) / birikimden çekme (+)  hareket hesapId (TL kutular)
+    // Bakiye, ayrıntı sayfası, gün paneli, silmede taşıma ve bakiye kontrolü hep bunu kullanır.
+    // -----------------------------------------------------
+    function hesapHareketleri() {
+      const l = [];
+      kayitlariOku().forEach(k => {
+        if (k.hesapId) l.push({ tur: "kayit", id: k.id, hesapId: k.hesapId, miktar: k.tip === "gelir" ? k.tutar : -k.tutar, tarih: k.tarih, saat: k.saat || "", k });
+      });
+      havaleleriOku().forEach(t => {
+        l.push({ tur: "havale", id: t.id, hesapId: t.kaynak, miktar: -t.tutar, tarih: t.tarih, saat: t.saat || "", t, giden: true });
+        l.push({ tur: "havale", id: t.id, hesapId: t.hedef, miktar: t.tutar, tarih: t.tarih, saat: t.saat || "", t, giden: false });
+      });
       const kayitIdleri = new Set(kayitlariOku().map(k => k.id));
-      const liste = [];
       borclariOku().forEach(b => {
-        if (b.birim !== "TL") return;
+        // Döviz/altın borcun ödemesi (1.9.1): ödemede hesapId + tlTutar varsa o TL hesaptan düşer
+        if (b.birim !== "TL") {
+          b.odemeler.forEach(o => {
+            if (o.hesapId && o.tlTutar > 0) l.push({ tur: "borcodeme", id: o.id, borcId: b.id, borcAd: b.ad, hesapId: o.hesapId,
+              miktar: -o.tlTutar, tarih: o.tarih, saat: "", not: o.not });
+          });
+          return;
+        }
+        if (b.girisHesapId) l.push({ tur: "borcgiris", id: b.id, borcId: b.id, borcAd: b.ad, hesapId: b.girisHesapId,
+          miktar: +(b.girisMiktar || b.toplam), tarih: b.girisTarih || bugun(), saat: "" });
         b.odemeler.forEach(o => {
+          // (1.9 öncesi "gider olarak da kaydet" ile yazılmış ödemede bakiye o gider kaydından düşer)
           if (!o.hesapId || (o.kayitId && kayitIdleri.has(o.kayitId))) return;
-          liste.push({ ...o, borcId: b.id, borcAd: b.ad });
+          l.push({ tur: "borcodeme", id: o.id, borcId: b.id, borcAd: b.ad, hesapId: o.hesapId, miktar: -o.miktar, tarih: o.tarih, saat: "", not: o.not });
         });
       });
-      return liste;
+      birikimleriOku().forEach(s => {
+        s.hareketler.forEach(h => {
+          if (!h.hesapId) return;
+          // TL kutu: miktar kadar; döviz/altın kutu (1.9.1): girilen TL tutarı kadar (alırken −, satarken +)
+          const tlEtki = s.birim === "TL" ? h.miktar : (h.tlTutar > 0 ? Math.sign(h.miktar) * h.tlTutar : 0);
+          if (tlEtki) l.push({ tur: "birikim", id: h.id, birikimId: s.id, birikimAd: s.ad, hesapId: h.hesapId, miktar: -tlEtki, tarih: h.tarih, saat: "", not: h.not });
+        });
+      });
+      return l;
+    }
+    // Takvim ve Özet için hesaptan yapılmış TL borç ödemeleri (eski adıyla korunuyor)
+    function borcOdemeleri() {
+      return hesapHareketleri().filter(m => m.tur === "borcodeme").map(m => ({ id: m.id, borcId: m.borcId, borcAd: m.borcAd,
+        hesapId: m.hesapId, miktar: -m.miktar, tarih: m.tarih, not: m.not }));
     }
     // { hesapId: { bakiye, ileri } } — ileri: bugünden sonraki tarihli hareketlerin toplam etkisi
     function hesapBakiyeleri() {
       const b = {};
       const bugunT = bugun();
       tumHesaplar().forEach(h => { b[h.id] = { bakiye: h.baslangic || 0, ileri: 0 }; });
-      const isle = (id, miktar, tarih) => {
-        if (!b[id]) return;
-        if (tarih > bugunT) b[id].ileri += miktar; else b[id].bakiye += miktar;
-      };
-      kayitlariOku().forEach(k => { if (k.hesapId) isle(k.hesapId, k.tip === "gelir" ? k.tutar : -k.tutar, k.tarih); });
-      havaleleriOku().forEach(h => { isle(h.kaynak, -h.tutar, h.tarih); isle(h.hedef, h.tutar, h.tarih); });
-      borcOdemeleri().forEach(o => isle(o.hesapId, -o.miktar, o.tarih));
+      hesapHareketleri().forEach(m => {
+        if (!b[m.hesapId]) return;
+        if (m.tarih > bugunT) b[m.hesapId].ileri += m.miktar; else b[m.hesapId].bakiye += m.miktar;
+      });
       Object.values(b).forEach(x => { x.bakiye = Math.round(x.bakiye * 100) / 100; x.ileri = Math.round(x.ileri * 100) / 100; });
       return b;
+    }
+
+    // -----------------------------------------------------
+    // BAKİYE KONTROLÜ (Sürüm 1.9) — kaydetmeden önce
+    // degisimler: [{ hesapId, miktar }] (yeni işlemin etkisi), haric: { tur, id } (düzenlenen işlemin eski etkisi çıkarılır)
+    // İleri tarihliler dahil toplam bakiyeye bakılır.
+    //  - Kredi kartı limiti aşılırsa: HATA (kaydedilmez)
+    //  - Kredi kartı artıya geçerse (fazla ödeme): UYARI
+    //  - Diğer hesap eksiye düşerse: UYARI
+    // Uyarıda ikinci "Kaydet" dokunuşu kaydeder (uyariOnayi aynı uyarıyı tutar).
+    // -----------------------------------------------------
+    let uyariOnayi = null;
+    function bakiyeKontrol(degisimler, haric) {
+      const toplam = {};
+      tumHesaplar().forEach(h => { toplam[h.id] = h.baslangic || 0; });
+      hesapHareketleri().forEach(m => {
+        if (haric && m.tur === haric.tur && m.id === haric.id) return;
+        if (m.hesapId in toplam) toplam[m.hesapId] += m.miktar;
+      });
+      const uyarilar = [];
+      for (const d of degisimler) {
+        const h = hesapBul(d.hesapId);
+        if (!h || !d.miktar) continue;
+        const yeni = Math.round((toplam[h.id] + d.miktar) * 100) / 100;
+        toplam[h.id] = yeni;
+        if (h.tur === "kart") {
+          if (h.limit > 0 && d.miktar < 0 && yeni < -h.limit - 0.004) {
+            return { hata: "Limitiniz bu tutarı karşılamıyor, lütfen kontrol edin. (" + h.ad + " kullanılabilir limit: " +
+              tl(Math.max(0, Math.round((h.limit + toplam[h.id] - d.miktar) * 100) / 100)) + ")" };
+          }
+          if (d.miktar > 0 && yeni > 0.004) uyarilar.push("Kredi kartına fazladan para atıyorsunuz (" + h.ad + " " + tl(yeni) + " artıya geçecek).");
+        } else if (d.miktar < 0 && yeni < -0.004) {
+          uyarilar.push(h.ad + " eksiye düşecek (" + tl(yeni) + ").");
+        }
+      }
+      return uyarilar.length ? { uyari: uyarilar.join(" ") } : {};
+    }
+    // Silmeden önce (1.9.1): silinen hareketlerin etkisi geri alınınca bir kart limiti aşılıyorsa hata yazısı döner
+    function silmeLimitHatasi(hareketler) {
+      if (!hareketler.length) return null;
+      const k = bakiyeKontrol(hareketler.map(m => ({ hesapId: m.hesapId, miktar: -m.miktar })), null);
+      return k.hata ? "Bu silinirse kredi kartı limiti aşılır. Önce karta ödeme gir ya da limiti kontrol et." : null;
+    }
+    // Ortak kullanım: true dönerse kaydetmeye devam edilir
+    function bakiyeUygun(degisimler, haric, hataGoster) {
+      const k = bakiyeKontrol(degisimler, haric);
+      if (k.hata) { uyariOnayi = null; hataGoster(k.hata); return false; }
+      if (k.uyari && uyariOnayi !== k.uyari) {
+        uyariOnayi = k.uyari;
+        hataGoster("⚠ " + k.uyari + " Yine de kaydetmek için tekrar dokun.");
+        return false;
+      }
+      uyariOnayi = null;
+      return true;
     }
 
     // =====================================================
@@ -1408,7 +1588,6 @@
         { id: "araba",     ad: "Araba",         kalemler: [["benzin", "Benzin"], ["kasko", "Kasko"], ["trafik", "Trafik sigortası"], ["bakim", "Bakım"]] },
         { id: "alisveris", ad: "Alışveriş",     kalemler: [["alisveris", "Alışveriş"]] },
         { id: "kisisel",   ad: "Kişisel",       kalemler: [] },   // 1.3.1: Harçlık kaldırıldı
-        { id: "kredi",     ad: "Kredi kartı",   kalemler: [["kredi", "Kredi"]] },
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
       gelir: [
@@ -1418,14 +1597,8 @@
         { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
       ]
     };
-    // Borç ödemesi gider olarak yazılırken kullanılan kalem
-    const BORC_GIDER = { grup: "kredi", kalemId: "gider.kredi.kredi" };
-    // "Kredi kartı → Kredi" (adlar değiştirildiyse güncel adlarla)
-    function borcGiderYazisi() {
-      const g = kalemleriOku().gider.find(x => x.id === BORC_GIDER.grup);
-      const k = g && g.kalemler.find(x => x.id === BORC_GIDER.kalemId);
-      return (g ? g.ad : "Kredi kartı") + " → " + (k ? k.ad : "Kredi");
-    }
+    // (1.9: "Kredi kartı" gider grubu ve borç ödemesini "gider olarak da kaydet" kaldırıldı — kart ödemesi havaleyle yapılır,
+    //  borç ödemeleri Özet'te ayrı satırda görünür; böylece aynı para iki kez gider sayılmaz)
 
     // Hazır grubu saklanan yapıya çevirir: kalem kimliği "tip.grup.kalem" olur (gruplar arası çakışmasın)
     function hazirGrup(tip, g) {
@@ -1515,17 +1688,20 @@
       TL:      { ad: "TL",                   kisa: "₺" },
       EUR:     { ad: "Euro",                 kisa: "€" },
       USD:     { ad: "Dolar",                kisa: "$" },
-      ALTIN22: { ad: "Gram altın (22 ayar)", kisa: "gr 22 ayar", altin: true },
-      ALTIN24: { ad: "Gram altın (24 ayar)", kisa: "gr 24 ayar", altin: true }
+      // 1.10: ayar bilgisi sadece kartın sol üstünde (ad) yazar, tutarlarda sadece "gr"
+      ALTIN22: { ad: "Gram altın (22 ayar)", kisa: "gr", altin: true },
+      ALTIN24: { ad: "Gram altın (24 ayar)", kisa: "gr", altin: true }
     };
     const BIRIM_SIRASI = Object.keys(BIRIMLER);
     const altinBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-    // 1250 TL → "1.250,00 ₺" | 12.5 ALTIN22 → "12,5 gr 22 ayar"
+    // 1250 TL → "1.250,00 ₺" | 12.5 ALTIN22 → "12,5 gr"
     function miktarYazisi(n, birim) {
       const b = BIRIMLER[birim] || BIRIMLER.TL;
-      return (b.altin ? altinBicim.format(n) : tlBicim.format(n)) + " " + b.kisa;
+      return sadeMiktar(n, birim) + " " + b.kisa;
     }
+    // Birimsiz sayı (1.10, son hareket yazısı): 12.5 ALTIN22 → "12,5" | 100 USD → "100,00"
+    const sadeMiktar = (n, birim) => ((BIRIMLER[birim] || BIRIMLER.TL).altin ? altinBicim : tlBicim).format(n);
 
     function borclariOku() {
       const l = depoOku(BORC_ANAHTARI, []);
@@ -1557,7 +1733,8 @@
     // Alt çubukta düğmesi olmayan alt sayfalar: hangi sekmenin altında oldukları ve başlıkları
     const ALT_SAYFALAR = {
       yedekleme: { ust: "ayarlar", baslik: "Yedekle" },
-      hesap: { ust: "hesaplar", baslik: "Hesap" }      // başlık açılan hesabın adı olur (Sürüm 1.6)
+      hesap: { ust: "hesaplar", baslik: "Hesap" },     // başlık açılan hesabın adı olur (Sürüm 1.6)
+      tekrarlar: { ust: "ayarlar", baslik: "Tekrarlayan işlemler" }   // Sürüm 1.8
     };
 
     function sayfaAc(ad) {
@@ -1575,7 +1752,7 @@
       el("ekle-dugmesi").setAttribute("aria-label",
         ad === "borc" ? "Yeni borç ekle" : ad === "birikim" ? "Yeni birikim ekle" : "Yeni kayıt ekle");
       // Ayarlar ve alt sayfalarında eklenecek bir şey yok: + düğmesi gizlenir
-      el("ekle-dugmesi").hidden = sekme === "ayarlar";
+      el("ekle-dugmesi").hidden = sekme === "ayarlar" && ad !== "tekrarlar";   // tekrarlarda + yeni kural
       window.scrollTo(0, 0);
       // Gizliyken çizilen grafiğin genişliği yanlış olur: Özet açılınca yeniden çiz
       if (ad === "ozet") ozetGuncelle();
@@ -1623,6 +1800,7 @@
       if (aktifSayfa === "borc") borcFormuAc(null);
       else if (aktifSayfa === "birikim") birikimFormuAc(null);
       else if (aktifSayfa === "hesap") kayitPaneliAc(null, null, acikHesap);   // o hesap seçili gelir
+      else if (aktifSayfa === "tekrarlar") tekrarPaneliAc(null);
       else kayitPaneliAc(null);
     });
 
@@ -1632,6 +1810,7 @@
     let acikPanel = null;
     let gunDonus = null;      // gün panelinden açılan kayıt paneli kapanınca dönülecek tarih
     function panelAc(id) {
+      uyariOnayi = null;     // bakiye uyarısı onayı her pencerede baştan
       if (acikPanel && acikPanel !== id) el(acikPanel).classList.remove("acik");
       acikPanel = id;
       el(id).scrollTop = 0;
@@ -1852,6 +2031,9 @@
     // hesapId (Sürüm 1.6): yeni kayıtta seçili gelecek hesap (hesap ayrıntısından)
     // Havale düzenlenirken kayit = { tip: "havale", id, kaynak, hedef, tutar, tarih, saat, not }
     function kayitPaneliAc(kayit, tarih, hesapId) {
+      uyariOnayi = null;
+      tekrarModu = false;
+      tekrarFormuGoster(false);
       duzenlenen = kayit || null;
       el("kayit-panel-baslik").textContent = kayit ? (kayit.tip === "havale" ? "Havaleyi Düzenle" : "Kaydı Düzenle") : "Yeni Kayıt";
       el("kayit-sil").hidden = !kayit;
@@ -1874,7 +2056,7 @@
       } else if (kayit) {
         el("tip-" + kayit.tip).checked = true;
         formBolumleri();
-        seciliHesap = kayit.hesapId || "";   // "" = hesapsız (eski kayıt)
+        seciliHesap = kayit.hesapId || null;
         hesapCiz();
         seciliGrup = kayit.grup;
         seciliKalem = kayit.kalemId;
@@ -1901,6 +2083,7 @@
     form.addEventListener("submit", olay => {
       olay.preventDefault();
       const hataGoster = mesaj => { el("form-hata").textContent = mesaj; };
+      if (tekrarModu) return tekrarKaydet(hataGoster);
       if (seciliTip() === "havale") return havaleKaydet(hataGoster);
 
       const tip = seciliTip();
@@ -1914,7 +2097,11 @@
       if (!(tutar > 0))          return hataGoster("Tutarı girin.");
       if (tutar > 100000000)     return hataGoster("Tutar çok büyük, kontrol edin.");
       if (!tarih)                return hataGoster("Tarih girin.");
-      if (seciliHesap === null && tumHesaplar().length) return hataGoster("Bir hesap seçin.");
+      if (!tumHesaplar().length) return hataGoster("Önce Hesaplar sekmesinden bir hesap ekle.");
+      if (!seciliHesap || !hesapBul(seciliHesap)) return hataGoster("Bir hesap seçin.");
+      // Bakiye / kart limiti kontrolü (Sürüm 1.9)
+      if (!bakiyeUygun([{ hesapId: seciliHesap, miktar: tip === "gelir" ? tutar : -tutar }],
+        duzenlenen ? { tur: "kayit", id: duzenlenen.id } : null, hataGoster)) return;
 
       const kayit = {
         tip: tip,
@@ -1926,7 +2113,7 @@
         tarih: tarih,
         saat: el("f-saat").value,
         not: el("f-not").value.trim(),
-        hesapId: seciliHesap || null      // Sürüm 1.6: null = hesapsız
+        hesapId: seciliHesap
       };
       if (seciliHesap) depoYaz(SON_HESAP_ANAHTARI, seciliHesap);
 
@@ -1940,11 +2127,17 @@
     });
 
     el("kayit-sil").addEventListener("click", () => {
+      if (duzenlenen && !tekrarModu) {
+        const tur = duzenlenen.tip === "havale" ? "havale" : "kayit";
+        const hata = silmeLimitHatasi(hesapHareketleri().filter(m => m.tur === tur && m.id === duzenlenen.id));
+        if (hata) { el("form-hata").textContent = hata; return; }
+      }
       ikiDokunus(el("kayit-sil"), "Silmek için tekrar dokun", () => {
-        const silindi = duzenlenen && (duzenlenen.tip === "havale" ? havaleSil(duzenlenen.id) : kayitSil(duzenlenen.id));
+        const silindi = duzenlenen && (tekrarModu ? tekrarSil(duzenlenen.id)
+          : duzenlenen.tip === "havale" ? havaleSil(duzenlenen.id) : kayitSil(duzenlenen.id));
         if (silindi) {
           panelKapat();
-          bildirimGoster("Kayıt silindi");
+          bildirimGoster(tekrarModu ? "Tekrar silindi" : "Kayıt silindi");
           hepsiniGuncelle();
         }
       });
@@ -1964,12 +2157,13 @@
       return hepsi.length ? hepsi[0].id : null;
     }
     // Hesap çiplerini çizer; secili: seçili kimlik, sec: dokununca çağrılır, haric: gösterilmeyecek hesap
-    function hesapCipleriniCiz(kutu, secili, sec, haric, hesapsizGoster) {
+    // izinli (1.10): verilirse sadece bu kimliklerdeki hesaplar gösterilir
+    function hesapCipleriniCiz(kutu, secili, sec, haric, hesapsizGoster, izinli) {
       const kaydirma = kutu.scrollLeft;
       kutu.innerHTML = "";
       if (hesapsizGoster) kutu.appendChild(cipYap("Hesapsız", secili === "", () => sec("")));
       tumHesaplar().forEach(h => {
-        if (h.id === haric) return;
+        if (h.id === haric || (izinli && !izinli.includes(h.id))) return;
         kutu.appendChild(cipYap(h.ad, h.id === secili, () => sec(h.id)));
       });
       // Seçili hesap silinmişse (eski kayıt) yine de görünsün
@@ -1977,14 +2171,34 @@
       kutu.scrollLeft = kaydirma;
     }
     function hesapCiz() {
-      const eskiHesapsiz = !!duzenlenen && !duzenlenen.hesapId;
-      hesapCipleriniCiz(el("hesap-cipleri"), seciliHesap, id => { seciliHesap = id; hesapCiz(); }, null, eskiHesapsiz);
-      el("hesap-ipucu").textContent = tumHesaplar().length ? "" : "Henüz hesap yok. Hesaplar sekmesinden ekleyebilirsin.";
+      // Sürüm 1.9: her gelir/gider bir hesaptan (Hesapsız seçeneği yok)
+      hesapCipleriniCiz(el("hesap-cipleri"), seciliHesap, id => { seciliHesap = id; hesapCiz(); }, null, false);
+      el("hesap-ipucu").textContent = tumHesaplar().length ? "" : "Henüz hesap yok. Önce Hesaplar sekmesinden bir hesap ekle.";
     }
     function havaleCiz() {
       hesapCipleriniCiz(el("havale-kaynak"), havaleKaynak, id => { havaleKaynak = id; if (havaleHedef === id) havaleHedef = null; havaleCiz(); }, null);
       hesapCipleriniCiz(el("havale-hedef"), havaleHedef, id => { havaleHedef = id; havaleCiz(); }, havaleKaynak);
+      // Kart borcu (ileri tarihliler dahil; düzenlenen havale hariç)
+      const hedef = havaleHedef && hesapBul(havaleHedef);
+      let borc = 0;
+      if (hedef && hedef.tur === "kart") {
+        borc = hedef.baslangic || 0;
+        hesapHareketleri().forEach(m => {
+          if (m.hesapId !== hedef.id) return;
+          if (duzenlenen && duzenlenen.tip === "havale" && m.tur === "havale" && m.id === duzenlenen.id) return;
+          borc += m.miktar;
+        });
+        borc = Math.round(-borc * 100) / 100;
+      }
+      const dugme = el("havale-tamami");
+      dugme.hidden = !(borc > 0);
+      dugme.dataset.tutar = borc;
+      if (borc > 0) dugme.textContent = "Borcun tamamı: " + tl(borc);
     }
+    el("havale-tamami").addEventListener("click", () => {
+      el("f-tutar").value = kutuyaYaz(+el("havale-tamami").dataset.tutar);
+      uyariOnayi = null;
+    });
     function havaleKaydet(hataGoster) {
       const tutar = sayiyaCevir(el("f-tutar").value);
       const tarih = el("f-tarih").value;
@@ -1995,6 +2209,8 @@
       if (!(tutar > 0))             return hataGoster("Tutarı girin.");
       if (tutar > 100000000)        return hataGoster("Tutar çok büyük, kontrol edin.");
       if (!tarih)                   return hataGoster("Tarih girin.");
+      if (!bakiyeUygun([{ hesapId: havaleKaynak, miktar: -tutar }, { hesapId: havaleHedef, miktar: tutar }],
+        duzenlenen ? { tur: "havale", id: duzenlenen.id } : null, hataGoster)) return;
       const h = {
         kaynak: havaleKaynak, hedef: havaleHedef, tutar: Math.round(tutar * 100) / 100,
         tarih, saat: el("f-saat").value, not: el("f-not").value.trim()
@@ -2080,7 +2296,8 @@
     el("gider-kategori").addEventListener("click", () => kalemPaneliAc("gider"));
     // İçeriği henüz yazılmamış satırlar (Sürüm 1.4): şimdilik sadece bilgi gösterir
     el("hesap-ac").addEventListener("click", () => sayfaAc("hesaplar"));   // Sürüm 1.6
-    ["donem-ac", "tekrar-ac"].forEach(id =>
+    el("tekrar-ac").addEventListener("click", () => sayfaAc("tekrarlar"));   // Sürüm 1.8
+    ["donem-ac"].forEach(id =>
       el(id).addEventListener("click", () => bildirimGoster("Bu bölüm yakında eklenecek")));
 
     // Kalem ayarı işlemi: anahtar ve işlem adına göre
@@ -2219,21 +2436,34 @@
 
     const toplaTip = (liste, tip) => liste.filter(k => k.tip === tip).reduce((t, k) => t + (k.tutar || 0), 0);
 
+    // Özet (Sürüm 1.9): GERÇEKLEŞEN = bugüne kadarki kayıtlar; PLANLANAN = bugünden sonraki kayıtlar +
+    // "bütçeye dahil" tekrarların gelecek tarihleri (atlananlar hariç). Dağılım, grafik ve tahmin gerçekleşenle çizilir.
+    // İleri ok: bu aydan sonra 12 aya (yılda: gelecek yıla) kadar gidilebilir.
     function ozetGuncelle() {
-      const sirali = siraliKayitlar();
+      const bugunT = bugun();
+      const tumu = siraliKayitlar();
+      const sirali = tumu.filter(k => k.tarih <= bugunT);
+      const ilerideki = tumu.filter(k => k.tarih > bugunT);
       const kalemler = kalemleriOku();
       const d = donemBilgisi();
       const donem = sirali.filter(d.icinde);
       const onceki = sirali.filter(d.oncekiIcinde);
+      // Dönemin planlananları
+      const donemSon = gorunum === "ay" ? seciliAy + "-31" : seciliAy.slice(0, 4) + "-12-31";
+      const donemBas = gorunum === "ay" ? seciliAy + "-01" : seciliAy.slice(0, 4) + "-01-01";
+      const planli = ilerideki.filter(d.icinde).map(k => ({ tip: k.tip, tutar: k.tutar }))
+        .concat(planliTekrarlar(donemBas, donemSon).filter(p => p.kesin && !p.atlandi).map(p => ({ tip: p.t.tip, tutar: p.t.tutar })));
+      const planGelir = planli.filter(x => x.tip === "gelir").reduce((t, x) => t + x.tutar, 0);
+      const planGider = planli.filter(x => x.tip === "gider").reduce((t, x) => t + x.tutar, 0);
 
       // Dönem başlığı ve oklar (ileri en fazla bu ay/yıl, geri en eski kayda kadar)
       el("donem-adi").textContent = d.ad;
-      const enEskiAy = sirali.length ? sirali[0].tarih.slice(0, 7) : buAy();
+      const enEskiAy = tumu.length ? tumu[0].tarih.slice(0, 7) : buAy();
       if (gorunum === "ay") {
-        el("donem-ileri").disabled = seciliAy >= buAy();
+        el("donem-ileri").disabled = seciliAy >= ayKaydir(buAy(), 12);
         el("donem-geri").disabled = seciliAy <= enEskiAy;
       } else {
-        el("donem-ileri").disabled = seciliAy.slice(0, 4) >= buAy().slice(0, 4);
+        el("donem-ileri").disabled = seciliAy.slice(0, 4) > buAy().slice(0, 4);
         el("donem-geri").disabled = seciliAy.slice(0, 4) <= enEskiAy.slice(0, 4);
       }
 
@@ -2247,8 +2477,22 @@
       // Gider gelirden fazlaysa "Kalan" gider renginde
       el("ozet-kalan").className = "deger " + (gelir - gider < 0 ? "gider-renk" : "vurgu-renk");
       el("ozet-kalan-alt").textContent = !donem.length
-        ? (gorunum === "ay" ? "Bu ayda kayıt yok." : "Bu yılda kayıt yok.")
+        ? (gorunum === "ay" ? "Bu dönemde gerçekleşen kayıt yok." : "Bu yılda gerçekleşen kayıt yok.")
         : (gelir > 0 ? "Gelirden harcanan: %" + Math.round(gider / gelir * 100) + " · " : "") + donem.length + " kayıt";
+      // Planlanan (Sürüm 1.9)
+      el("ozet-gelir-plan").textContent = planGelir ? "Planlanan: +" + tl(planGelir) : "";
+      el("ozet-gider-plan").textContent = planGider ? "Planlanan: −" + tl(planGider) : "";
+      el("ozet-kalan-plan").textContent = planli.length
+        ? "Planlananlarla birlikte: " + tl(Math.round((gelir + planGelir - gider - planGider) * 100) / 100) +
+          " (Gelir " + tl(gelir + planGelir) + " · Gider " + tl(gider + planGider) + ")" : "";
+      // Borç ödemeleri (Sürüm 1.9): gider sayılmaz ama cepten çıkar
+      const borcOdenen = borcOdemeleri().filter(o => o.tarih <= bugunT && d.icinde(o)).reduce((t, o) => t + o.miktar, 0);
+      // Sürüm 1.11: dönemdeki ödenmemiş kredi taksitleri
+      const taksitPlan = Math.round(planliTaksitler(donemBas, donemSon).reduce((t, x) => t + x.tutar, 0) * 100) / 100;
+      el("ozet-borc-odeme").hidden = !borcOdenen && !taksitPlan;
+      el("ozet-borc-odeme").textContent = [borcOdenen
+        ? "Borç ödemeleri: −" + tl(borcOdenen) + " · Ödemelerden sonra elde kalan: " + tl(Math.round((gelir - gider - borcOdenen) * 100) / 100) : "",
+        taksitPlan ? "Ödenecek kredi taksitleri: −" + tl(taksitPlan) : ""].filter(Boolean).join("\n");
 
       tahminGoster(sirali, gider);
       dagilimCiz("gider", donem, kalemler);
@@ -2439,7 +2683,9 @@
     // Dönem okları: ay görünümünde bir ay, yıl görünümünde bir yıl kayar
     function donemKaydir(fark) {
       seciliAy = gorunum === "ay" ? ayKaydir(seciliAy, fark) : ayKaydir(seciliAy, fark * 12);
-      if (seciliAy > buAy()) seciliAy = buAy();
+      // Sürüm 1.9: planlananlar için 12 ay ileriye kadar (yılda: gelecek yılın aynı ayı)
+      const enIleri = ayKaydir(buAy(), 12);
+      if (seciliAy > enIleri) seciliAy = enIleri;
       grafikSecim = gorunum === "ay" ? seciliAy : null;
       ozetGuncelle();
     }
@@ -2474,12 +2720,109 @@
         '<button type="button" class="cip' + (b === secili ? " secili" : "") + '" data-birim="' + b + '"' +
         (kilitli && b !== secili ? " disabled" : "") + ">" + BIRIMLER[b].ad + "</button>").join("") + "</div>";
     }
-    function toplamSatirlari(liste) {
-      return liste.map(t => '<div class="toplam-satir"><span>' + BIRIMLER[t.birim].ad + "</span><span>" +
-        miktarYazisi(t.miktar, t.birim) + "</span></div>").join("");
+    // tlGoster (1.10, birikim): döviz/altında miktarın altında küçük "≈ X ₺"
+    function toplamSatirlari(liste, tlGoster) {
+      return liste.map(t => {
+        const x = tlGoster && t.birim !== "TL" ? tlKarsiligi(t.miktar, t.birim) : null;
+        return '<div class="toplam-satir"><span>' + BIRIMLER[t.birim].ad + '</span><span class="toplam-sag">' +
+          miktarYazisi(t.miktar, t.birim) + (x != null ? '<small class="tl-karsilik">≈ ' + tl(x) + "</small>" : "") + "</span></div>";
+      }).join("");
     }
 
     // --- Borç sayfası ---
+    // Sürüm 1.11: borç türü tur = "borc" (normal) | "kredi".
+    //  Her borçta isteğe bağlı ÖDEME HESABI (odemeHesapId): ödeme girerken seçili gelir, değiştirilebilir.
+    //  Kredi: cekilen (hesaba giren), taksit, taksitSayisi, plan = { siklik: "ay"|"gun", aralik, gun, baslangic (ilk taksit) };
+    //   toplam = taksit × taksitSayisi. Taksit ödemesinde odeme.taksitTarihi.
+    //  Borcu kapat: kalan borç hesapsız bir "kapama" ödemesiyle kapanır (odeme.kapama), önceki ödemeler kalır.
+    const krediMi = b => b.tur === "kredi";
+    const kapandiMi = b => b.odemeler.some(o => o.kapama);
+    const odemeHesabi = b => (b.odemeHesapId && hesapBul(b.odemeHesapId)) || null;
+    const KREDI_SIKLIKLARI = [
+      { id: "ay1", ad: "Her ay" }, { id: "gun28", ad: "28 günde bir" }, { id: "gun30", ad: "30 günde bir" }, { id: "gunx", ad: "Gün sayısı…" }
+    ];
+
+    // Kredinin bütün taksit tarihleri (plan + taksit sayısı)
+    function taksitTarihleri(b) {
+      const p = b.plan || {};
+      const n = +b.taksitSayisi || 0;
+      if (!p.baslangic || n < 1) return [];
+      const uzak = tarihOku(p.baslangic);
+      uzak.setDate(uzak.getDate() + n * (p.siklik === "gun" ? +p.aralik || 1 : 31) + 31);
+      return tekrarTarihleri({ ...p, bitis: "" }, p.baslangic, tarihYaz(uzak)).slice(0, n);
+    }
+    // Ödenmemiş taksitler: [{ tarih, tutar, no }] — kalan borç kadar (son taksit kalan kadar olabilir)
+    function bekleyenTaksitler(b) {
+      let kalan = kalanBorc(b);
+      if (!krediMi(b) || kalan <= 0.004) return [];
+      const odenmis = new Set(b.odemeler.filter(o => o.taksitTarihi).map(o => o.taksitTarihi));
+      const sonuc = [];
+      taksitTarihleri(b).forEach((tarih, i) => {
+        if (kalan <= 0.004 || odenmis.has(tarih)) return;
+        const tutar = Math.round(Math.min(b.taksit, kalan) * 100) / 100;
+        sonuc.push({ tarih, tutar, no: i + 1 });
+        kalan -= tutar;
+      });
+      return sonuc;
+    }
+    function taksitDurumu(b) {
+      const odenen = b.odemeler.filter(o => o.taksitTarihi).length;
+      const bek = bekleyenTaksitler(b);
+      const bugunT = bugun();
+      const geciken = bek.filter(x => x.tarih < bugunT);
+      const sonraki = bek.find(x => x.tarih >= bugunT);
+      return [odenen + "/" + b.taksitSayisi + " taksit ödendi",
+        geciken.length ? "⚠ Ödenmemiş taksit: " + geciken.map(x => kisaTarih(x.tarih)).join(", ") : "",
+        sonraki ? "Sonraki: " + uzunTarih(sonraki.tarih) + " (" + tl(sonraki.tutar) + ")" : ""].filter(Boolean).join(" · ");
+    }
+    const krediSiklikYazisi = b => b.plan && b.plan.siklik === "gun" ? b.plan.aralik + " günde bir"
+      : "Her ay" + (b.plan && b.plan.baslangic ? " " + (+b.plan.gun || +b.plan.baslangic.slice(8, 10)) + "'inde" : "");
+
+    // Kredi taksitlerinin takvimde / gün panelinde / Özet'te kullanılan listesi: [{ b, tarih, tutar, no }]
+    function planliTaksitler(bas, bit) {
+      const l = [];
+      borclariOku().forEach(b => bekleyenTaksitler(b).forEach(x => { if (x.tarih >= bas && x.tarih <= bit) l.push({ b, ...x }); }));
+      return l;
+    }
+
+    // -----------------------------------------------------
+    // TAKSİT GÜNÜ (Sürüm 1.11). İki çalışma şekli hazır; ŞİMDİLİK SADECE HATIRLATMA açık.
+    //   "hatirlat": taksit günü takvimde ve gün panelinde görünür, "Öde" ile ödeme girilir; açılışta günü gelenler bildirilir.
+    //   "otomatik": günü gelen taksit ödeme hesabından kendiliğinden ödenir (limit yetmezse hatırlatma olarak kalır).
+    // İleride Ayarlar'a bu iki seçenek için bir ayar konacak (butceKrediOdeme_v1); şu an ayar ekranı yok.
+    // -----------------------------------------------------
+    const KREDI_ODEME_ANAHTARI = "butceKrediOdeme_v1";
+    const krediOdemeSekli = () => depoOku(KREDI_ODEME_ANAHTARI, "hatirlat") === "otomatik" ? "otomatik" : "hatirlat";
+    // Otomatik şekil: son işlenen günden (b.otoSon) sonraki, bugüne kadarki taksitleri öder. Dönüş: ödenen sayısı
+    function krediTaksitleriIsle() {
+      if (krediOdemeSekli() !== "otomatik") return 0;
+      const borclar = borclariOku();
+      const bugunT = bugun();
+      let sayi = 0, degisti = false;
+      borclar.forEach(b => {
+        if (!krediMi(b)) return;
+        bekleyenTaksitler(b).forEach(x => {
+          if (x.tarih > bugunT || (b.otoSon && x.tarih <= b.otoSon)) return;
+          const h = odemeHesabi(b);
+          if (!h || bakiyeKontrol([{ hesapId: h.id, miktar: -x.tutar }], null).hata) return;   // hatırlatma olarak kalır
+          b.odemeler.push({ id: yeniId("o"), tarih: x.tarih, miktar: x.tutar, not: "", hesapId: h.id, taksitTarihi: x.tarih, oto: true });
+          sayi++;
+        });
+        if (b.otoSon !== bugunT) { b.otoSon = bugunT; degisti = true; }
+      });
+      if (sayi || degisti) borclariYaz(borclar);
+      return sayi;
+    }
+    // Açılışta (hatırlatma): bugün ya da önceden günü gelmiş, ödenmemiş taksit sayısı
+    function bekleyenTaksitBildirimi() {
+      const bugunT = bugun();
+      const l = planliTaksitler("0000-01-01", bugunT);
+      if (!l.length) return "";
+      const bugunku = l.filter(x => x.tarih === bugunT).length;
+      return "💳 " + (bugunku ? bugunku + " kredi taksitinin günü bugün" : "") + (bugunku && l.length > bugunku ? " · " : "") +
+        (l.length > bugunku ? (l.length - bugunku) + " taksit ödenmedi" : "") + " (Borç sekmesi)";
+    }
+
     function borcListesiCiz() {
       const borclar = borclariOku();
       el("borc-bos").hidden = borclar.length > 0;
@@ -2491,12 +2834,15 @@
       el("borc-listesi").innerHTML = sirali.map(b => {
         const kalan = kalanBorc(b);
         const oran = b.toplam > 0 ? Math.min(100, odenen(b) / b.toplam * 100) : 0;
+        const oh = odemeHesabi(b);
         return '<button type="button" class="kart hesap-kart" data-id="' + guvenli(b.id) + '">' +
-          '<div class="hesap-ust"><b>' + guvenli(b.ad) + "</b><small>" + BIRIMLER[b.birim].ad + "</small></div>" +
+          '<div class="birikim-ust"><div class="sol"><b>' + guvenli(b.ad) + "</b><small>" + (krediMi(b) ? "Kredi" : BIRIMLER[b.birim].ad) + "</small></div>" +
+          (oh && kalan > 0 ? "<small>🏦 " + guvenli(oh.ad) + "</small>" : "") + "</div>" +
           (kalan > 0
             ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>"
-            : '<div class="deger bitti">✓ Bitti</div>') +
-          '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) + "</div>" +
+            : '<div class="deger bitti">' + (kapandiMi(b) ? "✓ Kapatıldı" : "✓ Bitti") + "</div>") +
+          '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) +
+          (krediMi(b) && kalan > 0 ? "\n" + guvenli(taksitDurumu(b)) : "") + "</div>" +
           '<div class="cubuk-zemin"><div class="cubuk gelir" style="width:' + oran + '%"></div></div></button>';
       }).join("");
     }
@@ -2505,59 +2851,291 @@
       if (k) borcDetayAc(k.dataset.id);
     });
 
+    // --- Borç / kredi formu ---
+    let borcGirisHesap = "";     // "" = hesaba girmedi
+    let borcOdemeSecim = "";     // varsayılan ödeme hesabı ("" = seçilmedi)
+    let borcOdemeElle = false;   // ödeme hesabı elle seçildiyse giriş hesabını takip etmez
+    let kSiklik = "ay1";
     function borcFormuAc(id) {
       const b = id ? borclariOku().find(x => x.id === id) : null;
+      const kredi = b ? krediMi(b) : false;
+      const kilit = b && b.odemeler.length;      // ödemesi olan borcun türü/birimi değişmez
       hesapDurum = { tur: "borc", ekran: "form", id: b ? b.id : null, birim: b ? b.birim : "TL" };
-      el("hesap-panel-baslik").textContent = b ? "Borcu Düzenle" : "Yeni Borç";
+      el("hesap-panel-baslik").textContent = b ? (kredi ? "Krediyi Düzenle" : "Borcu Düzenle") : "Yeni Borç";
+      const p = b && b.plan ? b.plan : {};
+      const kalan = b ? kalanBorc(b) : 0;
       el("hesap-panel-icerik").innerHTML =
-        '<div class="alan"><label for="h-ad">Borç adı</label><input type="text" id="h-ad" maxlength="40" autocomplete="off" placeholder="Örn. Kredi kartı borcu" value="' + guvenli(b ? b.ad : "") + '"></div>' +
-        '<div class="alan"><div class="alan-baslik">Birim</div>' + birimCipleri(hesapDurum.birim, b && b.odemeler.length) +
-        (b && b.odemeler.length ? '<div class="ipucu">Ödeme girilmiş borcun birimi değiştirilemez.</div>' : "") + "</div>" +
-        '<div class="alan"><label for="h-miktar" id="h-miktar-etiket">Toplam borç</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0" value="' + (b ? kutuyaYaz(b.toplam) : "") + '"></div>' +
+        '<div class="secim secim-bosluk"><input type="radio" name="h-tur" id="h-tur-borc"' + (kredi ? "" : " checked") + (kilit ? " disabled" : "") +
+          '><label for="h-tur-borc">Borç</label><input type="radio" name="h-tur" id="h-tur-kredi"' + (kredi ? " checked" : "") + (kilit ? " disabled" : "") +
+          '><label for="h-tur-kredi">Kredi</label></div>' +
+        '<div class="alan"><label for="h-ad" id="h-ad-etiket">Borç adı</label><input type="text" id="h-ad" maxlength="40" autocomplete="off" value="' + guvenli(b ? b.ad : "") + '"></div>' +
+        // Normal borç
+        '<div id="h-borc-blok">' +
+          '<div class="alan"><div class="alan-baslik">Birim</div>' + birimCipleri(hesapDurum.birim, kilit) +
+          (kilit ? '<div class="ipucu">Ödeme girilmiş borcun birimi değiştirilemez.</div>' : "") + "</div>" +
+          '<div class="alan"><label for="h-miktar">Toplam borç</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0" value="' + (b && !kredi ? kutuyaYaz(b.toplam) : "") + '"></div>' +
+          // Sürüm 1.9: borç alınırken para bir hesaba girdiyse (sadece TL)
+          '<div id="h-giris-blok"><div class="alan"><div class="alan-baslik">Para bir hesaba girdi mi?</div><div class="cipler tek-sira" id="h-giris-hesap"></div></div>' +
+          '<div class="yan-yana" id="h-giris-detay"><div class="alan"><label for="h-giris-miktar">Hesaba giren (₺)</label><input type="text" inputmode="decimal" id="h-giris-miktar" autocomplete="off" placeholder="Toplam borç kadar" value="' +
+            (b && !kredi && b.girisMiktar ? kutuyaYaz(b.girisMiktar) : "") + '"></div>' +
+          '<div class="alan"><label for="h-giris-tarih">Tarih</label><input type="date" id="h-giris-tarih" value="' + (b && b.girisTarih ? b.girisTarih : bugun()) + '"></div></div></div>' +
+        "</div>" +
+        // Kredi (Sürüm 1.11)
+        '<div id="h-kredi-blok">' +
+          '<div class="alan"><label for="h-cekilen">Çekilen tutar (₺)</label><input type="text" inputmode="decimal" id="h-cekilen" class="tutar-kutusu" autocomplete="off" placeholder="0" value="' + (kredi && b.cekilen ? kutuyaYaz(b.cekilen) : "") + '"></div>' +
+          '<div class="alan"><div class="alan-baslik">Paranın girdiği hesap</div><div class="cipler tek-sira" id="h-kgiris-hesap"></div></div>' +
+          '<div class="alan" id="h-kgiris-tarih-alan"><label for="h-kgiris-tarih">Kredinin çekildiği tarih</label><input type="date" id="h-kgiris-tarih" value="' + (kredi && b.girisTarih ? b.girisTarih : bugun()) + '"></div>' +
+          '<div class="yan-yana"><div class="alan"><label for="h-taksit">Taksit tutarı (₺)</label><input type="text" inputmode="decimal" id="h-taksit" autocomplete="off" placeholder="0" value="' + (kredi ? kutuyaYaz(b.taksit) : "") + '"></div>' +
+          '<div class="alan"><label for="h-taksit-sayi">Taksit sayısı</label><input type="text" inputmode="numeric" id="h-taksit-sayi" autocomplete="off" placeholder="Örn. 12" value="' + (kredi ? b.taksitSayisi : "") + '"></div></div>' +
+          '<div class="ipucu" id="h-kredi-toplam" style="margin:-6px 0 12px"></div>' +
+          '<div class="alan"><label for="h-ilk-taksit">İlk taksit tarihi</label><input type="date" id="h-ilk-taksit" value="' + (p.baslangic || "") + '"></div>' +
+          '<div class="alan"><div class="alan-baslik">Taksit sıklığı</div><div class="cipler" id="h-ksiklik"></div></div>' +
+          '<div class="alan" id="h-kgunsayi-alan"><label for="h-kgunsayi">Kaç günde bir</label><input type="text" inputmode="numeric" id="h-kgunsayi" autocomplete="off" placeholder="Örn. 15" value="' + (p.siklik === "gun" ? p.aralik : "") + '"></div>' +
+          '<div class="ipucu" id="h-ksiklik-ipucu" style="margin:-6px 0 12px"></div>' +
+          (b ? "" : '<div class="alan"><label for="h-odenmis">Daha önce ödenen taksit sayısı (isteğe bağlı)</label><input type="text" inputmode="numeric" id="h-odenmis" autocomplete="off" placeholder="0"></div>') +
+        "</div>" +
+        '<div class="alan"><div class="alan-baslik" id="h-odeme-baslik">Ödeme hesabı</div><div class="cipler tek-sira" id="h-odeme-hesap"></div>' +
+          '<div class="ipucu">Ödeme girerken bu hesap seçili gelir; istersen başka hesap seçebilirsin.</div></div>' +
         '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off" value="' + guvenli(b ? b.not || "" : "") + '"></div>' +
         '<button type="button" class="buton" data-islem="borc-kaydet">Kaydet</button>' +
         '<div class="ipucu hata" id="h-hata"></div>' +
-        (b ? '<button type="button" class="sil-dugmesi" data-islem="borc-sil">Borcu sil</button>' : "");
+        // Sürüm 1.11: silerken iki seçenek
+        (b && kalan > 0 ? '<button type="button" class="ikincil-dugme" data-islem="borc-kapat" style="margin-top:14px">Borcu kapat (kalan ' + miktarYazisi(kalan, b.birim) + ")</button>" +
+          '<div class="ipucu">Önceki ödemeler kalır; kalan borç hiçbir hesaptan para çıkmadan ödenmiş sayılır' + (kredi ? ", kalan taksitler durur" : "") + ".</div>" : "") +
+        (b ? '<button type="button" class="sil-dugmesi" data-islem="borc-sil">' + (kredi ? "Krediyi" : "Borcu") + " tamamen sil</button>" : "");
+      borcGirisHesap = b && b.girisHesapId ? b.girisHesapId : "";
+      borcOdemeSecim = b && b.odemeHesapId && hesapBul(b.odemeHesapId) ? b.odemeHesapId : "";
+      borcOdemeElle = !!b;
+      kSiklik = p.siklik === "gun" ? gunSiklikId(+p.aralik) : "ay1";
+      el("h-tur-borc").addEventListener("change", borcFormDurum);
+      el("h-tur-kredi").addEventListener("change", borcFormDurum);
+      ["h-cekilen", "h-taksit", "h-taksit-sayi", "h-ilk-taksit", "h-kgunsayi"].forEach(x => el(x).addEventListener("input", krediOzetCiz));
+      borcFormDurum();
       panelAc("hesap-paneli");
     }
+    const formKredi = () => !!(el("h-tur-kredi") && el("h-tur-kredi").checked);
+    function borcFormDurum() {
+      const kredi = formKredi();
+      el("h-borc-blok").hidden = kredi;
+      el("h-kredi-blok").hidden = !kredi;
+      el("h-ad-etiket").textContent = kredi ? "Kredi adı" : "Borç adı";
+      el("h-ad").placeholder = kredi ? "Örn. İhtiyaç kredisi" : "Örn. Altın borcu";
+      // Normal borçta giriş sadece TL
+      el("h-giris-blok").hidden = hesapDurum.birim !== "TL";
+      const girisSec = id => {
+        borcGirisHesap = id;
+        if (!borcOdemeElle && id) borcOdemeSecim = id;      // ödeme hesabı giriş hesabıyla aynı gelir
+        borcFormDurum();
+      };
+      const ciz = kutu => {
+        hesapCipleriniCiz(kutu, borcGirisHesap, girisSec, null, true);
+        const ilk = kutu.querySelector(".cip");
+        if (ilk) ilk.textContent = "Girmedi";
+      };
+      ciz(el("h-giris-hesap"));
+      ciz(el("h-kgiris-hesap"));
+      el("h-giris-detay").hidden = !borcGirisHesap;
+      el("h-kgiris-tarih-alan").hidden = !borcGirisHesap;
+      // Ödeme hesabı: kredide zorunlu (hesap varsa), normal borçta isteğe bağlı
+      const ok = el("h-odeme-hesap");
+      hesapCipleriniCiz(ok, borcOdemeSecim, id => { borcOdemeSecim = id; borcOdemeElle = true; borcFormDurum(); }, null, !kredi);
+      if (!kredi) { const ilk = ok.querySelector(".cip"); if (ilk) ilk.textContent = "Seçilmedi"; }
+      el("h-odeme-baslik").textContent = kredi ? "Taksitlerin ödeneceği hesap" : "Ödeme hesabı (isteğe bağlı)";
+      // Taksit sıklığı
+      const sk = el("h-ksiklik"); sk.innerHTML = "";
+      KREDI_SIKLIKLARI.forEach(x => sk.appendChild(cipYap(x.ad, x.id === kSiklik, () => { kSiklik = x.id; borcFormDurum(); })));
+      el("h-kgunsayi-alan").hidden = kSiklik !== "gunx";
+      krediOzetCiz();
+    }
+    // Formdan kredi planı: { plan } ya da { hata }
+    function formKrediPlani() {
+      const ilk = el("h-ilk-taksit").value;
+      if (!ilk) return { hata: "İlk taksit tarihini girin." };
+      if (kSiklik === "ay1") return { plan: { siklik: "ay", aralik: 1, gun: +ilk.slice(8, 10), baslangic: ilk } };
+      const n = siklikGunu(kSiklik, "h-kgunsayi");
+      if (!(n >= 1 && n <= 366)) return { hata: "Kaç günde bir olduğunu girin (1–366)." };
+      return { plan: { siklik: "gun", aralik: n, gun: 0, baslangic: ilk } };
+    }
+    function krediOzetCiz() {
+      if (!el("h-kredi-toplam")) return;
+      const cekilen = sayiyaCevir(el("h-cekilen").value), taksit = sayiyaCevir(el("h-taksit").value);
+      const sayi = Math.round(sayiyaCevir(el("h-taksit-sayi").value));
+      const toplam = taksit > 0 && sayi > 0 ? Math.round(taksit * sayi * 100) / 100 : 0;
+      let yazi = toplam ? "Toplam geri ödeme: " + tl(toplam) : "";
+      if (toplam && cekilen > 0) yazi += " · Faiz ve masraf: " + tl(Math.round((toplam - cekilen) * 100) / 100);
+      const pl = formKrediPlani();
+      if (toplam && pl.plan) {
+        const t = taksitTarihleri({ plan: pl.plan, taksitSayisi: sayi });
+        if (t.length) yazi += " · Son taksit: " + uzunTarih(t[t.length - 1]);
+      }
+      el("h-kredi-toplam").textContent = yazi;
+      const ilk = el("h-ilk-taksit").value;
+      el("h-ksiklik-ipucu").textContent = kSiklik === "ay1"
+        ? (ilk ? "Her ayın " + +ilk.slice(8, 10) + ". günü" + (+ilk.slice(8, 10) > 28 ? " (o gün olmayan aylarda ayın son günü)" : "") : "İlk taksit tarihinin günü her ay tekrarlanır.")
+        : "İlk taksit tarihinden itibaren sayılır.";
+    }
 
-    function borcDetayAc(id) {
+    // --- Borç ayrıntısı ---
+    let seciliTaksit = "";       // ödenecek taksitin tarihi ("" = serbest ödeme)
+    function borcDetayAc(id, taksitTarihi) {
       const b = borclariOku().find(x => x.id === id);
       if (!b) { panelKapat(); return; }
       hesapDurum = { tur: "borc", ekran: "detay", id: b.id };
       const kalan = kalanBorc(b);
-      const tlMi = b.birim === "TL";
+      const kredi = krediMi(b);
       el("hesap-panel-baslik").textContent = b.ad;
       const odemeler = b.odemeler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id));
+      const bek = bekleyenTaksitler(b);
+      const oh = odemeHesabi(b);
       el("hesap-panel-icerik").innerHTML =
-        '<div class="kart" style="margin-bottom:6px"><h2>Kalan</h2>' +
-        (kalan > 0 ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>" : '<div class="deger bitti">✓ Bitti</div>') +
+        '<div class="kart" style="margin-bottom:6px"><h2>Kalan <small>· ' + (kredi ? "Kredi" : BIRIMLER[b.birim].ad) + "</small></h2>" +
+        (kalan > 0 ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>"
+          : '<div class="deger bitti">' + (kapandiMi(b) ? "✓ Kapatıldı" : "✓ Bitti") + "</div>") +
         '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) +
+        (kredi ? "\n" + guvenli("Çekilen " + tl(b.cekilen || 0) + " · " + b.taksitSayisi + " × " + tl(b.taksit) + " · " + krediSiklikYazisi(b)) +
+          (kalan > 0 ? "\n" + guvenli(taksitDurumu(b)) : "") : "") +
+        (oh ? "\n🏦 Ödeme hesabı: " + guvenli(oh.ad) : "") +
         (b.not ? "\n" + guvenli(b.not) : "") + "</div></div>" +
         (kalan > 0
           ? '<div class="bolum-baslik">Ödeme ekle</div>' +
-            '<div class="yan-yana"><div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[b.birim].kisa + ')</label><input type="text" inputmode="decimal" id="h-miktar" autocomplete="off" placeholder="0"></div>' +
-            '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div></div>' +
+            (kredi ? '<div class="alan"><div class="alan-baslik">Hangi taksit</div><div class="cipler tek-sira" id="h-taksit-sec"></div></div>' : "") +
+            hesapKutusuHtml(b.birim) +
+            '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div>' +
             '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off"></div>' +
-            // Sürüm 1.6.1: TL borçta ödeme bir hesaptan yapılır, o hesabın bakiyesi düşer
-            (tlMi && tumHesaplar().length ? '<div class="alan"><div class="alan-baslik">Hangi hesaptan ödendi</div><div class="cipler tek-sira" id="h-hesap"></div></div>' : "") +
-            (tlMi ? '<label class="onay-kutusu"><input type="checkbox" id="h-gider">Gider olarak da kaydet (' + guvenli(borcGiderYazisi()) + ")</label>" : "") +
             '<button type="button" class="buton" data-islem="odeme-ekle">Ödemeyi kaydet</button>' +
             '<div class="ipucu hata" id="h-hata"></div>'
           : "") +
         '<div class="bolum-baslik">Ödemeler</div>' +
         (odemeler.length ? odemeler.map(o =>
           '<div class="hareket"><div class="satir-orta"><b>' + miktarYazisi(o.miktar, b.birim) + "</b>" +
-          '<div class="satir-alt">' + guvenli([uzunTarih(o.tarih), o.hesapId ? hesapAdi(o.hesapId) : "", o.not, o.kayitId ? "gider olarak da yazıldı" : ""].filter(Boolean).join(" · ")) + "</div></div>" +
+          '<div class="satir-alt">' + guvenli([uzunTarih(o.tarih),
+            o.kapama ? "Borç kapatıldı (hesaptan çıkmadı)" : "",
+            o.taksitTarihi ? kisaTarih(o.taksitTarihi) + " taksiti" + (o.oto ? " (otomatik)" : "") : "",
+            o.hesapId ? hesapAdi(o.hesapId) + (o.tlTutar ? " (" + tl(o.tlTutar) + (o.kur ? " · kur " + kurBicim.format(o.kur) : "") + ")" : "") : "",
+            o.kapama ? "" : o.not].filter(Boolean).join(" · ")) + "</div></div>" +
           '<button type="button" class="hareket-sil" data-islem="odeme-sil" data-hid="' + guvenli(o.id) + '" aria-label="Ödemeyi sil">✕</button></div>').join("")
           : '<p class="bilgi">Henüz ödeme yok.</p>') +
-        '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-islem="borc-duzenle">Borcu düzenle</button></div>';
-      if (el("h-hesap")) { borcOdemeHesap = varsayilanHesap(); borcHesapCiz(); }
+        '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-islem="borc-duzenle">' + (kredi ? "Krediyi düzenle" : "Borcu düzenle") + "</button></div>";
+      if (kalan > 0) {
+        const tlMi = b.birim === "TL";
+        hesapKutusuBaslat({
+          birim: b.birim, izinli: null, zorunlu: tlMi,
+          // Sürüm 1.11: borcun ödeme hesabı seçili gelir (yoksa TL'de son kullanılan hesap)
+          varsayilan: oh ? oh.id : (tlMi ? varsayilanHesap() : ""),
+          bosAd: "Bağlama", baslik: () => "Hangi hesaptan ödendi" + (tlMi ? "" : " (isteğe bağlı)"),
+          bosIpucu: () => "Hiçbir hesaptan para çıkmaz."
+        });
+        if (kredi) {
+          seciliTaksit = taksitTarihi && bek.some(x => x.tarih === taksitTarihi) ? taksitTarihi : (bek[0] ? bek[0].tarih : "");
+          taksitSecimCiz(b, true);
+        }
+      }
       panelAc("hesap-paneli");
     }
-    let borcOdemeHesap = null;      // borç ödemesinin yapıldığı hesap (Sürüm 1.6.1)
-    function borcHesapCiz() {
-      hesapCipleriniCiz(el("h-hesap"), borcOdemeHesap, id => { borcOdemeHesap = id; borcHesapCiz(); }, null);
+    // Kredide ödenecek taksit çipleri (bekleyenlerden en fazla 6) + "Serbest ödeme"
+    function taksitSecimCiz(b, doldur) {
+      const kutu = el("h-taksit-sec");
+      if (!kutu) return;
+      const bek = bekleyenTaksitler(b);
+      const bugunT = bugun();
+      kutu.innerHTML = "";
+      bek.slice(0, 6).forEach(x => kutu.appendChild(cipYap((x.tarih < bugunT ? "⚠ " : "") + kisaTarih(x.tarih) + " · " + x.no + ". taksit",
+        x.tarih === seciliTaksit, () => { seciliTaksit = x.tarih; taksitSecimCiz(b, true); })));
+      kutu.appendChild(cipYap("Serbest ödeme", !seciliTaksit, () => { seciliTaksit = ""; taksitSecimCiz(b, false); }));
+      const x = bek.find(y => y.tarih === seciliTaksit);
+      if (doldur && x) {
+        el("h-miktar").value = kutuyaYaz(x.tutar);
+        el("h-tarih").value = x.tarih <= bugunT ? x.tarih : bugunT;
+      }
+    }
+
+    // -----------------------------------------------------
+    // HESAP + KUR KUTULARI (Sürüm 1.10, 1.11'de ortak oldu: birikim hareketi ve borç ödemesi)
+    // Döviz/altında hesap seçilince üç kutu: TL tutarı · Kur · Miktar.
+    //  - Kur o günkü kurla dolu gelir, değiştirilebilir (ör. alırken kur farklıydı).
+    //  - 1.10.1 (kullanıcı kararı): kutular sürekli birbirini değiştirmez, sadece bu sırayla çalışır:
+    //    TL yazınca miktar = TL / kur; kur değişince miktar = TL / yeni kur.
+    //    Miktar elle değiştirilirse başka hiçbir kutu değişmez ve bundan sonra TL/kur da miktarı değiştirmez
+    //    (miktar kutusu boşaltılırsa otomatik hesap yeniden başlar). TL ve kur hiçbir zaman kendiliğinden değişmez.
+    //  - Yuvarla: miktarı aşağı yuvarlar (47,23 → 47 → 46 → 45 …), TL = miktar × kur yeniden hesaplanır.
+    //    (İleride ayarlara "aşağı / yukarı yuvarla" seçeneği gelecek; şimdilik hep aşağı.)
+    // -----------------------------------------------------
+    const kurBicim = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+    // hk: { birim, tlMi, hesap ("" = bağlanmadı), izinli (id listesi ya da null = hepsi), zorunlu, bosAd, baslik(), bosIpucu(), izinliHata }
+    let hk = { tlMi: true, hesap: "" };
+    let miktarElle = false;         // miktar elle girildiyse TL/kur artık miktarı değiştirmez
+    const kutuSayi = id => (el(id) ? sayiyaCevir(el(id).value) : NaN);
+    const kutuYaz = (id, n, basamak) => { if (el(id)) el(id).value = kutuyaYaz(Math.round(n * Math.pow(10, basamak)) / Math.pow(10, basamak)); };
+
+    function hesapKutusuHtml(birim) {
+      const tlMi = birim === "TL";
+      return '<div class="alan"><div class="alan-baslik" id="h-hesap-baslik"></div><div class="cipler tek-sira" id="h-hesap"></div></div>' +
+        (tlMi ? "" : '<div class="yan-yana" id="h-kur-alan" hidden>' +
+          '<div class="alan"><label for="h-tl">TL tutarı (₺)</label><input type="text" inputmode="decimal" id="h-tl" autocomplete="off" placeholder="Örn. 2000"></div>' +
+          '<div class="alan"><label for="h-kur">Kur (1 ' + BIRIMLER[birim].kisa + ' = ₺)</label><input type="text" inputmode="decimal" id="h-kur" autocomplete="off" placeholder="0"></div></div>') +
+        '<div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[birim].kisa + ')</label>' +
+        '<div class="satir-ici" style="margin-top:0"><input type="text" inputmode="decimal" id="h-miktar" class="kutu" autocomplete="off" placeholder="0">' +
+        (tlMi ? "" : '<button type="button" class="kucuk-dugme" id="h-yuvarla" data-islem="yuvarla" hidden>Yuvarla</button>') + "</div>" +
+        '<div class="ipucu" id="h-kur-ipucu"></div></div>';
+    }
+    function hesapKutusuBaslat(o) {
+      hk = { ...o, tlMi: o.birim === "TL", hesap: o.varsayilan || "" };
+      miktarElle = false;
+      if (!hk.tlMi) {
+        const kur = birimKuru(o.birim);
+        if (kur) kutuYaz("h-kur", kur, 4);
+        ["h-tl", "h-kur", "h-miktar"].forEach(id => el(id).addEventListener("input", () => kurGirdi(id.slice(2))));
+      }
+      hesapKutusuCiz();
+    }
+    function hesapKutusuCiz() {
+      const kutu = el("h-hesap");
+      if (!kutu) return;
+      el("h-hesap-baslik").textContent = hk.baslik();
+      hesapCipleriniCiz(kutu, hk.hesap, id => { hk.hesap = id; uyariOnayi = null; hesapKutusuCiz(); }, null, !hk.zorunlu, hk.izinli);
+      if (!hk.zorunlu) { const ilk = kutu.querySelector(".cip"); if (ilk) ilk.textContent = hk.bosAd; }
+      if (!hk.tlMi) {
+        el("h-kur-alan").hidden = !hk.hesap;
+        el("h-yuvarla").hidden = !hk.hesap;
+      }
+      const ip = el("h-kur-ipucu");
+      ip.textContent = hk.hesap || hk.zorunlu ? "" : hk.bosIpucu();
+      ip.hidden = !ip.textContent;
+    }
+    function kurGirdi(alan) {
+      if (alan === "miktar") { miktarElle = el("h-miktar").value.trim() !== ""; return; }
+      if (miktarElle) return;
+      const tlV = kutuSayi("h-tl"), kur = kutuSayi("h-kur");
+      if (tlV > 0 && kur > 0) kutuYaz("h-miktar", tlV / kur, 2);
+      else el("h-miktar").value = "";
+    }
+    // Yuvarla: kesirliyse tam sayıya, tam sayıysa bir eksiğe (en az 1)
+    function miktarYuvarla() {
+      const m = kutuSayi("h-miktar");
+      if (!(m > 0)) return;
+      const tam = Math.abs(m - Math.round(m)) < 0.0001;
+      const yeni = tam ? Math.round(m) - 1 : Math.floor(m);
+      if (yeni < 1) return bildirimGoster("Daha fazla yuvarlanamaz");
+      kutuYaz("h-miktar", yeni, 0);
+      miktarElle = true;
+      const kur = kutuSayi("h-kur");
+      if (kur > 0) kutuYaz("h-tl", yeni * kur, 2);
+    }
+    // Seçimi okur: { hesapId, tl, kur } ya da { hata }; bağlanmadıysa hesapId ""
+    function hesapKutusuOku(miktar, cek) {
+      if (!hk.hesap) {
+        if (hk.zorunlu) return { hata: cek ? "Paranın gireceği hesabı seçin." : "Paranın çıkacağı hesabı seçin." };
+        return { hesapId: "", tl: 0 };
+      }
+      if (hk.izinli && !hk.izinli.includes(hk.hesap)) return { hata: hk.izinliHata || "Bu hesap seçilemez." };
+      if (hk.tlMi) return { hesapId: hk.hesap, tl: miktar };
+      const tlV = kutuSayi("h-tl");
+      if (!(tlV > 0)) return { hata: cek ? "Hesaba giren TL tutarını girin." : "Hesaptan çıkan TL tutarını girin." };
+      const tlY = Math.round(tlV * 100) / 100;
+      // Kur kutusundaki değer tutuyorsa o saklanır (miktar 2 haneye yuvarlandığı için küçük fark olabilir), yoksa TL / miktar
+      const kurK = kutuSayi("h-kur");
+      const kur = kurK > 0 && Math.abs(kurK * miktar - tlY) <= kurK * 0.005 + 0.01 ? kurK : tlY / miktar;
+      return { hesapId: hk.hesap, tl: tlY, kur: Math.round(kur * 10000) / 10000 };
     }
 
     // --- Birikim sayfası ---
@@ -2567,16 +3145,18 @@
       const toplam = birimToplamlari(liste, bakiye);
       el("birikim-toplam-kart").hidden = !liste.length;
       kurBilgisiCiz(liste);
-      el("birikim-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam) : '<p class="bilgi">Kutularda henüz birikim yok.</p>';
+      el("birikim-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam, true) : '<p class="bilgi">Kutularda henüz birikim yok.</p>';
       el("birikim-listesi").innerHTML = liste.map(b => {
         const son = b.hareketler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id))[0];
+        const bagli = bagliHesap(b);
         return '<button type="button" class="kart hesap-kart" data-id="' + guvenli(b.id) + '">' +
-          '<div class="hesap-ust"><b>' + guvenli(b.ad) + "</b><small>" + BIRIMLER[b.birim].ad + "</small></div>" +
+          '<div class="birikim-ust"><div class="sol"><b>' + guvenli(b.ad) + "</b><small>" + BIRIMLER[b.birim].ad + "</small></div>" +
+          (bagli ? "<small>🏦 " + guvenli(bagli.ad) + "</small>" : "") + "</div>" +
           '<div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
           (b.birim !== "TL" && tlKarsiligi(bakiye(b), b.birim) != null && bakiye(b) > 0
             ? '<div class="tl-karsilik">≈ ' + tl(tlKarsiligi(bakiye(b), b.birim)) + "</div>" : "") +
           '<div class="kart-alt">' + (son ? "Son hareket: " + uzunTarih(son.tarih) + " (" + (son.miktar > 0 ? "+" : "−") +
-            miktarYazisi(Math.abs(son.miktar), b.birim) + ")" : "Henüz hareket yok") + "</div></button>";
+            sadeMiktar(Math.abs(son.miktar), b.birim) + ")" : "Henüz hareket yok") + "</div></button>";
       }).join("");
     }
     el("birikim-listesi").addEventListener("click", olay => {
@@ -2592,12 +3172,46 @@
         '<div class="alan"><label for="h-ad">Ad</label><input type="text" id="h-ad" maxlength="40" autocomplete="off" placeholder="Örn. Banka hesabı" value="' + guvenli(b ? b.ad : "") + '"></div>' +
         '<div class="alan"><div class="alan-baslik">Birim</div>' + birimCipleri(hesapDurum.birim, b && b.hareketler.length) +
         (b && b.hareketler.length ? '<div class="ipucu">Hareket girilmiş kutunun birimi değiştirilemez.</div>' : "") + "</div>" +
+        // Sürüm 1.10: bir banka hesabına bağlı ya da ayrı hesap
+        '<div class="alan"><div class="alan-baslik">Bağlı banka hesabı</div><div class="cipler tek-sira" id="h-bagli"></div>' +
+        '<div class="ipucu" id="h-bagli-ipucu"></div></div>' +
         (b ? "" : '<div class="alan"><label for="h-miktar" id="h-miktar-etiket">Şu anki miktar (isteğe bağlı)</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0"></div>') +
         '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off" value="' + guvenli(b ? b.not || "" : "") + '"></div>' +
         '<button type="button" class="buton" data-islem="birikim-kaydet">Kaydet</button>' +
         '<div class="ipucu hata" id="h-hata"></div>' +
         (b ? '<button type="button" class="sil-dugmesi" data-islem="birikim-sil">Birikimi sil</button>' : "");
+      birikimBagli = b && bagliHesap(b) ? b.bagliHesapId : "";
+      bagliCiz();
       panelAc("hesap-paneli");
+    }
+    // -----------------------------------------------------
+    // BİRİKİM ↔ BANKA HESABI (Sürüm 1.10)
+    //  bagliHesapId: banka hesabına bağlı kutu. Birikim yine ayrı bir kutudur (bakiyeler karışmaz),
+    //    ama para sadece o bankadan ya da Nakit başlığındaki hesaplardan yatırılır / çekilir.
+    //  "" (ayrı hesap): para her hesaptan gelebilir (kredi kartı ve nakit dahil).
+    //  Her iki durumda "Hesaptan değil" seçilebilir (hediye altın, eldeki döviz): hiçbir bakiye değişmez.
+    // -----------------------------------------------------
+    let birikimBagli = "";
+    // Bağlı banka (silinmişse ya da artık banka başlığında değilse null → ayrı hesap sayılır)
+    function bagliHesap(s) {
+      const h = s && s.bagliHesapId ? hesapBul(s.bagliHesapId) : null;
+      return h && h.tur === "banka" ? h : null;
+    }
+    function birikimIzinliHesaplar(s) {
+      const b = bagliHesap(s);
+      return tumHesaplar().filter(h => !b || h.id === b.id || h.tur === "nakit");
+    }
+    function bagliCiz() {
+      const kutu = el("h-bagli");
+      if (!kutu) return;
+      const bankalar = tumHesaplar().filter(h => h.tur === "banka");
+      kutu.innerHTML = "";
+      kutu.appendChild(cipYap("Ayrı hesap", !birikimBagli, () => { birikimBagli = ""; bagliCiz(); }));
+      bankalar.forEach(h => kutu.appendChild(cipYap(h.ad, h.id === birikimBagli, () => { birikimBagli = h.id; bagliCiz(); })));
+      el("h-bagli-ipucu").textContent = birikimBagli
+        ? "Para sadece bu banka hesabından ya da nakitten yatırılır / çekilir. Birikim bankadan ayrı tutulur."
+        : (bankalar.length ? "Para her hesaptan yatırılabilir (kredi kartı ve nakit dahil)." :
+          "Para her hesaptan yatırılabilir. Bankaya bağlamak için önce Hesaplar sekmesinden banka hesabı ekle.");
     }
 
     function birikimDetayAc(id) {
@@ -2606,14 +3220,21 @@
       hesapDurum = { tur: "birikim", ekran: "detay", id: b.id };
       el("hesap-panel-baslik").textContent = b.ad;
       const hareketler = b.hareketler.slice().sort((x, y) => (y.tarih + y.id).localeCompare(x.tarih + x.id));
+      const tlMi = b.birim === "TL";
+      const tlDeger = tlMi ? null : tlKarsiligi(bakiye(b), b.birim);
+      const bagli = bagliHesap(b);
       el("hesap-panel-icerik").innerHTML =
-        '<div class="kart" style="margin-bottom:6px"><h2>Bakiye</h2><div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
-        (b.not ? '<div class="kart-alt">' + guvenli(b.not) + "</div>" : "") + "</div>" +
+        '<div class="kart" style="margin-bottom:6px"><h2>Bakiye <small>· ' + BIRIMLER[b.birim].ad + "</small></h2>" +
+        '<div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
+        (tlDeger != null && bakiye(b) > 0 ? '<div class="tl-karsilik">≈ ' + tl(tlDeger) + "</div>" : "") +
+        '<div class="kart-alt">' + (bagli ? "🏦 " + guvenli(bagli.ad) + " hesabına bağlı" : "Ayrı hesap") +
+        (b.not ? "\n" + guvenli(b.not) : "") + "</div></div>" +
         '<div class="bolum-baslik">Hareket ekle</div>' +
         '<div class="secim secim-bosluk"><input type="radio" name="h-yon" id="h-yatir" value="yatir" checked><label for="h-yatir">Yatır</label>' +
         '<input type="radio" name="h-yon" id="h-cek" value="cek"><label for="h-cek">Çek</label></div>' +
-        '<div class="yan-yana"><div class="alan"><label for="h-miktar">Miktar (' + BIRIMLER[b.birim].kisa + ')</label><input type="text" inputmode="decimal" id="h-miktar" autocomplete="off" placeholder="0"></div>' +
-        '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div></div>' +
+        // Sürüm 1.10: önce hesap, döviz/altında TL tutarı + kur, sonra miktar (+ Yuvarla)
+        hesapKutusuHtml(b.birim) +
+        '<div class="alan"><label for="h-tarih">Tarih</label><input type="date" id="h-tarih" value="' + bugun() + '"></div>' +
         '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off"></div>' +
         '<button type="button" class="buton" data-islem="hareket-ekle">Kaydet</button>' +
         '<div class="ipucu hata" id="h-hata"></div>' +
@@ -2621,10 +3242,24 @@
         (hareketler.length ? hareketler.map(h =>
           '<div class="hareket"><div class="satir-orta"><b class="' + (h.miktar > 0 ? "gelir-renk" : "gider-renk") + '">' +
           (h.miktar > 0 ? "+" : "−") + miktarYazisi(Math.abs(h.miktar), b.birim) + "</b>" +
-          '<div class="satir-alt">' + guvenli([uzunTarih(h.tarih), h.not].filter(Boolean).join(" · ")) + "</div></div>" +
+          '<div class="satir-alt">' + guvenli([uzunTarih(h.tarih), h.hesapId ? hesapAdi(h.hesapId) + (h.tlTutar ? " (" + tl(h.tlTutar) +
+            (h.kur ? " · kur " + kurBicim.format(h.kur) : "") + ")" : "") : "", h.not].filter(Boolean).join(" · ")) + "</div></div>" +
           '<button type="button" class="hareket-sil" data-islem="hareket-sil" data-hid="' + guvenli(h.id) + '" aria-label="Hareketi sil">✕</button></div>').join("")
           : '<p class="bilgi">Henüz hareket yok.</p>') +
         '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-islem="birikim-duzenle">Birikimi düzenle</button></div>';
+      // Hesap seçimi (1.10): bağlıysa o banka + nakit, değilse her hesap; "Hesaptan değil" de seçilebilir
+      const izinli = birikimIzinliHesaplar(b).map(h => h.id);
+      const son = depoOku(SON_HESAP_ANAHTARI, null);
+      hesapKutusuBaslat({
+        birim: b.birim, izinli, zorunlu: false, bosAd: "Hesaptan değil",
+        varsayilan: bagli ? bagli.id : (izinli.includes(son) ? son : (izinli[0] || "")),
+        baslik: () => el("h-cek").checked ? "Hangi hesaba" : "Hangi hesaptan",
+        bosIpucu: () => el("h-cek").checked ? "Hiçbir hesaba para girmez." : "Hiçbir hesaptan para çıkmaz (ör. hediye, elde olan).",
+        izinliHata: "Bu birikime sadece bağlı banka hesabından ya da nakitten para yatırılabilir."
+      });
+      const yonDegisti = () => { uyariOnayi = null; hesapKutusuCiz(); };
+      el("h-yatir").addEventListener("change", yonDegisti);
+      el("h-cek").addEventListener("change", yonDegisti);
       panelAc("hesap-paneli");
     }
 
@@ -2634,6 +3269,7 @@
       if (birimDugme && !birimDugme.disabled) {
         hesapDurum.birim = birimDugme.dataset.birim;
         el("h-birim").querySelectorAll(".cip").forEach(c => c.classList.toggle("secili", c === birimDugme));
+        if (hesapDurum.tur === "borc") borcFormDurum();
         return;
       }
       const dugme = olay.target.closest("[data-islem]");
@@ -2651,33 +3287,104 @@
       // ---- Borç ----
       if (islem === "borc-kaydet") {
         const ad = deger("h-ad").trim().replace(/\s+/g, " ");
-        const toplam = sayiyaCevir(deger("h-miktar"));
-        if (!ad) return hata("Borç adını yazın.");
-        if (!(toplam > 0)) return hata("Toplam borcu girin.");
+        const kredi = formKredi();
+        if (!ad) return hata(kredi ? "Kredi adını yazın." : "Borç adını yazın.");
         const borclar = borclariOku();
-        if (hesapDurum.id) {
-          const b = borclar.find(x => x.id === hesapDurum.id);
-          if (!b) return panelKapat();
-          if (toplam < odenen(b)) return hata("Toplam, ödenenden (" + miktarYazisi(odenen(b), b.birim) + ") az olamaz.");
-          Object.assign(b, { ad, toplam: yuvarla(toplam), not: deger("h-not").trim() });
-          if (!b.odemeler.length) b.birim = hesapDurum.birim;
+        const eski = hesapDurum.id ? borclar.find(x => x.id === hesapDurum.id) : null;
+        if (hesapDurum.id && !eski) return panelKapat();
+        const haric = hesapDurum.id ? { tur: "borcgiris", id: hesapDurum.id } : null;
+        const odemeHesapId = borcOdemeSecim && hesapBul(borcOdemeSecim) ? borcOdemeSecim : "";
+        let veri;
+        if (kredi) {
+          // ---- Kredi (Sürüm 1.11) ----
+          const cekilen = sayiyaCevir(deger("h-cekilen"));
+          const taksit = sayiyaCevir(deger("h-taksit"));
+          const sayi = sayiyaCevir(deger("h-taksit-sayi"));
+          if (!(cekilen > 0)) return hata("Çekilen tutarı girin.");
+          if (!(taksit > 0)) return hata("Taksit tutarını girin.");
+          if (!(sayi >= 1 && sayi <= 600 && Number.isInteger(sayi))) return hata("Taksit sayısını kontrol edin (1–600).");
+          const pl = formKrediPlani();
+          if (pl.hata) return hata(pl.hata);
+          if (tumHesaplar().length && !odemeHesapId) return hata("Taksitlerin ödeneceği hesabı seçin.");
+          const girisTarih = deger("h-kgiris-tarih");
+          if (borcGirisHesap) {
+            if (!girisTarih) return hata("Kredinin çekildiği tarihi girin.");
+            if (!bakiyeUygun([{ hesapId: borcGirisHesap, miktar: cekilen }], haric, hata)) return;
+          }
+          const toplam = Math.round(taksit * sayi * 100) / 100;
+          if (eski && toplam < odenen(eski)) return hata("Toplam geri ödeme, ödenenden (" + tl(odenen(eski)) + ") az olamaz.");
+          veri = { tur: "kredi", ad, birim: "TL", toplam, cekilen: yuvarla(cekilen), taksit: Math.round(taksit * 100) / 100, taksitSayisi: sayi,
+            plan: pl.plan, girisHesapId: borcGirisHesap || "", girisMiktar: borcGirisHesap ? yuvarla(cekilen) : 0, girisTarih: borcGirisHesap ? girisTarih : "" };
+        } else {
+          const toplam = sayiyaCevir(deger("h-miktar"));
+          if (!(toplam > 0)) return hata("Toplam borcu girin.");
+          // Hesaba giriş (Sürüm 1.9)
+          const girisli = hesapDurum.birim === "TL" && borcGirisHesap && hesapBul(borcGirisHesap);
+          const girisMetin = deger("h-giris-miktar").trim();
+          const girisMiktar = girisMetin ? sayiyaCevir(girisMetin) : toplam;
+          const girisTarih = deger("h-giris-tarih");
+          if (girisli) {
+            if (!(girisMiktar > 0)) return hata("Hesaba giren tutarı kontrol edin.");
+            if (!girisTarih) return hata("Paranın hesaba girdiği tarihi girin.");
+            if (!bakiyeUygun([{ hesapId: borcGirisHesap, miktar: girisMiktar }], haric, hata)) return;
+          }
+          if (eski && toplam < odenen(eski)) return hata("Toplam, ödenenden (" + miktarYazisi(odenen(eski), eski.birim) + ") az olamaz.");
+          veri = { tur: "borc", ad, toplam: yuvarla(toplam), ...(girisli
+            ? { girisHesapId: borcGirisHesap, girisMiktar: girisMetin ? yuvarla(girisMiktar) : 0, girisTarih }
+            : { girisHesapId: "", girisMiktar: 0, girisTarih: "" }) };
+          if (!eski || !eski.odemeler.length) veri.birim = hesapDurum.birim;
+        }
+        veri.not = deger("h-not").trim();
+        veri.odemeHesapId = odemeHesapId;
+        if (odemeHesapId) depoYaz(SON_HESAP_ANAHTARI, odemeHesapId);
+        if (eski) {
+          Object.assign(eski, veri);
+          if (!kredi) ["cekilen", "taksit", "taksitSayisi", "plan", "otoSon"].forEach(k => delete eski[k]);
           if (!borclariYaz(borclar)) return;
           yenile("✓ Kaydedildi");
-          return borcDetayAc(b.id);
+          return borcDetayAc(eski.id);
         }
-        borclar.push({ id: yeniId("b"), ad, birim: hesapDurum.birim, toplam: yuvarla(toplam), not: deger("h-not").trim(), odemeler: [] });
+        const yeni = { id: yeniId("b"), birim: "TL", ...veri, odemeler: [] };
+        // Daha önce ödenmiş taksitler: ilk N taksit hesapsız "önceden ödendi" olarak yazılır
+        if (kredi) {
+          const n = deger("h-odenmis").trim() ? sayiyaCevir(deger("h-odenmis")) : 0;
+          if (!(n >= 0 && n <= yeni.taksitSayisi && Number.isInteger(n))) return hata("Daha önce ödenen taksit sayısını kontrol edin.");
+          taksitTarihleri(yeni).slice(0, n).forEach(t => yeni.odemeler.push({ id: yeniId("o"), tarih: t, miktar: yeni.taksit, not: "Önceden ödendi", taksitTarihi: t }));
+          // Otomatik ödemede bugüne kadarki taksitler işlenmiş sayılır (eklerken geçmiş taksitler ödenmez)
+          yeni.otoSon = bugun();
+        }
+        borclar.push(yeni);
         if (!borclariYaz(borclar)) return;
         panelKapat();
-        return yenile("✓ Borç eklendi");
+        return yenile(kredi ? "✓ Kredi eklendi" : "✓ Borç eklendi");
       }
       if (islem === "borc-duzenle") return borcFormuAc(hesapDurum.id);
-      if (islem === "borc-sil") {
-        return ikiDokunus(dugme, "Silmek için tekrar dokun", () => {
-          if (!borclariYaz(borclariOku().filter(x => x.id !== hesapDurum.id))) return;
-          panelKapat();
-          yenile("Borç silindi");
+      // Sürüm 1.11: borcu kapat — kalan, hesapsız bir kapama ödemesiyle sıfırlanır; önceki ödemeler kalır
+      if (islem === "borc-kapat") {
+        return ikiDokunus(dugme, "Kalan borç kapatılacak · onaylamak için tekrar dokun", () => {
+          const borclar = borclariOku();
+          const b = borclar.find(x => x.id === hesapDurum.id);
+          if (!b) return panelKapat();
+          const kalan = kalanBorc(b);
+          if (kalan <= 0) return borcDetayAc(b.id);
+          b.odemeler.push({ id: yeniId("o"), tarih: bugun(), miktar: kalan, not: "", kapama: true });
+          if (!borclariYaz(borclar)) return;
+          yenile(krediMi(b) ? "✓ Kredi kapatıldı" : "✓ Borç kapatıldı");
+          borcDetayAc(b.id);
         });
       }
+      if (islem === "borc-sil") {
+        const ilgili = hesapHareketleri().filter(m => (m.tur === "borcgiris" && m.id === hesapDurum.id) || (m.tur === "borcodeme" && m.borcId === hesapDurum.id));
+        const lh = silmeLimitHatasi(ilgili);
+        if (lh) return hata(lh);
+        return ikiDokunus(dugme, (ilgili.length ? "Ödemeleriyle birlikte silinir, hesaplardaki " + ilgili.length + " hareket geri alınır" : "Ödemeleriyle birlikte silinir") +
+          " · silmek için tekrar dokun", () => {
+          if (!borclariYaz(borclariOku().filter(x => x.id !== hesapDurum.id))) return;
+          panelKapat();
+          yenile("Silindi");
+        });
+      }
+      if (islem === "yuvarla") return miktarYuvarla();
       if (islem === "odeme-ekle") {
         const borclar = borclariOku();
         const b = borclar.find(x => x.id === hesapDurum.id);
@@ -2687,22 +3394,14 @@
         if (!(miktar > 0)) return hata("Ödeme miktarını girin.");
         if (!tarih) return hata("Tarih girin.");
         if (miktar > kalanBorc(b) + 0.001) return hata("Ödeme kalan borçtan (" + miktarYazisi(kalanBorc(b), b.birim) + ") fazla olamaz.");
-        const hesapli = b.birim === "TL" && !!el("h-hesap");
-        if (hesapli && !borcOdemeHesap) return hata("Ödemenin yapıldığı hesabı seçin.");
+        const sec = hesapKutusuOku(miktar, false);
+        if (sec.hata) return hata(sec.hata);
+        if (sec.hesapId && !bakiyeUygun([{ hesapId: sec.hesapId, miktar: -sec.tl }], null, hata)) return;
         const odeme = { id: yeniId("o"), tarih, miktar: yuvarla(miktar), not: deger("h-not").trim() };
-        if (hesapli) { odeme.hesapId = borcOdemeHesap; depoYaz(SON_HESAP_ANAHTARI, borcOdemeHesap); }
-        // İstenirse aynı tutar gider olarak da yazılır (sadece TL borçta)
-        if (b.birim === "TL" && el("h-gider") && el("h-gider").checked) {
-          const grup = kalemleriOku().gider.find(g => g.id === BORC_GIDER.grup);
-          const kalem = grup && grup.kalemler.find(k => k.id === BORC_GIDER.kalemId);
-          const kayitId = kayitEkle({
-            tip: "gider", grup: BORC_GIDER.grup, grupAd: grup ? grup.ad : "Kredi kartı",
-            kalemId: BORC_GIDER.kalemId, kalemAd: kalem ? kalem.ad : "Kredi",
-            tutar: Math.round(miktar * 100) / 100, tarih, saat: simdikiSaat(),
-            not: ("Borç ödemesi: " + b.ad + (odeme.not ? " · " + odeme.not : "")).slice(0, 100),
-            borcId: b.id, odemeId: odeme.id, hesapId: odeme.hesapId || null
-          });
-          if (kayitId) odeme.kayitId = kayitId;
+        if (krediMi(b) && seciliTaksit) odeme.taksitTarihi = seciliTaksit;
+        if (sec.hesapId) {
+          odeme.hesapId = sec.hesapId; depoYaz(SON_HESAP_ANAHTARI, sec.hesapId);
+          if (b.birim !== "TL") { odeme.tlTutar = sec.tl; odeme.kur = sec.kur; }
         }
         b.odemeler.push(odeme);
         if (!borclariYaz(borclar)) return;
@@ -2710,6 +3409,8 @@
         return borcDetayAc(b.id);
       }
       if (islem === "odeme-sil") {
+        const lh = silmeLimitHatasi(hesapHareketleri().filter(m => m.tur === "borcodeme" && m.id === dugme.dataset.hid));
+        if (lh) return hata(lh);
         return ikiDokunus(dugme, "Sil?", () => {
           const borclar = borclariOku();
           const b = borclar.find(x => x.id === hesapDurum.id);
@@ -2732,7 +3433,7 @@
         if (hesapDurum.id) {
           const b = liste.find(x => x.id === hesapDurum.id);
           if (!b) return panelKapat();
-          Object.assign(b, { ad, not: deger("h-not").trim() });
+          Object.assign(b, { ad, not: deger("h-not").trim(), bagliHesapId: birikimBagli });
           if (!b.hareketler.length) b.birim = hesapDurum.birim;
           if (!birikimleriYaz(liste)) return;
           yenile("✓ Kaydedildi");
@@ -2740,7 +3441,7 @@
         }
         const ilk = deger("h-miktar").trim() ? sayiyaCevir(deger("h-miktar")) : 0;
         if (isNaN(ilk) || ilk < 0) return hata("Miktarı kontrol edin.");
-        const yeni = { id: yeniId("s"), ad, birim: hesapDurum.birim, not: deger("h-not").trim(), hareketler: [] };
+        const yeni = { id: yeniId("s"), ad, birim: hesapDurum.birim, bagliHesapId: birikimBagli, not: deger("h-not").trim(), hareketler: [] };
         if (ilk > 0) yeni.hareketler.push({ id: yeniId("h"), tarih: bugun(), miktar: yuvarla(ilk), not: "Başlangıç" });
         liste.push(yeni);
         if (!birikimleriYaz(liste)) return;
@@ -2749,7 +3450,11 @@
       }
       if (islem === "birikim-duzenle") return birikimFormuAc(hesapDurum.id);
       if (islem === "birikim-sil") {
-        return ikiDokunus(dugme, "Silmek için tekrar dokun", () => {
+        const ilgili = hesapHareketleri().filter(m => m.tur === "birikim" && m.birikimId === hesapDurum.id);
+        const lh = silmeLimitHatasi(ilgili);
+        if (lh) return hata(lh);
+        return ikiDokunus(dugme, ilgili.length ? "Hesaplardaki " + ilgili.length + " hareket geri alınacak, bakiyeler değişir · silmek için tekrar dokun"
+          : "Silmek için tekrar dokun", () => {
           if (!birikimleriYaz(birikimleriOku().filter(x => x.id !== hesapDurum.id))) return;
           panelKapat();
           yenile("Birikim silindi");
@@ -2765,12 +3470,22 @@
         if (!(miktar > 0)) return hata("Miktarı girin.");
         if (!tarih) return hata("Tarih girin.");
         if (cek && miktar > bakiye(b) + 0.001) return hata("Çekilen miktar bakiyeden (" + miktarYazisi(bakiye(b), b.birim) + ") fazla olamaz.");
-        b.hareketler.push({ id: yeniId("h"), tarih, miktar: yuvarla(cek ? -miktar : miktar), not: deger("h-not").trim() });
+        const sec = hesapKutusuOku(miktar, cek);
+        if (sec.hata) return hata(sec.hata);
+        if (sec.hesapId && !bakiyeUygun([{ hesapId: sec.hesapId, miktar: cek ? sec.tl : -sec.tl }], null, hata)) return;
+        const hareket = { id: yeniId("h"), tarih, miktar: yuvarla(cek ? -miktar : miktar), not: deger("h-not").trim() };
+        if (sec.hesapId) {
+          hareket.hesapId = sec.hesapId; depoYaz(SON_HESAP_ANAHTARI, sec.hesapId);
+          if (b.birim !== "TL") { hareket.tlTutar = sec.tl; hareket.kur = sec.kur; }
+        }
+        b.hareketler.push(hareket);
         if (!birikimleriYaz(liste)) return;
         yenile(cek ? "✓ Çekim kaydedildi" : "✓ Yatırma kaydedildi");
         return birikimDetayAc(b.id);
       }
       if (islem === "hareket-sil") {
+        const lh = silmeLimitHatasi(hesapHareketleri().filter(m => m.tur === "birikim" && m.id === dugme.dataset.hid));
+        if (lh) return hata(lh);
         return ikiDokunus(dugme, "Sil?", () => {
           const liste = birikimleriOku();
           const b = liste.find(x => x.id === hesapDurum.id);
@@ -2853,7 +3568,8 @@
         borclar: borclariOku(),
         birikimler: birikimleriOku(),
         hesaplar: basliklariOku(),        // Sürüm 1.6
-        havaleler: havaleleriOku()
+        havaleler: havaleleriOku(),
+        tekrarlar: tekrarlariOku()        // Sürüm 1.8
       };
     }
 
@@ -2934,11 +3650,12 @@
       if (kimlikMi(k.borcId)) temiz.borcId = k.borcId;
       if (kimlikMi(k.odemeId)) temiz.odemeId = k.odemeId;
       if (kimlikMi(k.hesapId)) temiz.hesapId = k.hesapId;
+      if (kimlikMi(k.tekrarId)) temiz.tekrarId = k.tekrarId;
       return temiz;
     }
 
     function yedektenYukle(veri) {
-      const sayac = { kayit: 0, kalem: 0, borc: 0, birikim: 0, hesap: 0, havale: 0, atlanan: 0 };
+      const sayac = { kayit: 0, kalem: 0, borc: 0, birikim: 0, hesap: 0, havale: 0, tekrar: 0, atlanan: 0 };
 
       const yedekKalemler = veri.kalemler && typeof veri.kalemler === "object" ? veri.kalemler : null;
 
@@ -2985,7 +3702,12 @@
           if (!h || !kimlikMi(h.id) || !metin(h.ad, 40) || !BIRIMLER[h.birim]) { sayac.atlanan++; return; }
           const temizHareket = x => x && kimlikMi(x.id) && tarihMi(x.tarih) && typeof x.miktar === "number" && x.miktar !== 0
             ? { id: x.id, tarih: x.tarih, miktar: yuvarla(x.miktar), not: metin(x.not, 100), ...(kimlikMi(x.kayitId) ? { kayitId: x.kayitId } : {}),
-                ...(kimlikMi(x.hesapId) ? { hesapId: x.hesapId } : {}) }
+                ...(kimlikMi(x.hesapId) ? { hesapId: x.hesapId } : {}),
+                ...(typeof x.tlTutar === "number" && x.tlTutar > 0 ? { tlTutar: Math.round(x.tlTutar * 100) / 100 } : {}),
+                ...(typeof x.kur === "number" && x.kur > 0 ? { kur: x.kur } : {}),
+                // Sürüm 1.11: kredi taksiti / borç kapama
+                ...(tarihMi(x.taksitTarihi) ? { taksitTarihi: x.taksitTarihi } : {}), ...(x.kapama === true ? { kapama: true } : {}),
+                ...(x.oto === true ? { oto: true } : {}) }
             : null;
           let var_ = mevcut.find(x => x.id === h.id);
           if (!var_) {
@@ -2993,7 +3715,25 @@
             if (liste === "odemeler") {
               if (!(typeof h.toplam === "number" && h.toplam > 0)) { sayac.atlanan++; return; }
               var_.toplam = yuvarla(h.toplam);
+              // Sürüm 1.9: borç alınırken hesaba giren para
+              if (kimlikMi(h.girisHesapId) && tarihMi(h.girisTarih)) {
+                Object.assign(var_, { girisHesapId: h.girisHesapId, girisTarih: h.girisTarih,
+                  girisMiktar: typeof h.girisMiktar === "number" && h.girisMiktar > 0 ? yuvarla(h.girisMiktar) : 0 });
+              }
+              // Sürüm 1.11: ödeme hesabı ve kredi bilgileri
+              if (kimlikMi(h.odemeHesapId)) var_.odemeHesapId = h.odemeHesapId;
+              const pl = h.plan;
+              if (h.tur === "kredi" && h.birim === "TL" && h.taksit > 0 && Number.isInteger(h.taksitSayisi) && h.taksitSayisi > 0 &&
+                  pl && tarihMi(pl.baslangic) && (pl.siklik === "ay" || pl.siklik === "gun")) {
+                Object.assign(var_, { tur: "kredi", taksit: h.taksit, taksitSayisi: h.taksitSayisi,
+                  cekilen: typeof h.cekilen === "number" && h.cekilen > 0 ? h.cekilen : 0,
+                  plan: { siklik: pl.siklik, aralik: Math.max(1, Math.round(+pl.aralik || 1)), baslangic: pl.baslangic,
+                    gun: pl.siklik === "ay" ? (Math.round(+pl.gun) || +pl.baslangic.slice(8, 10)) : 0 },
+                  otoSon: tarihMi(h.otoSon) ? h.otoSon : bugun() });
+              } else var_.tur = "borc";
             }
+            // Sürüm 1.10: birikimin bağlı olduğu banka hesabı
+            if (liste === "hareketler" && kimlikMi(h.bagliHesapId)) var_.bagliHesapId = h.bagliHesapId;
             mevcut.push(var_); sayac[sayacAdi]++;
           }
           (Array.isArray(h[liste]) ? h[liste] : []).forEach(x => {
@@ -3026,8 +3766,18 @@
             basliklar.push(bs);
           }
           (Array.isArray(gb.hesaplar) ? gb.hesaplar : []).forEach(h => {
-            if (!h || !kimlikMi(h.id) || !metin(h.ad, 30) || varOlan.has(h.id)) return;
-            bs.hesaplar.push({ id: h.id, ad: metin(h.ad, 30), baslangic: typeof h.baslangic === "number" ? yuvarla(h.baslangic) : 0 });
+            if (!h || !kimlikMi(h.id) || !metin(h.ad, 30)) return;
+            if (varOlan.has(h.id)) {
+              // Telefondaki aynı hesap hiç kullanılmamış ve bakiyesi 0 ise (ör. yeni telefondaki hazır Cüzdan) yedektekiyle güncellenir
+              const yerel = basliklar.reduce((x, b) => x || b.hesaplar.find(y => y.id === h.id), null);
+              if (yerel && !(yerel.baslangic) && !hesapKullanimi(h.id).toplam && typeof h.baslangic === "number") {
+                yerel.baslangic = yuvarla(h.baslangic);
+                if (typeof h.limit === "number" && h.limit > 0) yerel.limit = yuvarla(h.limit);
+              }
+              return;
+            }
+            bs.hesaplar.push({ id: h.id, ad: metin(h.ad, 30), baslangic: typeof h.baslangic === "number" ? yuvarla(h.baslangic) : 0,
+              ...(typeof h.limit === "number" && h.limit > 0 ? { limit: yuvarla(h.limit) } : {}) });
             varOlan.add(h.id); sayac.hesap++;
           });
         });
@@ -3045,6 +3795,16 @@
           kimlikler.add(t.id); sayac.havale++;
         });
         if (sayac.havale) havaleleriYaz(liste);
+      }
+      // Tekrarlar (Sürüm 1.8): olmayan kural eklenir
+      if (Array.isArray(veri.tekrarlar)) {
+        const liste = tekrarlariOku();
+        veri.tekrarlar.forEach(t => {
+          if (!t || !kimlikMi(t.id) || !["gelir", "gider"].includes(t.tip) || !(t.tutar > 0) || !tarihMi(t.baslangic)) { sayac.atlanan++; return; }
+          if (liste.some(x => x.id === t.id)) return;
+          liste.push(t); sayac.tekrar++;
+        });
+        if (sayac.tekrar) tekrarlariYaz(liste);
       }
       return sayac;
     }
@@ -3066,6 +3826,7 @@
         if (s.birikim) parcalar.push(s.birikim + " birikim");
         if (s.hesap) parcalar.push(s.hesap + " hesap");
         if (s.havale) parcalar.push(s.havale + " havale");
+        if (s.tekrar) parcalar.push(s.tekrar + " tekrarlayan işlem");
         yedekDurum((parcalar.length ? "✓ Eklendi: " + parcalar.join(", ") + "." : "Yeni veri yok, hepsi zaten telefonda.") +
           (s.atlanan ? " " + s.atlanan + " bozuk öğe atlandı." : ""), s.atlanan ? "uyari" : "");
       } catch (e) {
@@ -3109,6 +3870,8 @@
             const x = b[h.id];
             return '<button type="button" class="satir" data-hesap="' + guvenli(h.id) + '">' +
               '<div class="satir-orta"><div class="satir-ust">' + guvenli(h.ad) + "</div>" +
+              (h.limit > 0 ? '<div class="satir-alt">Kullanılabilir limit: ' + tl(Math.max(0, Math.round((h.limit + x.bakiye + x.ileri) * 100) / 100)) +
+                " / " + tl(h.limit) + "</div>" : "") +
               (x.ileri ? '<div class="satir-alt">İleri tarihli: ' + (x.ileri > 0 ? "+" : "−") + tl(Math.abs(x.ileri)) + "</div>" : "") +
               '</div><div class="satir-sag">' + bakiyeYazisi(x.bakiye, bs.tur) + "</div></button>";
           }).join("") +
@@ -3118,9 +3881,18 @@
       el("hsp-liste").innerHTML = html;
       const net = Math.round((varlik - kartBorcu) * 100) / 100;
       el("hsp-toplam").innerHTML = '<span class="' + (net < 0 ? "borc-yazi" : "") + '">' + tl(net) + "</span>";
-      el("hsp-toplam-alt").textContent = kartBorcu > 0
-        ? "Varlıklar " + tl(Math.round(varlik * 100) / 100) + " · Borç " + tl(Math.round(kartBorcu * 100) / 100)
-        : "Bütün hesapların toplamı";
+      // Net durum (Sürüm 1.9): hesaplar + birikimler (güncel kurla TL) − kalan borçlar (güncel kurla TL)
+      let birikimTL = 0, borcTL = 0, kurEksik = false;
+      birikimleriOku().forEach(b => { const x = tlKarsiligi(bakiye(b), b.birim); if (x == null) kurEksik = true; else birikimTL += x; });
+      borclariOku().forEach(b => { const x = tlKarsiligi(kalanBorc(b), b.birim); if (x == null) kurEksik = true; else borcTL += Math.max(0, x); });
+      const satirlar = [kartBorcu > 0
+        ? "Varlıklar " + tl(Math.round(varlik * 100) / 100) + " · Kart/eksi bakiye " + tl(Math.round(kartBorcu * 100) / 100)
+        : "Bütün hesapların toplamı"];
+      if (birikimTL || borcTL) {
+        satirlar.push("Birikimler ve borçlar dahil net durum: " + tl(Math.round((net + birikimTL - borcTL) * 100) / 100) +
+          (kurEksik ? " (kuru alınamayanlar hariç)" : ""));
+      }
+      el("hsp-toplam-alt").textContent = satirlar.join("\n");
     }
 
     el("hsp-liste").addEventListener("click", olay => {
@@ -3151,16 +3923,12 @@
       el("hsp-detay-bakiye").innerHTML = bakiyeYazisi(x.bakiye, h.tur);
       const alt = [];
       alt.push((h.tur === "kart" ? "Eklerken borç: " + tl(-(h.baslangic || 0)) : "Başlangıç bakiyesi: " + tl(h.baslangic || 0)));
+      if (h.tur === "kart" && h.limit > 0) alt.push("Limit: " + tl(h.limit) + " · Kullanılabilir: " + tl(Math.max(0, Math.round((h.limit + x.bakiye + x.ileri) * 100) / 100)));
       if (x.ileri) alt.push("İleri tarihli hareketler: " + (x.ileri > 0 ? "+" : "−") + tl(Math.abs(x.ileri)));
       el("hsp-detay-alt").textContent = alt.join("\n");
 
       const kalemler = kalemleriOku();
-      const hareketler = [];
-      kayitlariOku().forEach(k => { if (k.hesapId === h.id) hareketler.push({ tur: "kayit", k, tarih: k.tarih, saat: k.saat || "", id: k.id }); });
-      havaleleriOku().forEach(t => {
-        if (t.kaynak === h.id || t.hedef === h.id) hareketler.push({ tur: "havale", t, tarih: t.tarih, saat: t.saat || "", id: t.id });
-      });
-      borcOdemeleri().forEach(o => { if (o.hesapId === h.id) hareketler.push({ tur: "borc", o, tarih: o.tarih, saat: "", id: o.id }); });
+      const hareketler = hesapHareketleri().filter(m => m.hesapId === h.id);
       hareketler.sort((a, b) => (b.tarih + b.saat + b.id).localeCompare(a.tarih + a.saat + a.id));
       if (!hareketler.length) {
         el("hsp-hareketler").innerHTML = '<div class="bos-liste"><p class="bilgi">Bu hesapta henüz hareket yok.<br>+ ile bu hesaba gelir, gider ya da havale ekle.</p></div>';
@@ -3175,25 +3943,30 @@
       el("hsp-hareketler").innerHTML = aylar.map(a => {
         let giren = 0, cikan = 0;
         const satirlar = a.liste.map(m => {
-          const zaman = kisaTarih(m.tarih) + (m.saat ? " " + m.saat : "");
-          if (m.tur === "kayit") {
-            const k = m.k, ad = kayitAdlari(k, kalemler);
-            if (k.tip === "gelir") giren += k.tutar; else cikan += k.tutar;
-            return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, zaman, k.not], (k.tip === "gelir" ? "+" : "−") + tl(k.tutar), k.tip + "-renk");
-          }
-          if (m.tur === "borc") {
-            cikan += m.o.miktar;
-            return hareketSatiri("borc", m.o.borcId, "gider", "Borç ödemesi: " + m.o.borcAd, [zaman, m.o.not], "−" + tl(m.o.miktar), "gider-renk");
-          }
-          const t = m.t, giden = t.kaynak === h.id;
-          if (giden) cikan += t.tutar; else giren += t.tutar;
-          return hareketSatiri("havale", t.id, "havale", giden ? "Havale → " + hesapAdi(t.hedef) : "Havale ← " + hesapAdi(t.kaynak),
-            [zaman, t.not], (giden ? "−" : "+") + tl(t.tutar), "havale-renk");
+          if (m.miktar > 0) giren += m.miktar; else cikan -= m.miktar;
+          return hareketHtml(m, kalemler, kisaTarih(m.tarih) + (m.saat ? " " + m.saat : ""));
         }).join("");
         return '<div class="ay-baslik"><b>' + ayYazisi(a.ay) + "</b><small>Giren " + tl(giren) + " · Çıkan " + tl(cikan) + "</small></div>" +
           '<div class="liste-kart">' + satirlar + "</div>";
       }).join("");
       return true;
+    }
+    // Bir hesap hareketinin satırı (hesap ayrıntısı ve gün paneli). zaman: ayrıntıda tarih, gün panelinde hesap adı
+    function hareketHtml(m, kalemler, zaman) {
+      const isaret = (m.miktar > 0 ? "+" : "−") + tl(Math.abs(m.miktar));
+      if (m.tur === "kayit") {
+        const k = m.k, ad = kayitAdlari(k, kalemler);
+        return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, zaman, k.tekrarId ? "↻ tekrarlayan" : "", k.not], isaret, k.tip + "-renk");
+      }
+      if (m.tur === "havale") {
+        const t = m.t;
+        return hareketSatiri("havale", t.id, "havale", m.giden ? "Havale → " + hesapAdi(t.hedef) : "Havale ← " + hesapAdi(t.kaynak),
+          [zaman, t.not], isaret, "havale-renk");
+      }
+      if (m.tur === "borcodeme") return hareketSatiri("borc", m.borcId, "gider", "Borç ödemesi: " + m.borcAd, [zaman, m.not], isaret, "gider-renk");
+      if (m.tur === "borcgiris") return hareketSatiri("borc", m.borcId, "gelir", "Borç alındı: " + m.borcAd, [zaman], isaret, "gelir-renk");
+      return hareketSatiri("birikim", m.birikimId, "havale", (m.miktar < 0 ? "Birikime yatırıldı: " : "Birikimden çekildi: ") + m.birikimAd,
+        [zaman, m.not], isaret, "havale-renk");
     }
     function hareketSatiri(tur, id, nokta, ust, altParcalar, tutar, renk) {
       return '<button type="button" class="satir" data-' + tur + '="' + guvenli(id) + '">' +
@@ -3208,6 +3981,8 @@
       if (k) { const kayit = kayitlariOku().find(x => x.id === k.dataset.kayit); if (kayit) kayitPaneliAc(kayit); return true; }
       const bo = olay.target.closest("[data-borc]");
       if (bo) { borcDetayAc(bo.dataset.borc); return true; }
+      const bi = olay.target.closest("[data-birikim]");
+      if (bi) { birikimDetayAc(bi.dataset.birikim); return true; }
       const t = olay.target.closest("[data-havale]");
       if (t) { const hv = havaleleriOku().find(x => x.id === t.dataset.havale); if (hv) kayitPaneliAc({ ...hv, tip: "havale" }); return true; }
       return false;
@@ -3220,11 +3995,11 @@
       const h = id ? hesapBul(id) : null;
       hspDurum = { ekran: "hesap", id: h ? h.id : null, baslikId: h ? h.baslikId : baslikId };
       el("hsp-panel-baslik").textContent = h ? "Hesabı Düzenle" : "Yeni Hesap";
-      hesapFormuCiz(h ? h.ad : "", h ? h.baslangic : null);
+      hesapFormuCiz(h ? h.ad : "", h ? h.baslangic : null, h ? h.limit : null);
       panelAc("hsp-paneli");
       if (!h) setTimeout(() => el("hsp-ad").focus(), 320);
     }
-    function hesapFormuCiz(ad, baslangic) {
+    function hesapFormuCiz(ad, baslangic, limit) {
       const basliklar = basliklariOku();
       const bs = basliklar.find(b => b.id === hspDurum.baslikId);
       const kart = bs && bs.tur === "kart";
@@ -3238,6 +4013,10 @@
         '<input type="text" inputmode="decimal" id="hsp-baslangic" class="tutar-kutusu" autocomplete="off" placeholder="0,00" value="' + deger + '">' +
         '<div class="ipucu">' + (kart ? "Karttaki ödenmemiş borç. Kartla yapılan harcamalar borcu artırır, karta havale borcu azaltır."
           : "Hesapta şu an olan para. Sonraki gelir, gider ve havaleler bunun üstüne işlenir.") + "</div></div>" +
+        // Sürüm 1.9: kredi kartında limit (isteğe bağlı) — borç limiti geçemez
+        (kart ? '<div class="alan"><label for="hsp-limit">Kart limiti (₺, isteğe bağlı)</label>' +
+          '<input type="text" inputmode="decimal" id="hsp-limit" class="tutar-kutusu" autocomplete="off" placeholder="Örn. 10000" value="' +
+          (limit > 0 ? kutuyaYaz(limit) : "") + '"><div class="ipucu">Kartla limitten fazla harcama girilemez.</div></div>' : "") +
         '<button type="button" class="buton" data-islem="hesap-kaydet">Kaydet</button>' +
         '<div class="ipucu hata" id="hsp-hata"></div>' +
         (hspDurum.id ? '<button type="button" class="sil-dugmesi" data-islem="hesap-sil">Hesabı sil</button>' : "");
@@ -3245,8 +4024,9 @@
       basliklar.forEach(b => kutu.appendChild(cipYap(b.ad, b.id === hspDurum.baslikId, () => {
         // Başlık değişince yazılanlar korunur, etiket (bakiye / borç) güncellenir
         const a = el("hsp-ad").value, m = sayiyaCevir(el("hsp-baslangic").value);
+        const lm = el("hsp-limit") ? sayiyaCevir(el("hsp-limit").value) : NaN;
         hspDurum.baslikId = b.id;
-        hesapFormuCiz(a, isNaN(m) ? null : m);
+        hesapFormuCiz(a, isNaN(m) ? null : m, isNaN(lm) ? null : lm);
       })));
     }
 
@@ -3276,6 +4056,17 @@
       const ad = adTemizle(el("hsp-ad") ? el("hsp-ad").value : "");
       const islem = d.dataset.islem;
 
+      if (islem === "ilk-gec") { panelKapat(); return; }
+      if (islem === "ilk-kaydet") {
+        const metinM = el("hsp-ad").value.trim();
+        const m = metinM ? sayiyaCevir(metinM) : 0;
+        if (isNaN(m) || m < 0) return hata("Tutarı sayı olarak yazın.");
+        const c = basliklar.find(b => b.id === "nakit");
+        const h = c && c.hesaplar.find(x => x.id === "cuzdan");
+        if (h) h.baslangic = Math.round(m * 100) / 100;
+        return bitir("✓ Hazır, iyi kullanımlar!");
+      }
+
       if (islem === "baslik-kaydet") {
         if (!ad) return hata("Başlık adı yazın.");
         if (basliklar.some(b => b.id !== hspDurum.id && kucukHarf(b.ad) === kucukHarf(ad))) return hata("Bu adda bir başlık zaten var.");
@@ -3299,6 +4090,16 @@
         const hedef = basliklar.find(b => b.id === hspDurum.baslikId);
         if (!hedef) return hata("Bir başlık seçin.");
         const baslangic = Math.round((hedef.tur === "kart" ? -m : m) * 100) / 100;
+        const limitMetin = el("hsp-limit") ? el("hsp-limit").value.trim() : "";
+        const limit = hedef.tur === "kart" && limitMetin ? sayiyaCevir(limitMetin) : 0;
+        if (isNaN(limit) || limit < 0) return hata("Limiti sayı olarak yazın.");
+        if (limit > 0 && m > limit) return hata("Kart borcu limitten büyük olamaz.");
+        if (limit > 0 && hspDurum.id) {
+          // Hareketlerle birlikte şu anki borç (ileri tarihliler dahil) yeni limiti geçemez
+          let toplam = hedef.tur === "kart" ? -m : m;
+          hesapHareketleri().forEach(x => { if (x.hesapId === hspDurum.id) toplam += x.miktar; });
+          if (toplam < -limit - 0.004) return hata("Kartın şu anki borcu (" + tl(Math.round(-toplam * 100) / 100) + ") bu limitten büyük. Limiti kontrol edin.");
+        }
         if (hspDurum.id) {
           // Başlık değiştiyse hesap yeni başlığa taşınır (kimliği aynı kalır, hareketleri korunur)
           let hesap = null;
@@ -3307,30 +4108,455 @@
             if (i !== -1) hesap = b.hesaplar.splice(i, 1)[0];
           });
           if (!hesap) return hata("Hesap bulunamadı.");
-          hedef.hesaplar.push({ ...hesap, ad, baslangic });
+          const yeniHesap = { ...hesap, ad, baslangic };
+          if (limit > 0) yeniHesap.limit = Math.round(limit * 100) / 100; else delete yeniHesap.limit;
+          hedef.hesaplar.push(yeniHesap);
         } else {
-          hedef.hesaplar.push({ id: yeniId("h"), ad, baslangic });
+          hedef.hesaplar.push({ id: yeniId("h"), ad, baslangic, ...(limit > 0 ? { limit: Math.round(limit * 100) / 100 } : {}) });
         }
         return bitir(hspDurum.id ? "✓ Kaydedildi" : "✓ Hesap eklendi");
       }
       if (islem === "hesap-sil") {
-        const hareketli = kayitlariOku().some(k => k.hesapId === hspDurum.id) ||
-          havaleleriOku().some(t => t.kaynak === hspDurum.id || t.hedef === hspDurum.id) ||
-          borcOdemeleri().some(o => o.hesapId === hspDurum.id);
-        // Kayıtlar silinmez: Özet'te sayılmaya devam eder, hesap adı "Silinmiş hesap" görünür
-        return ikiDokunus(d, hareketli ? "Hareketleri var, yine de silmek için tekrar dokun" : "Silmek için tekrar dokun", () => {
-          basliklar.forEach(b => { b.hesaplar = b.hesaplar.filter(h => h.id !== hspDurum.id); });
-          if (acikHesap === hspDurum.id) { acikHesap = null; sayfaAc("hesaplar"); }
-          bitir("Hesap silindi");
+        const digerler = tumHesaplar().filter(h => h.id !== hspDurum.id);
+        if (!digerler.length) return hata("En az bir hesap olmalı. Silmeden önce başka bir hesap ekle.");
+        const say = hesapKullanimi(hspDurum.id);
+        if (!say.toplam) {
+          return ikiDokunus(d, "Silmek için tekrar dokun", () => {
+            basliklar.forEach(b => { b.hesaplar = b.hesaplar.filter(h => h.id !== hspDurum.id); });
+            if (acikHesap === hspDurum.id) { acikHesap = null; sayfaAc("hesaplar"); }
+            bitir("Hesap silindi");
+          });
+        }
+        // Hareketli hesap (Sürüm 1.9): önce hareketlerin taşınacağı hesap seçilir
+        hspDurum.tasi = null;
+        el("hsp-panel-baslik").textContent = "Hesabı Sil";
+        el("hsp-panel-icerik").innerHTML =
+          '<p class="bilgi" style="margin-bottom:12px">Bu hesabı kullanan ' + guvenli(say.yazi) + ' var. Hangi hesaba taşınsın?<br>' +
+          '<small>Hesabın başlangıç bakiyesi de seçilen hesaba eklenir.</small></p>' +
+          '<div class="alan"><div class="cipler" id="hsp-tasi"></div></div>' +
+          '<button type="button" class="buton tehlike-buton" data-islem="hesap-tasi-sil">Taşı ve hesabı sil</button>' +
+          '<div class="ipucu hata" id="hsp-hata"></div>' +
+          '<button type="button" class="ikincil-dugme" data-islem="hesap-vazgec" style="width:100%;margin-top:10px">Vazgeç</button>';
+        const kutu = el("hsp-tasi");
+        const ciz = () => { kutu.innerHTML = ""; digerler.forEach(h => kutu.appendChild(cipYap(h.ad, h.id === hspDurum.tasi, () => { hspDurum.tasi = h.id; ciz(); }))); };
+        ciz();
+        return;
+      }
+      if (islem === "hesap-vazgec") return hesapFormuAc(hspDurum.id);
+      if (islem === "hesap-tasi-sil") {
+        if (!hspDurum.tasi) return hata("Hareketlerin taşınacağı hesabı seçin.");
+        // Taşınan hareketlerin hedef hesaba etkisi (iki ucu aynı hesaba düşen havaleler silineceği için hariç) — kart limiti
+        const eski = hspDurum.id, yeni = hspDurum.tasi;
+        // Silinen hesabın başlangıç bakiyesi de taşınır (yoksa taşınan giderler parasız düşerdi)
+        const eskiBaslangic = (hesapBul(eski) || {}).baslangic || 0;
+        let etki = eskiBaslangic;
+        hesapHareketleri().forEach(m => {
+          const karsi = m.tur === "havale" ? (m.giden ? m.t.hedef : m.t.kaynak) : null;
+          if (m.hesapId === eski && karsi !== yeni) etki += m.miktar;
+          if (m.hesapId === yeni && karsi === eski) etki -= m.miktar;
         });
+        const lk = bakiyeKontrol([{ hesapId: yeni, miktar: Math.round(etki * 100) / 100 }], null);
+        if (lk.hata && etki < 0) return hata("Bu hareketler " + hesapAdi(yeni) + " hesabına taşınırsa kart limiti aşılır. Başka bir hesap seçin.");
+        const n = hesapTasi(hspDurum.id, hspDurum.tasi);
+        const yeniBasliklar = basliklariOku();
+        yeniBasliklar.forEach(b => {
+          b.hesaplar = b.hesaplar.filter(h => h.id !== hspDurum.id);
+          b.hesaplar.forEach(h => { if (h.id === yeni) h.baslangic = Math.round(((h.baslangic || 0) + eskiBaslangic) * 100) / 100; });
+        });
+        if (!basliklariYaz(yeniBasliklar)) return;
+        if (acikHesap === hspDurum.id) { acikHesap = null; sayfaAc("hesaplar"); }
+        panelKapat();
+        bildirimGoster("Hesap silindi, bakiyesi ve hareketleri " + hesapAdi(hspDurum.tasi) + " hesabına taşındı" + (n ? " (" + n + " havale aynı hesaba düştüğü için silindi)" : ""));
+        hepsiniGuncelle();
       }
     });
+    // İLK AÇILIŞ (1.9.1): hesap verisi hiç yoksa hazır başlıklar yazılır ve Cüzdan'daki para sorulur
+    function ilkAcilis() {
+      if (depoOku(HESAP_ANAHTARI, null)) return;
+      basliklariYaz(VARSAYILAN_BASLIKLAR());
+      hspDurum = { ekran: "ilk" };
+      el("hsp-panel-baslik").textContent = "Hoş geldin 👋";
+      el("hsp-panel-icerik").innerHTML =
+        '<p class="bilgi" style="margin-bottom:12px">Başlamadan önce: Cüzdan\'ında şu an ne kadar nakit var? Banka hesaplarını ve kartlarını sonra Hesaplar sekmesinden ekleyebilirsin.</p>' +
+        '<div class="alan"><label for="hsp-ad">Cüzdan\'daki nakit (₺)</label><input type="text" inputmode="decimal" id="hsp-ad" class="tutar-kutusu" autocomplete="off" placeholder="0,00"></div>' +
+        '<button type="button" class="buton" data-islem="ilk-kaydet">Kaydet</button>' +
+        '<div class="ipucu hata" id="hsp-hata"></div>' +
+        '<button type="button" class="ikincil-dugme" data-islem="ilk-gec" style="width:100%;margin-top:10px">Şimdilik geç</button>';
+      panelAc("hsp-paneli");
+      hepsiniGuncelle();
+    }
+    // Bir hesabı kullanan her şeyin sayısı: { toplam, yazi: "1 tekrar, 5 kayıt" }
+    function hesapKullanimi(id) {
+      const parca = [];
+      const ekle = (n, ad) => { if (n) parca.push(n + " " + ad); };
+      const kayit = kayitlariOku().filter(k => k.hesapId === id).length;
+      const tekrar = tekrarlariOku().filter(t => t.hesapId === id).length;
+      const havale = havaleleriOku().filter(t => t.kaynak === id || t.hedef === id).length;
+      let borc = 0, birikim = 0;
+      borclariOku().forEach(b => { if (b.girisHesapId === id) borc++; b.odemeler.forEach(o => { if (o.hesapId === id) borc++; }); });
+      birikimleriOku().forEach(s => s.hareketler.forEach(h => { if (h.hesapId === id) birikim++; }));
+      ekle(tekrar, "tekrar"); ekle(kayit, "kayıt"); ekle(havale, "havale"); ekle(borc, "borç hareketi"); ekle(birikim, "birikim hareketi");
+      return { toplam: kayit + tekrar + havale + borc + birikim, yazi: parca.join(", ") };
+    }
+    // Bütün referansları eskiden yeniye taşır. Dönüş: iki ucu aynı hesaba düştüğü için silinen havale sayısı
+    function hesapTasi(eski, yeni) {
+      kayitlariYaz(kayitlariOku().map(k => k.hesapId === eski ? { ...k, hesapId: yeni } : k));
+      tekrarlariYaz(tekrarlariOku().map(t => t.hesapId === eski ? { ...t, hesapId: yeni } : t));
+      const havaleler = havaleleriOku().map(t => ({ ...t, kaynak: t.kaynak === eski ? yeni : t.kaynak, hedef: t.hedef === eski ? yeni : t.hedef }));
+      const kalan = havaleler.filter(t => t.kaynak !== t.hedef);
+      havaleleriYaz(kalan);
+      const borclar = borclariOku();
+      borclar.forEach(b => {
+        if (b.girisHesapId === eski) b.girisHesapId = yeni;
+        if (b.odemeHesapId === eski) b.odemeHesapId = yeni;     // 1.11: varsayılan ödeme hesabı
+        b.odemeler.forEach(o => { if (o.hesapId === eski) o.hesapId = yeni; });
+      });
+      borclariYaz(borclar);
+      const birikimler = birikimleriOku();
+      birikimler.forEach(s => {
+        s.hareketler.forEach(h => { if (h.hesapId === eski) h.hesapId = yeni; });
+        // Bağlı banka silinirse (1.10): yeni hesap da bankaysa ona bağlanır, değilse ayrı hesap olur
+        if (s.bagliHesapId === eski) s.bagliHesapId = (hesapBul(yeni) || {}).tur === "banka" ? yeni : "";
+      });
+      birikimleriYaz(birikimler);
+      if (depoOku(SON_HESAP_ANAHTARI, null) === eski) depoYaz(SON_HESAP_ANAHTARI, yeni);
+      return havaleler.length - kalan.length;
+    }
     el("hsp-panel-icerik").addEventListener("keydown", olay => {
       if (olay.key !== "Enter" || olay.target.tagName !== "INPUT") return;
       olay.preventDefault();
       const d = el("hsp-panel-icerik").querySelector('[data-islem$="kaydet"]');
       if (d) d.click();
     });
+
+    // =====================================================
+    // TEKRARLAYAN İŞLEMLER (Sürüm 1.8)
+    // butceTekrarlar_v1 = [ { id, tip, grup, grupAd, kalemId, kalemAd, hesapId, tutar, not,
+    //   siklik: "hafta"|"ay"|"yil", aralik (ayda: 1/2/3/6), gun (1–31 ya da "son"), haftaGunu (0=Pzt … 6=Paz),
+    //   ay (yılda: 1–12), baslangic, bitis ("" = süresiz), son (en son işlenen gün), atlanan: [tarih],
+    //   takvimde: true|false, durdu: true|false } ]
+    // Ay sonu: seçilen gün o ayda yoksa ayın son günü (31 → Nisan 30, Şubat 28/29); "son" = her ay son gün.
+    // Uygulama açılınca (ve uygulamaya geri dönülünce) son'dan sonraki, bugüne kadarki günler kayıt olur
+    // (kayıtta tekrarId); sonra son = bugün. Böylece silinen kayıt geri gelmez.
+    // Bugünden sonraki tarihler takvimde soluk "planlı" görünür (takvimde açıksa), toplamlara katılmaz.
+    // =====================================================
+    const TEKRAR_ANAHTARI = "butceTekrarlar_v1";
+    const SIKLIKLAR = [
+      { id: "hafta", ad: "Her hafta" }, { id: "ay1", ad: "Her ay" }, { id: "ay2", ad: "2 ayda bir" },
+      { id: "ay3", ad: "3 ayda bir" }, { id: "ay6", ad: "6 ayda bir" }, { id: "yil", ad: "Her yıl" },
+      // Sürüm 1.11: gün sayısıyla (başlangıç tarihinden itibaren her N günde bir)
+      { id: "gun28", ad: "28 günde bir" }, { id: "gun30", ad: "30 günde bir" }, { id: "gunx", ad: "Gün sayısı…" }
+    ];
+    // "gun28" → 28, "gunx" → kutudaki sayı
+    const siklikGunu = (id, kutu) => id === "gunx" ? Math.round(sayiyaCevir(el(kutu).value)) : +id.slice(3);
+    const gunSiklikId = n => n === 28 ? "gun28" : n === 30 ? "gun30" : "gunx";
+    const KISA_GUNLER = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
+    const UZUN_GUNLER = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
+
+    function tekrarlariOku() {
+      const l = depoOku(TEKRAR_ANAHTARI, []);
+      return Array.isArray(l) ? l.filter(t => t && typeof t.id === "string") : [];
+    }
+    const tekrarlariYaz = l => depoYaz(TEKRAR_ANAHTARI, l);
+
+    // Tarih yardımcıları (yerel saat, "YYYY-AA-GG")
+    const tarihYaz = d => d.getFullYear() + "-" + ikiHane(d.getMonth() + 1) + "-" + ikiHane(d.getDate());
+    const tarihOku = t => new Date(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10));
+    const aydakiGun = (y, a, gun) => {             // a: 1–12; gun: sayı ya da "son"
+      const son = new Date(y, a, 0).getDate();
+      return gun === "son" ? son : Math.min(+gun, son);
+    };
+
+    // Kuralın [bas, bit] aralığındaki tarihleri (başlangıç ve bitiş dahil sınırlar içinde)
+    function tekrarTarihleri(t, bas, bit) {
+      const alt = bas > t.baslangic ? bas : t.baslangic;
+      const ust = t.bitis && t.bitis < bit ? t.bitis : bit;
+      const liste = [];
+      if (alt > ust) return liste;
+      // Sürüm 1.11: başlangıçtan itibaren her N günde bir
+      if (t.siklik === "gun") {
+        const n = Math.max(1, +t.aralik || 1);
+        const d = tarihOku(t.baslangic);
+        const fark = Math.round((tarihOku(alt) - d) / 86400000);
+        if (fark > 0) d.setDate(d.getDate() + Math.ceil(fark / n) * n);
+        while (tarihYaz(d) <= ust) { liste.push(tarihYaz(d)); d.setDate(d.getDate() + n); }
+        return liste;
+      }
+      if (t.siklik === "hafta") {
+        const d = tarihOku(alt);
+        const fark = ((+t.haftaGunu) - ((d.getDay() + 6) % 7) + 7) % 7;
+        d.setDate(d.getDate() + fark);
+        while (tarihYaz(d) <= ust) { liste.push(tarihYaz(d)); d.setDate(d.getDate() + 7); }
+        return liste;
+      }
+      const adim = t.siklik === "yil" ? 12 : Math.max(1, +t.aralik || 1);
+      // Ay dizisi başlangıç ayından (yılda: başlangıç yılının seçilen ayından) başlar
+      let y = +t.baslangic.slice(0, 4), a = t.siklik === "yil" ? +t.ay : +t.baslangic.slice(5, 7);
+      for (let i = 0; i < 2000; i++) {
+        const tarih = y + "-" + ikiHane(a) + "-" + ikiHane(aydakiGun(y, a, t.gun));
+        if (tarih > ust) break;
+        if (tarih >= alt) liste.push(tarih);
+        a += adim; while (a > 12) { a -= 12; y++; }
+      }
+      return liste;
+    }
+    function sonrakiTarih(t) {
+      const yarin = tarihOku(bugun()); yarin.setDate(yarin.getDate() + 1);
+      const bas = tarihYaz(yarin), bit = (+bas.slice(0, 4) + 2) + bas.slice(4);
+      return tekrarTarihleri(t, bas, bit).find(x => !(t.atlanan || []).includes(x)) || null;
+    }
+    // "Her ay 15'inde", "Her hafta Cuma", "3 ayda bir, ayın son günü", "Her yıl 1 Mart"
+    function siklikYazisi(t) {
+      const gunY = t.gun === "son" ? "ayın son günü" : t.gun + ". gün";
+      if (t.siklik === "hafta") return "Her hafta " + UZUN_GUNLER[+t.haftaGunu];
+      if (t.siklik === "gun") return t.aralik + " günde bir";
+      if (t.siklik === "yil") return "Her yıl " + (t.gun === "son" ? AY_ADLARI[+t.ay - 1] + " sonu" : t.gun + " " + AY_ADLARI[+t.ay - 1]);
+      return (+t.aralik > 1 ? t.aralik + " ayda bir, " : "Her ay, ") + gunY;
+    }
+
+    // Günü gelenleri kayıt olarak gir. Dönüş: girilen kayıt sayısı
+    function tekrarlariIsle() {
+      const liste = tekrarlariOku();
+      if (!liste.length) return 0;
+      const bugunT = bugun();
+      const kalemler = kalemleriOku();
+      const kayitlar = kayitlariOku();
+      let sayi = 0, degisti = false;
+      const bekleyen = {};         // bu çalışmada eklenen kayıtların hesap etkisi (henüz yazılmadı)
+      tekrarLimitSayisi = 0;
+      liste.forEach(t => {
+        if (t.durdu) return;
+        let bas = t.baslangic;
+        if (t.son) { const d = tarihOku(t.son); d.setDate(d.getDate() + 1); bas = tarihYaz(d); }   // son'dan sonraki gün
+        tekrarTarihleri(t, bas, bugunT).forEach(tarih => {
+          if ((t.atlanan || []).includes(tarih)) return;
+          if (kayitlar.some(k => k.tekrarId === t.id && k.tarih === tarih)) return;
+          // Kart limiti (1.9.1): yetmiyorsa girilmez, takvimde "Limit yetersiz" olarak görünür
+          const miktar = t.tip === "gelir" ? t.tutar : -t.tutar;
+          const onceki = bekleyen[t.hesapId] || 0;
+          if (miktar < 0 && bakiyeKontrol([{ hesapId: t.hesapId, miktar: onceki }, { hesapId: t.hesapId, miktar }], null).hata) {
+            t.limitYok = (t.limitYok || []).filter(x => x !== tarih).concat(tarih);
+            degisti = true; tekrarLimitSayisi++;
+            return;
+          }
+          bekleyen[t.hesapId] = onceki + miktar;
+          const g = kalemler[t.tip].find(x => x.id === t.grup);
+          const k = g && g.kalemler.find(x => x.id === t.kalemId);
+          kayitlar.push({
+            id: yeniId("r"), tip: t.tip, grup: t.grup, grupAd: g ? g.ad : t.grupAd, kalemId: t.kalemId,
+            kalemAd: k ? k.ad : t.kalemAd, tutar: t.tutar, tarih, saat: "", not: t.not || "",
+            hesapId: t.hesapId || null, tekrarId: t.id
+          });
+          sayi++;
+        });
+        if (t.son !== bugunT) { t.son = bugunT; degisti = true; }
+      });
+      if (sayi && !kayitlariYaz(kayitlar)) return 0;
+      if (degisti || sayi) tekrarlariYaz(liste);
+      return sayi;
+    }
+    let tekrarLimitSayisi = 0;     // son çalışmada limit yetmediği için girilmeyen sayısı
+    function tekrarlariIsleVeGoster() {
+      if (krediTaksitleriIsle()) hepsiniGuncelle();
+      const n = tekrarlariIsle();
+      if (n || tekrarLimitSayisi) {
+        hepsiniGuncelle();
+        bildirimGoster((n ? "↻ " + n + " tekrarlayan işlem kaydedildi" : "") + (n && tekrarLimitSayisi ? " · " : "") +
+          (tekrarLimitSayisi ? "⚠ " + tekrarLimitSayisi + " işlem kart limiti yetmediği için girilmedi" : ""));
+      }
+    }
+    // Limit yetmeyen tekrar: "Gir" (limit yeterse kayıt olur) ya da "Atla"
+    function tekrarLimitIslem(id, tarih, islem) {
+      const liste = tekrarlariOku();
+      const t = liste.find(x => x.id === id);
+      if (!t) return;
+      if (islem === "gir") {
+        if (bakiyeKontrol([{ hesapId: t.hesapId, miktar: t.tip === "gelir" ? t.tutar : -t.tutar }], null).hata) {
+          return bildirimGoster("Limitiniz bu tutarı karşılamıyor, lütfen kontrol edin.");
+        }
+        const kalemler = kalemleriOku();
+        const g = kalemler[t.tip].find(x => x.id === t.grup);
+        const k = g && g.kalemler.find(x => x.id === t.kalemId);
+        const kayitlar = kayitlariOku();
+        kayitlar.push({ id: yeniId("r"), tip: t.tip, grup: t.grup, grupAd: g ? g.ad : t.grupAd, kalemId: t.kalemId,
+          kalemAd: k ? k.ad : t.kalemAd, tutar: t.tutar, tarih, saat: "", not: t.not || "", hesapId: t.hesapId, tekrarId: t.id });
+        if (!kayitlariYaz(kayitlar)) return;
+      } else {
+        t.atlanan = (t.atlanan || []).concat(tarih);
+      }
+      t.limitYok = (t.limitYok || []).filter(x => x !== tarih);
+      if (!tekrarlariYaz(liste)) return;
+      hepsiniGuncelle();
+      bildirimGoster(islem === "gir" ? "✓ Kaydedildi" : "Bu tarih atlandı");
+    }
+    // Uygulamaya geri dönülünce (gün değişmiş olabilir)
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) tekrarlariIsleVeGoster(); });
+
+    // Takvim için planlı tarihler: [{ t, tarih, atlandi }] — sadece bugünden sonrası, takvimde açık ve durmamış kurallar
+    function planliTekrarlar(bas, bit) {
+      const yarin = tarihOku(bugun()); yarin.setDate(yarin.getDate() + 1);
+      const alt = tarihYaz(yarin) > bas ? tarihYaz(yarin) : bas;
+      const sonuc = [];
+      if (alt > bit) return sonuc;
+      tekrarlariOku().forEach(t => {
+        if (t.durdu || (t.takvimde === false && !t.kesin)) return;
+        tekrarTarihleri(t, alt, bit).forEach(tarih => sonuc.push({ t, tarih, atlandi: (t.atlanan || []).includes(tarih), kesin: !!t.kesin }));
+      });
+      return sonuc;
+    }
+    function tekrarAtla(id, tarih) {
+      const liste = tekrarlariOku();
+      const t = liste.find(x => x.id === id);
+      if (!t) return;
+      t.atlanan = t.atlanan || [];
+      const atlandi = t.atlanan.includes(tarih);
+      t.atlanan = atlandi ? t.atlanan.filter(x => x !== tarih) : t.atlanan.concat(tarih);
+      if (!tekrarlariYaz(liste)) return;
+      hepsiniGuncelle();
+      bildirimGoster(atlandi ? "Geri alındı" : "Bu tarih atlanacak");
+    }
+
+    // --- Tekrarlar sayfası ---
+    function tekrarListesiCiz() {
+      const liste = tekrarlariOku();
+      const kalemler = kalemleriOku();
+      el("tekrar-bos").hidden = liste.length > 0;
+      el("tekrar-ozet").textContent = liste.length ? liste.length + " tekrarlayan işlem" : "Her ay yinelenen gelir ve giderler";
+      el("tekrar-listesi").innerHTML = liste.map(t => {
+        const ad = kayitAdlari(t, kalemler);
+        const sonraki = t.durdu ? null : sonrakiTarih(t);
+        const alt = [siklikYazisi(t), t.hesapId ? hesapAdi(t.hesapId) : "", t.kesin ? "Bütçeye dahil" : "",
+          t.durdu ? "Durduruldu" : sonraki ? "Sonraki: " + uzunTarih(sonraki) : "Bitti",
+          (t.limitYok || []).length ? "⚠ Limit yetersiz: " + t.limitYok.map(kisaTarih).join(", ") : ""].filter(Boolean).join(" · ");
+        return '<button type="button" class="kart tekrar-kart' + (t.durdu ? " durdu" : "") + '" data-id="' + guvenli(t.id) + '">' +
+          '<div class="tekrar-ust"><b>' + guvenli(ad.kalem) + '</b><span class="' + t.tip + '-renk">' +
+          (t.tip === "gelir" ? "+" : "−") + tl(t.tutar) + "</span></div>" +
+          '<div class="kart-alt">' + guvenli(alt) + "</div></button>";
+      }).join("");
+    }
+    el("tekrar-listesi").addEventListener("click", olay => {
+      const k = olay.target.closest("[data-id]");
+      if (!k) return;
+      const t = tekrarlariOku().find(x => x.id === k.dataset.id);
+      if (t) tekrarPaneliAc(t);
+    });
+
+    // --- Tekrar formu: Yeni Kayıt penceresi "tekrar modunda" kullanılır ---
+    let tekrarModu = false;
+    let tSiklik = "ay1", tHaftaGunu = 0;
+    function tekrarFormuGoster(acik) {
+      el("tekrar-blok").hidden = !acik;
+      el("t-bitis-alan").hidden = !acik;
+      el("f-saat-alan").hidden = acik;
+      el("tip-havale-etiket").hidden = acik;
+      el("tekrar-durdur").hidden = true;
+      el("f-tarih-etiket").textContent = acik ? "Başlangıç" : "Tarih";
+    }
+    function tekrarSecimCiz() {
+      const sk = el("t-siklik"); sk.innerHTML = "";
+      SIKLIKLAR.forEach(x => sk.appendChild(cipYap(x.ad, x.id === tSiklik, () => { tSiklik = x.id; tekrarSecimCiz(); })));
+      const hf = el("t-hafta"); hf.innerHTML = "";
+      KISA_GUNLER.forEach((g, i) => hf.appendChild(cipYap(g, i === tHaftaGunu, () => { tHaftaGunu = i; tekrarSecimCiz(); })));
+      const hafta = tSiklik === "hafta", yil = tSiklik === "yil", gunlu = tSiklik.startsWith("gun");
+      el("t-hafta-alan").hidden = !hafta;
+      el("t-gun-satiri").hidden = hafta || gunlu;
+      el("t-gunsayi-alan").hidden = tSiklik !== "gunx";
+      el("t-ay-alan").hidden = !yil;
+      const gun = el("t-gun").value;
+      el("t-ipucu").textContent = gunlu ? "Başlangıç tarihinden itibaren sayılır." : hafta ? "" : gun === "son" ? "Her seferinde ayın son günü girilir."
+        : +gun > 28 ? "Bu gün olmayan aylarda (örn. Şubat" + (+gun === 31 ? ", Nisan" : "") + ") ayın son günü girilir." : "";
+    }
+    el("t-gun").addEventListener("change", tekrarSecimCiz);
+    // Seçim kutularını bir kez doldur
+    el("t-gun").innerHTML = Array.from({ length: 31 }, (_, i) => '<option value="' + (i + 1) + '">' + (i + 1) + "</option>").join("") +
+      '<option value="son">Ayın son günü</option>';
+    el("t-ay").innerHTML = AY_ADLARI.map((a, i) => '<option value="' + (i + 1) + '">' + a + "</option>").join("");
+
+    function tekrarPaneliAc(t) {
+      // Ortak alanlar (tip, grup, kalem, hesap, tutar, not) kayıt formuyla doldurulur
+      kayitPaneliAc(t ? { ...t, tarih: t.baslangic, saat: "" } : null);
+      tekrarModu = true;
+      tekrarFormuGoster(true);
+      el("kayit-panel-baslik").textContent = t ? "Tekrarı Düzenle" : "Yeni Tekrarlayan İşlem";
+      el("kayit-sil").textContent = "Tekrarı sil";
+      if (seciliTip() === "havale") { el("tip-gider").checked = true; tipDegisti(); }
+      el("tip-havale").disabled = true;
+      el("tip-gider").disabled = el("tip-gelir").disabled = false;
+      const bas = t ? t.baslangic : bugun();
+      el("f-tarih").value = bas;
+      el("t-bitis").value = t ? t.bitis || "" : "";
+      el("t-takvim").checked = t ? t.takvimde !== false : true;
+      el("t-kesin").checked = t ? !!t.kesin : false;
+      tSiklik = t ? (t.siklik === "ay" ? "ay" + (t.aralik || 1) : t.siklik === "gun" ? gunSiklikId(+t.aralik) : t.siklik) : "ay1";
+      el("t-gunsayi").value = t && t.siklik === "gun" ? String(t.aralik) : "";
+      tHaftaGunu = t ? +t.haftaGunu || 0 : (tarihOku(bas).getDay() + 6) % 7;
+      el("t-gun").value = t && t.gun != null ? String(t.gun) : String(+bas.slice(8, 10));
+      el("t-ay").value = t && t.ay ? String(t.ay) : String(+bas.slice(5, 7));
+      tekrarSecimCiz();
+      const dd = el("tekrar-durdur");
+      dd.hidden = !t;
+      if (t) dd.textContent = t.durdu ? "▶ Devam ettir" : "⏸ Durdur";
+    }
+    el("tekrar-durdur").addEventListener("click", () => {
+      if (!duzenlenen) return;
+      const liste = tekrarlariOku();
+      const t = liste.find(x => x.id === duzenlenen.id);
+      if (!t) return;
+      t.durdu = !t.durdu;
+      // Devam ettirilince aradaki günler sonradan girilmesin: bugüne kadar işlenmiş say
+      if (!t.durdu) t.son = bugun();
+      if (!tekrarlariYaz(liste)) return;
+      panelKapat();
+      bildirimGoster(t.durdu ? "Tekrar durduruldu" : "Tekrar devam ediyor");
+      hepsiniGuncelle();
+    });
+
+    function tekrarKaydet(hataGoster) {
+      const tip = seciliTip();
+      const grup = formGruplari(tip).find(g => g.id === seciliGrup);
+      const kalem = grup && grup.kalemler.find(k => k.id === seciliKalem);
+      const tutar = sayiyaCevir(el("f-tutar").value);
+      const baslangic = el("f-tarih").value;
+      const bitis = el("t-bitis").value;
+      if (!grup && !gelirModu()) return hataGoster("Bir grup seçin.");
+      if (!kalem)                return hataGoster("Bir kalem seçin ya da \"Diğer…\" ile ekleyin.");
+      if (!tumHesaplar().length) return hataGoster("Önce Hesaplar sekmesinden bir hesap ekle.");
+      if (!seciliHesap || !hesapBul(seciliHesap)) return hataGoster("Bir hesap seçin.");
+      if (!(tutar > 0))          return hataGoster("Tutarı girin.");
+      if (tutar > 100000000)     return hataGoster("Tutar çok büyük, kontrol edin.");
+      if (!baslangic)            return hataGoster("Başlangıç tarihini girin.");
+      if (bitis && bitis < baslangic) return hataGoster("Bitiş tarihi başlangıçtan önce olamaz.");
+      const gunlu = tSiklik.startsWith("gun");
+      const gunSayisi = gunlu ? siklikGunu(tSiklik, "t-gunsayi") : 0;
+      if (gunlu && !(gunSayisi >= 1 && gunSayisi <= 366)) return hataGoster("Kaç günde bir olduğunu girin (1–366).");
+      const kural = {
+        tip, grup: grup.id, grupAd: grup.ad, kalemId: kalem.id, kalemAd: kalem.ad,
+        hesapId: seciliHesap, tutar: Math.round(tutar * 100) / 100, not: el("f-not").value.trim(),
+        siklik: tSiklik === "hafta" ? "hafta" : tSiklik === "yil" ? "yil" : gunlu ? "gun" : "ay",
+        aralik: tSiklik.startsWith("ay") ? +tSiklik.slice(2) : gunlu ? gunSayisi : 1,
+        gun: el("t-gun").value === "son" ? "son" : +el("t-gun").value,
+        haftaGunu: tHaftaGunu, ay: +el("t-ay").value,
+        baslangic, bitis: bitis || "", takvimde: el("t-takvim").checked, kesin: el("t-kesin").checked
+      };
+      const liste = tekrarlariOku();
+      if (duzenlenen) {
+        const i = liste.findIndex(x => x.id === duzenlenen.id);
+        if (i === -1) return hataGoster("Tekrar bulunamadı.");
+        // Kural değişince geçmişteki kayıtlar değişmez; başlangıç geri alındıysa önceki günler girilmez
+        liste[i] = { ...liste[i], ...kural };
+      } else {
+        liste.push({ ...kural, id: yeniId("t"), son: "", atlanan: [], durdu: false });
+      }
+      if (seciliHesap) depoYaz(SON_HESAP_ANAHTARI, seciliHesap);
+      if (!tekrarlariYaz(liste)) return;
+      const yeni = !duzenlenen;
+      panelKapat();
+      const n = tekrarlariIsle();
+      hepsiniGuncelle();
+      bildirimGoster((yeni ? "✓ Tekrar eklendi" : "✓ Kaydedildi") + (n ? " · " + n + " kayıt girildi" : ""));
+    }
+    // Kural silinir; daha önce girilmiş kayıtlar kalır
+    function tekrarSil(id) { return tekrarlariYaz(tekrarlariOku().filter(t => t.id !== id)); }
 
     // =====================================================
     // TAKVİM (Sürüm 1.5) — açılış sayfası
@@ -3365,6 +4591,29 @@
         t[k.tip] += k.tutar;
         if (k.tip === "gelir") ayGelir += k.tutar; else ayGider += k.tutar;
       });
+      // Planlı tekrarlar (Sürüm 1.8): bugünden sonraki günler, toplama katılmaz
+      const ayBas = takvimAy + "-01", aySon = takvimAy + "-" + ikiHane(gunSayisi);
+      const planli = {};
+      planliTekrarlar(ayBas, aySon).forEach(p => {
+        if (p.atlandi) return;
+        if (p.kesin) {
+          // Onaylı tekrar (1.8.1): gerçek kayıt gibi gün kutusuna ve ayın toplamına katılır
+          const t = toplam[p.tarih] || (toplam[p.tarih] = { gelir: 0, gider: 0 });
+          t[p.t.tip] += p.t.tutar;
+          if (p.t.tip === "gelir") ayGelir += p.t.tutar; else ayGider += p.t.tutar;
+          return;
+        }
+        const t = planli[p.tarih] || (planli[p.tarih] = { gelir: 0, gider: 0 });
+        t[p.t.tip] += p.t.tutar;
+      });
+      // Ödenmemiş kredi taksitleri (Sürüm 1.11): soluk gider, toplama katılmaz (borç ödemesi gider sayılmaz)
+      planliTaksitler(ayBas, aySon).forEach(x => {
+        const t = planli[x.tarih] || (planli[x.tarih] = { gelir: 0, gider: 0 });
+        t.gider += x.tutar;
+      });
+      // Limit yetmediği için girilmeyen tekrar günleri (1.9.1)
+      const limitYok = new Set();
+      tekrarlariOku().forEach(t => (t.limitYok || []).forEach(x => limitYok.add(x)));
       let html = "";
       for (let i = 0; i < bas; i++) html += '<div class="gun bos"></div>';
       for (let g = 1; g <= gunSayisi; g++) {
@@ -3375,6 +4624,9 @@
           '" data-tarih="' + tarih + '"><span class="no">' + g + "</span>" +
           (t && t.gelir ? '<span class="tg gelir-renk-y">' + kisaTutar(t.gelir) + "</span>" : "") +
           (t && t.gider ? '<span class="tg gider-renk-y">' + kisaTutar(t.gider) + "</span>" : "") +
+          (planli[tarih] && planli[tarih].gelir ? '<span class="tg planli gelir-renk-y">' + kisaTutar(planli[tarih].gelir) + "</span>" : "") +
+          (planli[tarih] && planli[tarih].gider ? '<span class="tg planli gider-renk-y">' + kisaTutar(planli[tarih].gider) + "</span>" : "") +
+          (limitYok.has(tarih) ? '<span class="tg gider-renk-y">⚠</span>' : "") +
           "</button>";
       }
       el("takvim-izgara").innerHTML = html;
@@ -3412,8 +4664,13 @@
       const kalemler = kalemleriOku();
       const liste = kayitlariOku().filter(k => k.tarih === tarih)
         .sort((x, y) => (x.saat || "").localeCompare(y.saat || ""));
-      const gelir = liste.filter(k => k.tip === "gelir").reduce((t, k) => t + k.tutar, 0);
-      const gider = liste.filter(k => k.tip === "gider").reduce((t, k) => t + k.tutar, 0);
+      let gelir = liste.filter(k => k.tip === "gelir").reduce((t, k) => t + k.tutar, 0);
+      let gider = liste.filter(k => k.tip === "gider").reduce((t, k) => t + k.tutar, 0);
+      // Onaylı tekrarlar (1.8.1) gün toplamına katılır
+      planliTekrarlar(tarih, tarih).forEach(p => {
+        if (!p.kesin || p.atlandi) return;
+        if (p.t.tip === "gelir") gelir += p.t.tutar; else gider += p.t.tutar;
+      });
       const d = new Date(+tarih.slice(0, 4), +tarih.slice(5, 7) - 1, +tarih.slice(8, 10));
       el("gun-baslik").innerHTML = guvenli(uzunTarih(tarih)) + "<small>" + GUN_ADLARI[d.getDay()] + "</small>";
       el("gun-girdi").textContent = "+" + tl(gelir);
@@ -3422,15 +4679,45 @@
       const havaleler = havaleleriOku().filter(t => t.tarih === tarih);
       const satirlar = liste.map(k => ({ saat: k.saat || "", html: (() => {
           const ad = kayitAdlari(k, kalemler);
-          return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, hesapAdiKisa(k.hesapId), k.saat, k.not],
+          return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, hesapAdiKisa(k.hesapId), k.saat, k.tekrarId ? "↻ tekrarlayan" : "", k.not],
             (k.tip === "gelir" ? "+" : "−") + tl(k.tutar), k.tip + "-renk");
         })() }))
         .concat(havaleler.map(t => ({ saat: t.saat || "", html: hareketSatiri("havale", t.id, "havale", "Havale",
           [hesapAdi(t.kaynak) + " → " + hesapAdi(t.hedef), t.saat, t.not], tl(t.tutar), "havale-renk") })))
-        // Hesaptan yapılan borç ödemeleri de listelenir (toplama katılmaz, Sürüm 1.6.1)
-        .concat(borcOdemeleri().filter(o => o.tarih === tarih).map(o => ({ saat: "", html: hareketSatiri("borc", o.borcId, "gider",
-          "Borç ödemesi: " + o.borcAd, [hesapAdi(o.hesapId), o.not], "−" + tl(o.miktar), "gider-renk") })))
-        .sort((a, b) => a.saat.localeCompare(b.saat));
+        // Borç ödemesi / borç girişi / birikim hareketleri de listelenir (toplama katılmaz, Sürüm 1.9)
+        .concat(hesapHareketleri().filter(m => m.tarih === tarih && ["borcodeme", "borcgiris", "birikim"].includes(m.tur))
+          .map(m => ({ saat: "", html: hareketHtml(m, kalemler, hesapAdi(m.hesapId)) })))
+        .sort((a, b) => a.saat.localeCompare(b.saat))
+        // Limit yetmediği için girilmeyen tekrarlar (1.9.1): "Gir" / "Atla"
+        .concat(tekrarlariOku().filter(t => (t.limitYok || []).includes(tarih)).map(t => {
+          const ad = kayitAdlari(t, kalemler);
+          return { saat: "", html: '<div class="satir planli kesin">' +
+            '<span class="nokta ' + t.tip + '"></span>' +
+            '<div class="satir-orta"><div class="satir-ust">' + guvenli(ad.kalem) + '</div>' +
+            '<div class="satir-alt borc-yazi">' + guvenli("⚠ Limit yetersiz") + "</div></div>" +
+            '<div class="satir-sag ' + t.tip + '-renk">' + (t.tip === "gelir" ? "+" : "−") + tl(t.tutar) + "</div>" +
+            '<button type="button" class="planli-dugme" data-limit-gir="' + guvenli(t.id) + '" data-tarih="' + tarih + '">Gir</button>' +
+            '<button type="button" class="planli-dugme" data-limit-atla="' + guvenli(t.id) + '" data-tarih="' + tarih + '">Atla</button></div>' };
+        }))
+        // Kredi taksiti (Sürüm 1.11): hatırlatma; "Öde" ile borç ayrıntısı o taksit seçili açılır
+        .concat(planliTaksitler(tarih, tarih).map(x => ({ saat: "", html: '<div class="satir planli kesin" data-borc="' + guvenli(x.b.id) + '">' +
+            '<span class="nokta gider"></span>' +
+            '<div class="satir-orta"><div class="satir-ust">' + guvenli(x.b.ad) + "</div>" +
+            '<div class="satir-alt' + (x.tarih < bugun() ? " borc-yazi" : "") + '">' + guvenli([(x.tarih < bugun() ? "⚠ Ödenmedi · " : "") + "Taksit " + x.no + "/" + x.b.taksitSayisi,
+              odemeHesabi(x.b) ? odemeHesabi(x.b).ad : ""].filter(Boolean).join(" · ")) + "</div></div>" +
+            '<div class="satir-sag gider-renk">−' + tl(x.tutar) + "</div>" +
+            '<button type="button" class="planli-dugme" data-taksit-ode="' + guvenli(x.b.id) + '" data-tarih="' + x.tarih + '">Öde</button></div>' })))
+        // Planlı tekrarlar (Sürüm 1.8): soluk; "Atla" ile o tarih atlanır, "Geri al" ile geri gelir
+        .concat(planliTekrarlar(tarih, tarih).map(p => {
+          const ad = kayitAdlari(p.t, kalemler);
+          return { saat: "", html: '<div class="satir planli' + (p.kesin ? " kesin" : "") + (p.atlandi ? " atlandi" : "") + '">' +
+            '<span class="nokta ' + p.t.tip + '"></span>' +
+            '<div class="satir-orta"><div class="satir-ust">' + guvenli(ad.kalem) + '</div>' +
+            '<div class="satir-alt">' + guvenli([p.atlandi ? "Atlandı" : p.kesin ? "↻ Tekrarlayan · bütçeye dahil" : "Planlı · tekrarlayan", hesapAdiKisa(p.t.hesapId)].filter(Boolean).join(" · ")) + "</div></div>" +
+            '<div class="satir-sag ' + p.t.tip + '-renk">' + (p.t.tip === "gelir" ? "+" : "−") + tl(p.t.tutar) + "</div>" +
+            '<button type="button" class="planli-dugme" data-atla="' + guvenli(p.t.id) + '" data-tarih="' + p.tarih + '">' +
+            (p.atlandi ? "Geri al" : "Atla") + "</button></div>" };
+        }));
       el("gun-liste").innerHTML = !satirlar.length ? '<div class="veri-yok">Veri yok</div>' :
         '<div class="liste-kart">' + satirlar.map(x => x.html).join("") + "</div>";
     }
@@ -3448,6 +4735,14 @@
     });
     // Kayda dokununca düzenleme; kapanınca gün paneline dönülür
     el("gun-liste").addEventListener("click", olay => {
+      const atla = olay.target.closest("[data-atla]");
+      if (atla) return tekrarAtla(atla.dataset.atla, atla.dataset.tarih);
+      const ode = olay.target.closest("[data-taksit-ode]");
+      if (ode) { const g = seciliGun; borcDetayAc(ode.dataset.taksitOde, ode.dataset.tarih); gunDonus = g; return; }
+      const lg = olay.target.closest("[data-limit-gir]");
+      if (lg) return tekrarLimitIslem(lg.dataset.limitGir, lg.dataset.tarih, "gir");
+      const la = olay.target.closest("[data-limit-atla]");
+      if (la) return tekrarLimitIslem(la.dataset.limitAtla, la.dataset.tarih, "atla");
       const tarih = seciliGun;
       if (hareketDuzenle(olay)) gunDonus = tarih;
     });
@@ -3541,6 +4836,7 @@
     // HEPSİNİ GÜNCELLE + BAŞLANGIÇ
     // =====================================================
     function hepsiniGuncelle() {
+      tekrarListesiCiz();
       takvimCiz();
       if (acikPanel === "gun-paneli") gunPaneliCiz();
       ozetGuncelle();
@@ -3550,7 +4846,13 @@
       birikimListesiCiz();
       yedekBilgisiGoster();
     }
+    const acilisTekrar = tekrarlariIsle();   // Sürüm 1.8: günü gelen tekrarlar kayıt olur
+    const acilisTaksit = krediTaksitleriIsle();   // Sürüm 1.11: sadece "otomatik" şekilde (şu an kapalı)
     hepsiniGuncelle();
+    ilkAcilis();
+    if (tekrarLimitSayisi) bildirimGoster("⚠ " + tekrarLimitSayisi + " tekrarlayan işlem kart limiti yetmediği için girilmedi (takvimde görünür)");
+    else if (acilisTaksit) bildirimGoster("💳 " + acilisTaksit + " kredi taksiti ödendi");
+    else if (bekleyenTaksitBildirimi()) bildirimGoster(bekleyenTaksitBildirimi());
     kurlariGerekirseGuncelle();   // Sürüm 1.7
 
     // Çevrimdışı çalışma (Sürüm 1.0): sadece https ya da localhost'ta
