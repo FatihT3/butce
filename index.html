@@ -23,7 +23,8 @@
   <script>
     try {
       var t = JSON.parse(localStorage.getItem("butceTema_v1"));
-      if (t === "acik" || t === "koyu") document.documentElement.dataset.tema = t;
+      // 1.13: renk temaları da (mavi, pembe, turkuaz, lavanta, grafit)
+      if (["acik", "koyu", "mavi", "pembe", "turkuaz", "lavanta", "grafit"].indexOf(t) !== -1) document.documentElement.dataset.tema = t;
     } catch (e) {}
   </script>
   <!-- Ana ekran simgesi (Sürüm 1.0) -->
@@ -47,6 +48,12 @@
       --buton-yazi: #ffffff;
       --hata: #dc2626;
       --uyari: #b45309;
+      /* 1.13: üst çubuk ve alt menü (renk temalarında temanın açık tonu) */
+      --bar: var(--kart);
+      --bar-yazi: var(--yazi);
+      --bar-soluk: var(--soluk);
+      --bar-aktif: var(--vurgu);
+      --bar-cizgi: var(--cizgi);
       color-scheme: light dark;   /* tarih/saat kutuları da temaya uysun */
     }
     :root[data-tema="acik"] { color-scheme: light; }
@@ -55,7 +62,7 @@
        Telefon karanlık moddaysa (Görünüm: Telefonla aynı) ya da Görünüm "Koyu" seçiliyse.
        Aynı renkler iki kez yazılı: biri telefona göre, biri elle seçilen Koyu için. */
     @media (prefers-color-scheme: dark) {
-      :root:not([data-tema="acik"]) {
+      :root:not([data-tema]) {
         --arkaplan: #0b0f17;
         --kart: #161b26;
         --yazi: #f3f4f6;
@@ -84,6 +91,24 @@
       --uyari: #fbbf24;
     }
 
+    /* --- Renk temaları (Sürüm 1.13) ---
+       Stil'de Açık / Koyu'nun yanında ayrı tema; telefon karanlık modda olsa da açık görünür.
+       Bütün vurgular (üst çubuk, alt menü, düğmeler, seçili çipler, tutar kutusu çerçevesi, bugün) temanın renginde;
+       gelir yeşil, gider kırmızı/turuncu aynen kalır. */
+    :root[data-tema="mavi"], :root[data-tema="pembe"], :root[data-tema="turkuaz"], :root[data-tema="lavanta"], :root[data-tema="grafit"] {
+      color-scheme: light; --kart: #ffffff; --buton-yazi: #ffffff; --bar-cizgi: transparent;
+    }
+    :root[data-tema="mavi"] { --arkaplan: #eef4ff; --yazi: #0f1d3a; --soluk: #5a6b88; --cizgi: #d6e2f6; --vurgu: #2563eb;
+      --bar: #dbe7fd; --bar-yazi: #0f1d3a; --bar-soluk: #5a6b88; --bar-aktif: #1d4ed8; }
+    :root[data-tema="pembe"] { --arkaplan: #fdf0f5; --yazi: #3a1028; --soluk: #8d5f75; --cizgi: #f5d3e2; --vurgu: #db2777;
+      --bar: #fbd9e7; --bar-yazi: #3a1028; --bar-soluk: #8d5f75; --bar-aktif: #be185d; }
+    :root[data-tema="turkuaz"] { --arkaplan: #ecfaf8; --yazi: #0b2a28; --soluk: #56706d; --cizgi: #cdeee9; --vurgu: #0f766e;
+      --bar: #d2f2ee; --bar-yazi: #0b2a28; --bar-soluk: #56706d; --bar-aktif: #0f766e; }
+    :root[data-tema="lavanta"] { --arkaplan: #f5f1ff; --yazi: #22163f; --soluk: #6b6185; --cizgi: #e3dafb; --vurgu: #7c3aed;
+      --bar: #e7defd; --bar-yazi: #22163f; --bar-soluk: #6b6185; --bar-aktif: #6d28d9; }
+    :root[data-tema="grafit"] { --arkaplan: #f2f3f5; --yazi: #111827; --soluk: #6b7280; --cizgi: #e1e3e8; --vurgu: #374151;
+      --bar: #e3e5ea; --bar-yazi: #111827; --bar-soluk: #6b7280; --bar-aktif: #111827; }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     /* "hidden" verilen öğe, kendi display ayarı olsa bile gizli kalsın */
     [hidden] { display: none !important; }
@@ -100,8 +125,9 @@
        bulanık şeridin dışında dursun diye üstte geniş boşluk */
     header {
       padding: calc(env(safe-area-inset-top) + 34px) 16px 12px;
-      background: var(--kart);
-      border-bottom: 1px solid var(--cizgi);
+      background: var(--bar);
+      color: var(--bar-yazi);
+      border-bottom: 1px solid var(--bar-cizgi);
     }
     header h1 { font-size: 20px; -webkit-font-smoothing: antialiased; }
     header small { color: var(--soluk); font-size: 12px; }
@@ -148,8 +174,8 @@
       position: fixed;
       left: 0; right: 0; bottom: 0;
       display: flex;
-      background: var(--kart);
-      border-top: 1px solid var(--cizgi);
+      background: var(--bar);
+      border-top: 1px solid var(--bar-cizgi);
       /* iPhone ev çizgisi için boşluk: tamamı değil, yarısı kadar */
       padding-bottom: calc(env(safe-area-inset-bottom) * 0.5);
       z-index: 6;
@@ -159,11 +185,11 @@
       background: none;
       border: none;
       padding: 8px 0 6px;
-      color: var(--soluk);
+      color: var(--bar-soluk);
       font-size: 12px;
     }
     nav button .ikon { display: block; font-size: 22px; margin-bottom: 2px; }
-    nav button.aktif { color: var(--vurgu); font-weight: 600; }
+    nav button.aktif { color: var(--bar-aktif); font-weight: 600; }
 
     /* ---------- AÇILIR PANELLER ---------- */
     /* Arkadaki karartma */
@@ -466,6 +492,15 @@
     .satir.planli { opacity: .55; }
     .satir.planli.kesin { opacity: 1; }
     .satir.atlandi .satir-ust, .satir.atlandi .satir-sag { text-decoration: line-through; }
+    /* Sürüm 1.12: takvim üstü uyarı bantları */
+    .uyari-bandi { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left;
+      margin: 0 0 10px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--cizgi); background: var(--kart);
+      color: var(--yazi); font-size: 14px; font-weight: 600; line-height: 1.35; }
+    .uyari-bandi span { flex: none; color: var(--vurgu); font-size: 13px; }
+    .uyari-bandi.yedek { padding: 0 0 0 14px; }
+    .uyari-bandi .metin { flex: 1; min-width: 0; color: inherit; font-size: inherit; padding: 11px 0; }
+    .uyari-bandi .git { flex: none; background: none; border: none; color: var(--vurgu); font-size: 13px; font-weight: 600; padding: 11px 4px; }
+    .uyari-bandi .sonra { flex: none; background: none; border: none; border-left: 1px solid var(--cizgi); color: var(--soluk); font-size: 13px; padding: 11px 14px; }
     .planli-dugme { flex: none; background: none; border: 1px solid var(--cizgi); border-radius: 14px;
       padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--vurgu); margin-left: 6px; }
     .tekrar-kart { display: block; width: 100%; text-align: left; }
@@ -760,6 +795,8 @@
          Ay ay ileri/geri; güne dokununca gün paneli açılır
          =================================================== -->
     <section class="sayfa aktif" id="sayfa-takvim">
+      <!-- Sürüm 1.12: ödenmemiş taksit, kart son ödeme, yedek uyarıları -->
+      <div id="takvim-uyarilar"></div>
       <div class="takvim-ust">
         <span class="ay-adi" id="takvim-ay-adi"></span>
         <div class="oklar">
@@ -875,6 +912,8 @@
         <div class="kart-alt" id="hsp-detay-alt"></div>
         <div class="hsp-detay-alt"><button type="button" class="kucuk-dugme ikincil" id="hsp-detay-duzenle">Hesabı düzenle</button></div>
       </div>
+      <!-- Sürüm 1.12: kredi kartında ekstre -->
+      <div class="kart" id="hsp-ekstre" hidden></div>
       <div id="hsp-hareketler"></div>
     </section>
 
@@ -914,6 +953,12 @@
         <button type="button" class="ayar-ogesi" id="hesap-ac">
           <span class="ayar-ikon" style="background:#0f766e">🏦</span>
           <span class="ayar-yazi"><b>Hesap ayarları</b><small>Hesaplar, hesap türleri</small></span>
+          <span class="ayar-ok">›</span>
+        </button>
+        <!-- Sürüm 1.12: yuvarlama yönü + kredi taksit günü -->
+        <button type="button" class="ayar-ogesi" id="hb-ac">
+          <span class="ayar-ikon" style="background:#b45309">⚙️</span>
+          <span class="ayar-yazi"><b>Hesap ve borç ayarları</b><small id="hb-ozet"></small></span>
           <span class="ayar-ok">›</span>
         </button>
       </div>
@@ -967,7 +1012,7 @@
         </button>
         <button type="button" class="ayar-ogesi" id="csv-aktar">
           <span class="ayar-ikon" style="background:#15803d">📊</span>
-          <span class="ayar-yazi"><b>Excel'e aktar</b><small>Kayıtlar CSV dosyası olarak</small></span>
+          <span class="ayar-yazi"><b>Excel'e aktar</b><small>Kayıtlar, havaleler, borç ve birikim hareketleri (CSV)</small></span>
           <span class="ayar-ok">›</span>
         </button>
       </div>
@@ -981,6 +1026,8 @@
     <section class="sayfa" id="sayfa-borc">
       <div class="kart" id="borc-toplam-kart" hidden>
         <h2>Toplam kalan borç</h2>
+        <!-- Sürüm 1.12: döviz/altın borç varsa güncel kurla TL karşılığı -->
+        <div class="deger gider-renk" id="borc-tl" hidden></div>
         <div id="borc-toplam"></div>
       </div>
       <div id="borc-listesi"></div>
@@ -1059,6 +1106,12 @@
         <div class="alan-baslik">Hesap</div>
         <div class="cipler tek-sira" id="hesap-cipleri"></div>
         <div class="ipucu" id="hesap-ipucu"></div>
+      </div>
+      <!-- Sürüm 1.12: kredi kartıyla taksitli alışveriş -->
+      <div class="alan" id="taksit-blok" hidden>
+        <div class="alan-baslik">Taksit</div>
+        <div class="cipler tek-sira" id="taksit-cipleri"></div>
+        <div class="ipucu" id="taksit-ipucu"></div>
       </div>
 
       <!-- Havale (Sürüm 1.6): hangi hesaptan hangi hesaba -->
@@ -1171,6 +1224,69 @@
         <span class="ayar-tik">✓</span>
       </button>
     </div>
+    <!-- Sürüm 1.13: renk temaları -->
+    <div class="ayar-bolum">Renkli temalar</div>
+    <div class="ayar-listesi" id="tema-renkler">
+      <button type="button" class="ayar-ogesi" data-tema="mavi">
+        <span class="ayar-ikon" style="background:#2563eb">💙</span>
+        <span class="ayar-yazi"><b>Açık mavi</b><small>Mavi tonlar</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="pembe">
+        <span class="ayar-ikon" style="background:#db2777">🩷</span>
+        <span class="ayar-yazi"><b>Açık pembe</b><small>Pembe tonlar</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="turkuaz">
+        <span class="ayar-ikon" style="background:#0f766e">🩵</span>
+        <span class="ayar-yazi"><b>Açık turkuaz</b><small>Turkuaz tonlar</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="lavanta">
+        <span class="ayar-ikon" style="background:#7c3aed">💜</span>
+        <span class="ayar-yazi"><b>Lavanta</b><small>Mor tonlar</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-tema="grafit">
+        <span class="ayar-ikon" style="background:#374151">🩶</span>
+        <span class="ayar-yazi"><b>Grafit</b><small>Sade gri tonlar</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sürüm 1.12: Hesap ve borç ayarları -->
+  <div class="panel" id="hb-paneli" role="dialog" aria-modal="true" aria-labelledby="hb-panel-baslik">
+    <div class="panel-ust">
+      <h2 id="hb-panel-baslik">Hesap ve borç ayarları</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="ayar-bolum" style="margin-top:0">Yuvarla düğmesi (döviz / altın)</div>
+    <div class="ayar-listesi" id="yuvarla-secenekleri">
+      <button type="button" class="ayar-ogesi" data-yuvarla="asagi">
+        <span class="ayar-ikon" style="background:#0f766e">⬇️</span>
+        <span class="ayar-yazi"><b>Aşağı yuvarla</b><small>47,23 → 47 → 46 → 45 …</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-yuvarla="yukari">
+        <span class="ayar-ikon" style="background:#2563eb">⬆️</span>
+        <span class="ayar-yazi"><b>Yukarı yuvarla</b><small>47,23 → 48 → 49 → 50 …</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+    </div>
+    <div class="ayar-bolum">Kredi taksit günü</div>
+    <div class="ayar-listesi" id="taksit-secenekleri">
+      <button type="button" class="ayar-ogesi" data-taksit="hatirlat">
+        <span class="ayar-ikon" style="background:#7c3aed">🔔</span>
+        <span class="ayar-yazi"><b>Hatırlat</b><small>Takvimde ve açılışta hatırlatır, ödemeyi "Öde" ile sen girersin</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-taksit="otomatik">
+        <span class="ayar-ikon" style="background:#15803d">⚡</span>
+        <span class="ayar-yazi"><b>Otomatik öde</b><small>Günü gelen taksit ödeme hesabından kendiliğinden ödenir. Daha önce ödenmemiş taksitler hatırlatma olarak kalır.</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+    </div>
   </div>
 
   <div class="panel" id="kalem-paneli" role="dialog" aria-modal="true" aria-labelledby="kalem-panel-baslik">
@@ -1256,7 +1372,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.11";
+    const SURUM = "1.13";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1769,7 +1885,10 @@
     // Durum çubuğu rengi (theme-color) de seçilen temaya göre ayarlanır.
     // =====================================================
     const TEMA_ANAHTARI = "butceTema_v1";
-    const TEMA_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu" };
+    const TEMA_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu",
+      mavi: "Açık mavi", pembe: "Açık pembe", turkuaz: "Açık turkuaz", lavanta: "Lavanta", grafit: "Grafit" };
+    // 1.13: renk temalarında durum çubuğu üst çubuğun rengi
+    const TEMA_CUBUK = { mavi: "#dbe7fd", pembe: "#fbd9e7", turkuaz: "#d2f2ee", lavanta: "#e7defd", grafit: "#e3e5ea" };
 
     function temaOku() {
       const t = depoOku(TEMA_ANAHTARI, "sistem");
@@ -1780,14 +1899,48 @@
       if (tema === "sistem") delete kok.dataset.tema; else kok.dataset.tema = tema;
       // Durum çubuğu: sistemde iki etiket telefona göre; elle seçilende ikisi de aynı renk
       const acikRenk = "#ffffff", koyuRenk = "#161b26";
-      el("renk-acik").content = tema === "koyu" ? koyuRenk : acikRenk;
-      el("renk-koyu").content = tema === "acik" ? acikRenk : koyuRenk;
+      el("renk-acik").content = TEMA_CUBUK[tema] || (tema === "koyu" ? koyuRenk : acikRenk);
+      el("renk-koyu").content = TEMA_CUBUK[tema] || (tema === "acik" ? acikRenk : koyuRenk);
       el("gorunum-ozet").textContent = TEMA_ADLARI[tema];
-      el("tema-secenekleri").querySelectorAll("[data-tema]").forEach(b =>
+      el("gorunum-paneli").querySelectorAll("[data-tema]").forEach(b =>
         b.classList.toggle("secili", b.dataset.tema === tema));
     }
     el("gorunum-ac").addEventListener("click", () => panelAc("gorunum-paneli"));
-    el("tema-secenekleri").addEventListener("click", olay => {
+
+    // --- Hesap ve borç ayarları (Sürüm 1.12) ---
+    // butceYuvarla_v1 = "asagi" | "yukari"; butceKrediOdeme_v1 = "hatirlat" | "otomatik"
+    const YUVARLA_ANAHTARI = "butceYuvarla_v1";
+    const yuvarlaYonu = () => depoOku(YUVARLA_ANAHTARI, "asagi") === "yukari" ? "yukari" : "asagi";
+    function hbCiz() {
+      const y = yuvarlaYonu(), k = krediOdemeSekli();
+      el("yuvarla-secenekleri").querySelectorAll("[data-yuvarla]").forEach(b => b.classList.toggle("secili", b.dataset.yuvarla === y));
+      el("taksit-secenekleri").querySelectorAll("[data-taksit]").forEach(b => b.classList.toggle("secili", b.dataset.taksit === k));
+      el("hb-ozet").textContent = (y === "yukari" ? "Yukarı" : "Aşağı") + " yuvarla · Taksit: " + (k === "otomatik" ? "otomatik öde" : "hatırlat");
+    }
+    el("hb-ac").addEventListener("click", () => { hbCiz(); panelAc("hb-paneli"); });
+    el("yuvarla-secenekleri").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-yuvarla]");
+      if (!b) return;
+      depoYaz(YUVARLA_ANAHTARI, b.dataset.yuvarla);
+      hbCiz();
+    });
+    el("taksit-secenekleri").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-taksit]");
+      if (!b || b.dataset.taksit === krediOdemeSekli()) return;
+      if (b.dataset.taksit === "otomatik") {
+        // Otomatiğe geçince sadece bugün ve sonrası ödenir; geçmişte ödenmemişler hatırlatma olarak kalır
+        const dun = tarihOku(bugun()); dun.setDate(dun.getDate() - 1);
+        const borclar = borclariOku();
+        borclar.forEach(x => { if (krediMi(x)) x.otoSon = tarihYaz(dun); });
+        borclariYaz(borclar);
+      }
+      depoYaz(KREDI_ODEME_ANAHTARI, b.dataset.taksit);
+      const n = krediTaksitleriIsle();
+      hbCiz();
+      hepsiniGuncelle();
+      bildirimGoster(b.dataset.taksit === "otomatik" ? "✓ Taksitler otomatik ödenecek" + (n ? " · " + n + " taksit ödendi" : "") : "✓ Taksitler hatırlatılacak");
+    });
+    el("gorunum-paneli").addEventListener("click", olay => {
       const b = olay.target.closest("[data-tema]");
       if (!b) return;
       depoYaz(TEMA_ANAHTARI, b.dataset.tema);
@@ -2032,6 +2185,7 @@
     // Havale düzenlenirken kayit = { tip: "havale", id, kaynak, hedef, tutar, tarih, saat, not }
     function kayitPaneliAc(kayit, tarih, hesapId) {
       uyariOnayi = null;
+      tTaksit = 1;
       tekrarModu = false;
       tekrarFormuGoster(false);
       duzenlenen = kayit || null;
@@ -2099,6 +2253,9 @@
       if (!tarih)                return hataGoster("Tarih girin.");
       if (!tumHesaplar().length) return hataGoster("Önce Hesaplar sekmesinden bir hesap ekle.");
       if (!seciliHesap || !hesapBul(seciliHesap)) return hataGoster("Bir hesap seçin.");
+      // Taksitli alışveriş (1.12)
+      const taksitN = taksitAcik() ? tTaksit : 1;
+      if (duzenlenen && duzenlenen.taksitGrup && seciliHesap !== duzenlenen.hesapId) return hataGoster("Taksitli alışverişin kartı değiştirilemez. Silip yeniden girin.");
       // Bakiye / kart limiti kontrolü (Sürüm 1.9)
       if (!bakiyeUygun([{ hesapId: seciliHesap, miktar: tip === "gelir" ? tutar : -tutar }],
         duzenlenen ? { tur: "kayit", id: duzenlenen.id } : null, hataGoster)) return;
@@ -2117,9 +2274,16 @@
       };
       if (seciliHesap) depoYaz(SON_HESAP_ANAHTARI, seciliHesap);
 
-      const basarili = duzenlenen ? kayitGuncelle(duzenlenen.id, kayit) : kayitEkle(kayit);
+      let basarili;
+      if (!duzenlenen && taksitN > 1) basarili = taksitliEkle(kayit, taksitN);
+      else if (duzenlenen && duzenlenen.taksitGrup) {
+        // Kalem ve not bütün taksitlere; tutar/tarih/saat sadece bu taksite
+        const ortak = { tip, grup: kayit.grup, grupAd: kayit.grupAd, kalemId: kayit.kalemId, kalemAd: kayit.kalemAd, not: kayit.not };
+        const kayitlar = kayitlariOku().map(k => k.taksitGrup === duzenlenen.taksitGrup ? { ...k, ...ortak, ...(k.id === duzenlenen.id ? kayit : {}), id: k.id } : k);
+        basarili = kayitlariYaz(kayitlar);
+      } else basarili = duzenlenen ? kayitGuncelle(duzenlenen.id, kayit) : kayitEkle(kayit);
       if (basarili) {
-        const mesaj = duzenlenen ? "✓ Güncellendi" : "✓ Kaydedildi";
+        const mesaj = duzenlenen ? "✓ Güncellendi" : taksitN > 1 ? "✓ " + taksitN + " taksit kaydedildi" : "✓ Kaydedildi";
         panelKapat();
         bildirimGoster(mesaj);
         hepsiniGuncelle();
@@ -2132,9 +2296,11 @@
         const hata = silmeLimitHatasi(hesapHareketleri().filter(m => m.tur === tur && m.id === duzenlenen.id));
         if (hata) { el("form-hata").textContent = hata; return; }
       }
-      ikiDokunus(el("kayit-sil"), "Silmek için tekrar dokun", () => {
+      const tkGrup = duzenlenen && !tekrarModu && duzenlenen.taksitGrup;
+      ikiDokunus(el("kayit-sil"), tkGrup ? "Bütün taksitler (" + duzenlenen.taksitSayisi + ") silinir · tekrar dokun" : "Silmek için tekrar dokun", () => {
         const silindi = duzenlenen && (tekrarModu ? tekrarSil(duzenlenen.id)
-          : duzenlenen.tip === "havale" ? havaleSil(duzenlenen.id) : kayitSil(duzenlenen.id));
+          : duzenlenen.tip === "havale" ? havaleSil(duzenlenen.id)
+          : tkGrup ? kayitlariYaz(kayitlariOku().filter(k => k.taksitGrup !== tkGrup)) : kayitSil(duzenlenen.id));
         if (silindi) {
           panelKapat();
           bildirimGoster(tekrarModu ? "Tekrar silindi" : "Kayıt silindi");
@@ -2174,6 +2340,7 @@
       // Sürüm 1.9: her gelir/gider bir hesaptan (Hesapsız seçeneği yok)
       hesapCipleriniCiz(el("hesap-cipleri"), seciliHesap, id => { seciliHesap = id; hesapCiz(); }, null, false);
       el("hesap-ipucu").textContent = tumHesaplar().length ? "" : "Henüz hesap yok. Önce Hesaplar sekmesinden bir hesap ekle.";
+      taksitBlokCiz();     // 1.12: kart seçiliyse taksit seçimi
     }
     function havaleCiz() {
       hesapCipleriniCiz(el("havale-kaynak"), havaleKaynak, id => { havaleKaynak = id; if (havaleHedef === id) havaleHedef = null; havaleCiz(); }, null);
@@ -2789,7 +2956,7 @@
     // TAKSİT GÜNÜ (Sürüm 1.11). İki çalışma şekli hazır; ŞİMDİLİK SADECE HATIRLATMA açık.
     //   "hatirlat": taksit günü takvimde ve gün panelinde görünür, "Öde" ile ödeme girilir; açılışta günü gelenler bildirilir.
     //   "otomatik": günü gelen taksit ödeme hesabından kendiliğinden ödenir (limit yetmezse hatırlatma olarak kalır).
-    // İleride Ayarlar'a bu iki seçenek için bir ayar konacak (butceKrediOdeme_v1); şu an ayar ekranı yok.
+    // 1.12: Ayarlar → Hesap ve borç ayarları'ndan seçilir (butceKrediOdeme_v1).
     // -----------------------------------------------------
     const KREDI_ODEME_ANAHTARI = "butceKrediOdeme_v1";
     const krediOdemeSekli = () => depoOku(KREDI_ODEME_ANAHTARI, "hatirlat") === "otomatik" ? "otomatik" : "hatirlat";
@@ -2828,7 +2995,12 @@
       el("borc-bos").hidden = borclar.length > 0;
       const toplam = birimToplamlari(borclar, kalanBorc);
       el("borc-toplam-kart").hidden = !borclar.length;
-      el("borc-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam) : '<div class="bitti">✓ Bütün borçlar bitti</div>';
+      el("borc-toplam").innerHTML = toplam.length ? toplamSatirlari(toplam, true) : '<div class="bitti">✓ Bütün borçlar bitti</div>';
+      // Sürüm 1.12: toplam TL karşılığı (döviz/altın varsa ve kur varsa)
+      let tlT = 0, eksik = false, yabanci = false;
+      toplam.forEach(t => { if (t.birim !== "TL") yabanci = true; const x = tlKarsiligi(t.miktar, t.birim); if (x == null) eksik = true; else tlT += x; });
+      el("borc-tl").hidden = eksik || !yabanci;
+      el("borc-tl").textContent = "≈ " + tl(Math.round(tlT * 100) / 100);
       // Bitmemiş borçlar önde
       const sirali = borclar.slice().sort((a, b) => (kalanBorc(a) <= 0) - (kalanBorc(b) <= 0));
       el("borc-listesi").innerHTML = sirali.map(b => {
@@ -2839,7 +3011,8 @@
           '<div class="birikim-ust"><div class="sol"><b>' + guvenli(b.ad) + "</b><small>" + (krediMi(b) ? "Kredi" : BIRIMLER[b.birim].ad) + "</small></div>" +
           (oh && kalan > 0 ? "<small>🏦 " + guvenli(oh.ad) + "</small>" : "") + "</div>" +
           (kalan > 0
-            ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>"
+            ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>" +
+              (b.birim !== "TL" && tlKarsiligi(kalan, b.birim) != null ? '<div class="tl-karsilik">≈ ' + tl(tlKarsiligi(kalan, b.birim)) + "</div>" : "")
             : '<div class="deger bitti">' + (kapandiMi(b) ? "✓ Kapatıldı" : "✓ Bitti") + "</div>") +
           '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) +
           (krediMi(b) && kalan > 0 ? "\n" + guvenli(taksitDurumu(b)) : "") + "</div>" +
@@ -2989,10 +3162,13 @@
       const oh = odemeHesabi(b);
       el("hesap-panel-icerik").innerHTML =
         '<div class="kart" style="margin-bottom:6px"><h2>Kalan <small>· ' + (kredi ? "Kredi" : BIRIMLER[b.birim].ad) + "</small></h2>" +
-        (kalan > 0 ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>"
+        (kalan > 0 ? '<div class="deger gider-renk">' + miktarYazisi(kalan, b.birim) + "</div>" +
+            (b.birim !== "TL" && tlKarsiligi(kalan, b.birim) != null ? '<div class="tl-karsilik">≈ ' + tl(tlKarsiligi(kalan, b.birim)) + "</div>" : "")
           : '<div class="deger bitti">' + (kapandiMi(b) ? "✓ Kapatıldı" : "✓ Bitti") + "</div>") +
         '<div class="kart-alt">Toplam ' + miktarYazisi(b.toplam, b.birim) + " · Ödenen " + miktarYazisi(odenen(b), b.birim) +
         (kredi ? "\n" + guvenli("Çekilen " + tl(b.cekilen || 0) + " · " + b.taksitSayisi + " × " + tl(b.taksit) + " · " + krediSiklikYazisi(b)) +
+          // 1.12.1: toplam faiz bilgi olarak (gider sayılmaz)
+          (b.cekilen > 0 && b.toplam > b.cekilen ? "\n" + guvenli("Toplam faiz ve masraf: " + tl(Math.round((b.toplam - b.cekilen) * 100) / 100) + " (bilgi, gider sayılmaz)") : "") +
           (kalan > 0 ? "\n" + guvenli(taksitDurumu(b)) : "") : "") +
         (oh ? "\n🏦 Ödeme hesabı: " + guvenli(oh.ad) : "") +
         (b.not ? "\n" + guvenli(b.not) : "") + "</div></div>" +
@@ -3109,12 +3285,14 @@
       if (tlV > 0 && kur > 0) kutuYaz("h-miktar", tlV / kur, 2);
       else el("h-miktar").value = "";
     }
-    // Yuvarla: kesirliyse tam sayıya, tam sayıysa bir eksiğe (en az 1)
+    // Yuvarla: kesirliyse tam sayıya, tam sayıysa bir eksiğe (en az 1).
+    // 1.12: Ayarlar'da "Yukarı yuvarla" seçiliyse kesirliyse yukarı tam sayıya, tam sayıysa bir fazlasına.
     function miktarYuvarla() {
       const m = kutuSayi("h-miktar");
       if (!(m > 0)) return;
       const tam = Math.abs(m - Math.round(m)) < 0.0001;
-      const yeni = tam ? Math.round(m) - 1 : Math.floor(m);
+      const yukari = yuvarlaYonu() === "yukari";
+      const yeni = yukari ? (tam ? Math.round(m) + 1 : Math.ceil(m)) : (tam ? Math.round(m) - 1 : Math.floor(m));
       if (yeni < 1) return bildirimGoster("Daha fazla yuvarlanamaz");
       kutuYaz("h-miktar", yeni, 0);
       miktarElle = true;
@@ -3155,6 +3333,7 @@
           '<div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
           (b.birim !== "TL" && tlKarsiligi(bakiye(b), b.birim) != null && bakiye(b) > 0
             ? '<div class="tl-karsilik">≈ ' + tl(tlKarsiligi(bakiye(b), b.birim)) + "</div>" : "") +
+          hedefHtml(b) +
           '<div class="kart-alt">' + (son ? "Son hareket: " + uzunTarih(son.tarih) + " (" + (son.miktar > 0 ? "+" : "−") +
             sadeMiktar(Math.abs(son.miktar), b.birim) + ")" : "Henüz hareket yok") + "</div></button>";
       }).join("");
@@ -3175,6 +3354,10 @@
         // Sürüm 1.10: bir banka hesabına bağlı ya da ayrı hesap
         '<div class="alan"><div class="alan-baslik">Bağlı banka hesabı</div><div class="cipler tek-sira" id="h-bagli"></div>' +
         '<div class="ipucu" id="h-bagli-ipucu"></div></div>' +
+        // Sürüm 1.12: birikim hedefi (isteğe bağlı)
+        '<div class="yan-yana"><div class="alan"><label for="h-hedef" id="h-hedef-etiket">Hedef (isteğe bağlı)</label><input type="text" inputmode="decimal" id="h-hedef" autocomplete="off" placeholder="Örn. 50000" value="' +
+          (b && b.hedef > 0 ? kutuyaYaz(b.hedef) : "") + '"></div>' +
+        '<div class="alan"><label for="h-hedef-tarih">Hedef tarihi (isteğe bağlı)</label><input type="date" id="h-hedef-tarih" value="' + (b && b.hedefTarih ? b.hedefTarih : "") + '"></div></div>' +
         (b ? "" : '<div class="alan"><label for="h-miktar" id="h-miktar-etiket">Şu anki miktar (isteğe bağlı)</label><input type="text" inputmode="decimal" id="h-miktar" class="tutar-kutusu" autocomplete="off" placeholder="0"></div>') +
         '<div class="alan"><label for="h-not">Not (isteğe bağlı)</label><input type="text" id="h-not" maxlength="100" autocomplete="off" value="' + guvenli(b ? b.not || "" : "") + '"></div>' +
         '<button type="button" class="buton" data-islem="birikim-kaydet">Kaydet</button>' +
@@ -3192,6 +3375,29 @@
     //  Her iki durumda "Hesaptan değil" seçilebilir (hediye altın, eldeki döviz): hiçbir bakiye değişmez.
     // -----------------------------------------------------
     let birikimBagli = "";
+    // Birikim hedefi (1.12): { oran, kalan, yazi } ya da null
+    function hedefDurumu(s) {
+      if (!(s.hedef > 0)) return null;
+      const m = bakiye(s);
+      const kalan = Math.max(0, yuvarla(s.hedef - m));
+      const oran = Math.min(100, Math.max(0, m / s.hedef * 100));
+      let yazi = "Hedef " + miktarYazisi(s.hedef, s.birim) + " · %" + Math.floor(oran);
+      if (kalan <= 0) return { oran: 100, kalan: 0, yazi: yazi + " · ✓ Hedefe ulaşıldı" };
+      yazi += " · kalan " + miktarYazisi(kalan, s.birim);
+      const bugunT = bugun();
+      if (s.hedefTarih) {
+        const ay = Math.max(1, (+s.hedefTarih.slice(0, 4) - +bugunT.slice(0, 4)) * 12 + (+s.hedefTarih.slice(5, 7) - +bugunT.slice(5, 7)));
+        yazi += "\n" + uzunTarih(s.hedefTarih) + " için her ay ≈ " + miktarYazisi(yuvarla(kalan / ay), s.birim) + " (" + ay + " ay)";
+      } else {
+        // Son 90 günün net birikimine göre tahmin
+        const d = tarihOku(bugunT); d.setDate(d.getDate() - 90);
+        const net = s.hareketler.filter(h => h.tarih > tarihYaz(d) && h.tarih <= bugunT && h.not !== "Başlangıç").reduce((t, h) => t + h.miktar, 0);
+        if (net > 0) yazi += "\nBu hızla ≈ " + ayYazisi(ayKaydir(bugunT.slice(0, 7), Math.ceil(kalan / (net / 3))));
+      }
+      return { oran, kalan, yazi };
+    }
+    const hedefHtml = s => { const h = hedefDurumu(s); return h ? '<div class="cubuk-zemin" style="margin-top:8px"><div class="cubuk gelir" style="width:' + h.oran + '%"></div></div>' +
+      '<div class="kart-alt">' + guvenli(h.yazi) + "</div>" : ""; };
     // Bağlı banka (silinmişse ya da artık banka başlığında değilse null → ayrı hesap sayılır)
     function bagliHesap(s) {
       const h = s && s.bagliHesapId ? hesapBul(s.bagliHesapId) : null;
@@ -3227,6 +3433,7 @@
         '<div class="kart" style="margin-bottom:6px"><h2>Bakiye <small>· ' + BIRIMLER[b.birim].ad + "</small></h2>" +
         '<div class="deger gelir-renk">' + miktarYazisi(bakiye(b), b.birim) + "</div>" +
         (tlDeger != null && bakiye(b) > 0 ? '<div class="tl-karsilik">≈ ' + tl(tlDeger) + "</div>" : "") +
+        hedefHtml(b) +
         '<div class="kart-alt">' + (bagli ? "🏦 " + guvenli(bagli.ad) + " hesabına bağlı" : "Ayrı hesap") +
         (b.not ? "\n" + guvenli(b.not) : "") + "</div></div>" +
         '<div class="bolum-baslik">Hareket ekle</div>' +
@@ -3430,10 +3637,18 @@
         const ad = deger("h-ad").trim().replace(/\s+/g, " ");
         if (!ad) return hata("Ad yazın.");
         const liste = birikimleriOku();
+        // Hedef (1.12)
+        const hedefMetin = deger("h-hedef").trim();
+        const hedef = hedefMetin ? sayiyaCevir(hedefMetin) : 0;
+        if (isNaN(hedef) || hedef < 0) return hata("Hedefi sayı olarak yazın.");
+        const hedefTarih = deger("h-hedef-tarih");
+        if (hedefTarih && !(hedef > 0)) return hata("Hedef tarihi için hedef miktarını da girin.");
+        if (hedefTarih && hedefTarih <= bugun()) return hata("Hedef tarihi bugünden sonra olmalı.");
+        const hedefBilgi = { hedef: hedef > 0 ? yuvarla(hedef) : 0, hedefTarih: hedef > 0 ? hedefTarih : "" };
         if (hesapDurum.id) {
           const b = liste.find(x => x.id === hesapDurum.id);
           if (!b) return panelKapat();
-          Object.assign(b, { ad, not: deger("h-not").trim(), bagliHesapId: birikimBagli });
+          Object.assign(b, { ad, not: deger("h-not").trim(), bagliHesapId: birikimBagli, ...hedefBilgi });
           if (!b.hareketler.length) b.birim = hesapDurum.birim;
           if (!birikimleriYaz(liste)) return;
           yenile("✓ Kaydedildi");
@@ -3441,7 +3656,7 @@
         }
         const ilk = deger("h-miktar").trim() ? sayiyaCevir(deger("h-miktar")) : 0;
         if (isNaN(ilk) || ilk < 0) return hata("Miktarı kontrol edin.");
-        const yeni = { id: yeniId("s"), ad, birim: hesapDurum.birim, bagliHesapId: birikimBagli, not: deger("h-not").trim(), hareketler: [] };
+        const yeni = { id: yeniId("s"), ad, birim: hesapDurum.birim, bagliHesapId: birikimBagli, ...hedefBilgi, not: deger("h-not").trim(), hareketler: [] };
         if (ilk > 0) yeni.hareketler.push({ id: yeniId("h"), tarih: bugun(), miktar: yuvarla(ilk), not: "Başlangıç" });
         liste.push(yeni);
         if (!birikimleriYaz(liste)) return;
@@ -3597,16 +3812,36 @@
 
     function csvOlustur(kayitlar) {
       const kalemler = kalemleriOku();
-      const satirlar = [["Tarih", "Saat", "Tür", "Grup", "Kalem", "Hesap", "Tutar (₺)", "Not"]];
+      const satirlar = [["Tarih", "Saat", "Tür", "Grup", "Kalem", "Hesap", "Tutar (₺)", "Miktar", "Not"]];
       const gunAyYil = t => t.slice(8, 10) + "." + t.slice(5, 7) + "." + t.slice(0, 4);
+      // Sürüm 1.12: borç girişi / ödemesi / kapatma ve birikim hareketleri de aktarılır
+      //   (Tutar = TL etkisi; döviz/altında "Miktar" sütununda birimiyle)
+      const ekler = [];
+      borclariOku().forEach(b => {
+        if (b.girisHesapId && b.birim === "TL") ekler.push({ s: (b.girisTarih || "") + "0", tarih: b.girisTarih || bugun(),
+          satir: ["", krediMi(b) ? "Kredi çekildi" : "Borç alındı", krediMi(b) ? "Kredi" : "Borç", b.ad, hesapAdi(b.girisHesapId), csvSayi(b.girisMiktar || b.toplam), "", b.not || ""] });
+        b.odemeler.forEach(o => {
+          const tlMi = b.birim === "TL";
+          ekler.push({ s: o.tarih + "1", tarih: o.tarih, satir: ["", o.kapama ? "Borç kapatma" : "Borç ödemesi", krediMi(b) ? "Kredi" : "Borç", b.ad,
+            o.hesapId ? hesapAdi(o.hesapId) : "", tlMi ? csvSayi(o.miktar) : csvSayi(o.tlTutar), tlMi ? "" : miktarYazisi(o.miktar, b.birim),
+            [o.taksitTarihi ? gunAyYil(o.taksitTarihi) + " taksiti" : "", o.kapama ? "Hesaptan çıkmadı" : "", o.not].filter(Boolean).join(" · ")] });
+        });
+      });
+      birikimleriOku().forEach(sk => sk.hareketler.forEach(h => {
+        const tlMi = sk.birim === "TL";
+        ekler.push({ s: h.tarih + "2", tarih: h.tarih, satir: ["", h.miktar > 0 ? "Birikime yatırma" : "Birikimden çekme", "Birikim", sk.ad,
+          h.hesapId ? hesapAdi(h.hesapId) : "", tlMi ? csvSayi(Math.abs(h.miktar)) : csvSayi(h.tlTutar), tlMi ? "" : miktarYazisi(Math.abs(h.miktar), sk.birim), h.not || ""] });
+      }));
       // Kayıtlar ve havaleler (Sürüm 1.6) tarih sırasıyla
       const hepsi = kayitlar.map(k => ({ k, s: k.tarih + (k.saat || "") }))
         .concat(havaleleriOku().map(t => ({ t, s: t.tarih + (t.saat || "") })))
+        .concat(ekler.map(e => ({ e, s: e.tarih + "~" + e.s })))
         .sort((a, b) => a.s.localeCompare(b.s));
       hepsi.forEach(x => {
+        if (x.e) { satirlar.push([gunAyYil(x.e.tarih)].concat(x.e.satir)); return; }
         if (x.t) {
           const t = x.t;
-          satirlar.push([gunAyYil(t.tarih), t.saat || "", "Havale", "", "", hesapAdi(t.kaynak) + " → " + hesapAdi(t.hedef), csvSayi(t.tutar), t.not || ""]);
+          satirlar.push([gunAyYil(t.tarih), t.saat || "", "Havale", "", "", hesapAdi(t.kaynak) + " → " + hesapAdi(t.hedef), csvSayi(t.tutar), "", t.not || ""]);
           return;
         }
         const k = x.k, ad = kayitAdlari(k, kalemler);
@@ -3618,7 +3853,8 @@
           ad.kalem,
           k.hesapId ? hesapAdi(k.hesapId) : "",
           csvSayi(k.tutar),
-          k.not || ""
+          "",
+          [k.taksitNo ? "Taksit " + k.taksitNo + "/" + k.taksitSayisi : "", k.not].filter(Boolean).join(" · ")
         ]);
       });
       // Başta UTF-8 işareti (BOM): Türkçe harfler Excel'de bozuk çıkmasın
@@ -3627,10 +3863,10 @@
 
     el("csv-aktar").addEventListener("click", async () => {
       const kayitlar = siraliKayitlar();
-      if (!kayitlar.length) return yedekDurum("Aktarılacak kayıt yok.", "uyari");
+      if (!kayitlar.length && !havaleleriOku().length && !borclariOku().length && !birikimleriOku().length) return yedekDurum("Aktarılacak kayıt yok.", "uyari");
       const dosyaAdi = "butce-kayitlari-" + dosyaTarihi() + ".csv";
       if (await dosyaVer(new File([csvOlustur(kayitlar)], dosyaAdi, { type: "text/csv" }))) {
-        yedekDurum("✓ " + kayitlar.length + " kayıt Excel dosyasına aktarıldı (" + dosyaAdi + ").");
+        yedekDurum("✓ Excel dosyası hazır (" + dosyaAdi + ").");
       }
     });
 
@@ -3651,6 +3887,11 @@
       if (kimlikMi(k.odemeId)) temiz.odemeId = k.odemeId;
       if (kimlikMi(k.hesapId)) temiz.hesapId = k.hesapId;
       if (kimlikMi(k.tekrarId)) temiz.tekrarId = k.tekrarId;
+      // Sürüm 1.12: taksitli alışveriş
+      if (kimlikMi(k.taksitGrup) && Number.isInteger(k.taksitNo) && Number.isInteger(k.taksitSayisi) && k.taksitNo >= 1 && k.taksitNo <= k.taksitSayisi) {
+        Object.assign(temiz, { taksitGrup: k.taksitGrup, taksitNo: k.taksitNo, taksitSayisi: k.taksitSayisi,
+          taksitToplam: typeof k.taksitToplam === "number" ? k.taksitToplam : 0 });
+      }
       return temiz;
     }
 
@@ -3734,6 +3975,8 @@
             }
             // Sürüm 1.10: birikimin bağlı olduğu banka hesabı
             if (liste === "hareketler" && kimlikMi(h.bagliHesapId)) var_.bagliHesapId = h.bagliHesapId;
+            // Sürüm 1.12: birikim hedefi
+            if (liste === "hareketler" && typeof h.hedef === "number" && h.hedef > 0) { var_.hedef = h.hedef; var_.hedefTarih = tarihMi(h.hedefTarih) ? h.hedefTarih : ""; }
             mevcut.push(var_); sayac[sayacAdi]++;
           }
           (Array.isArray(h[liste]) ? h[liste] : []).forEach(x => {
@@ -3873,6 +4116,9 @@
               (h.limit > 0 ? '<div class="satir-alt">Kullanılabilir limit: ' + tl(Math.max(0, Math.round((h.limit + x.bakiye + x.ileri) * 100) / 100)) +
                 " / " + tl(h.limit) + "</div>" : "") +
               (x.ileri ? '<div class="satir-alt">İleri tarihli: ' + (x.ileri > 0 ? "+" : "−") + tl(Math.abs(x.ileri)) + "</div>" : "") +
+              // 1.12: ödenecek ekstre
+              (() => { const e = kartEkstresi({ ...h, tur: bs.tur }); return e && e.kalan > 0 ? '<div class="satir-alt' + (e.gecti ? " borc-yazi" : "") + '">Ekstre ' + tl(e.kalan) +
+                " · son ödeme " + guvenli(kisaTarih(e.sonOdeme)) + "</div>" : ""; })() +
               '</div><div class="satir-sag">' + bakiyeYazisi(x.bakiye, bs.tur) + "</div></button>";
           }).join("") +
           '<button type="button" class="satir hsp-ekle" data-yeni-hesap="' + guvenli(bs.id) + '">+ Hesap ekle</button></div>';
@@ -3926,6 +4172,7 @@
       if (h.tur === "kart" && h.limit > 0) alt.push("Limit: " + tl(h.limit) + " · Kullanılabilir: " + tl(Math.max(0, Math.round((h.limit + x.bakiye + x.ileri) * 100) / 100)));
       if (x.ileri) alt.push("İleri tarihli hareketler: " + (x.ileri > 0 ? "+" : "−") + tl(Math.abs(x.ileri)));
       el("hsp-detay-alt").textContent = alt.join("\n");
+      ekstreKartiCiz(h);     // 1.12
 
       const kalemler = kalemleriOku();
       const hareketler = hesapHareketleri().filter(m => m.hesapId === h.id);
@@ -3956,7 +4203,7 @@
       const isaret = (m.miktar > 0 ? "+" : "−") + tl(Math.abs(m.miktar));
       if (m.tur === "kayit") {
         const k = m.k, ad = kayitAdlari(k, kalemler);
-        return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, zaman, k.tekrarId ? "↻ tekrarlayan" : "", k.not], isaret, k.tip + "-renk");
+        return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, zaman, k.tekrarId ? "↻ tekrarlayan" : "", k.taksitNo ? "Taksit " + k.taksitNo + "/" + k.taksitSayisi : "", k.not], isaret, k.tip + "-renk");
       }
       if (m.tur === "havale") {
         const t = m.t;
@@ -3988,6 +4235,10 @@
       return false;
     }
     el("hsp-hareketler").addEventListener("click", hareketDuzenle);
+    el("hsp-ekstre").addEventListener("click", olay => {
+      const d = olay.target.closest("[data-ekstre-ode]");
+      if (d) kartOdemesiAc(d.dataset.ekstreOde, +d.dataset.tutar);
+    });
     el("hsp-detay-duzenle").addEventListener("click", () => hesapFormuAc(acikHesap));
 
     // --- Hesap formu (yeni / düzenle) ---
@@ -3995,6 +4246,7 @@
       const h = id ? hesapBul(id) : null;
       hspDurum = { ekran: "hesap", id: h ? h.id : null, baslikId: h ? h.baslikId : baslikId };
       el("hsp-panel-baslik").textContent = h ? "Hesabı Düzenle" : "Yeni Hesap";
+      hspDurum.ek = h ? { kesim: h.kesimGunu || "", son: h.sonOdemeGunu || "", asgari: h.asgariOran || "" } : { kesim: "", son: "", asgari: "" };
       hesapFormuCiz(h ? h.ad : "", h ? h.baslangic : null, h ? h.limit : null);
       panelAc("hsp-paneli");
       if (!h) setTimeout(() => el("hsp-ad").focus(), 320);
@@ -4016,7 +4268,12 @@
         // Sürüm 1.9: kredi kartında limit (isteğe bağlı) — borç limiti geçemez
         (kart ? '<div class="alan"><label for="hsp-limit">Kart limiti (₺, isteğe bağlı)</label>' +
           '<input type="text" inputmode="decimal" id="hsp-limit" class="tutar-kutusu" autocomplete="off" placeholder="Örn. 10000" value="' +
-          (limit > 0 ? kutuyaYaz(limit) : "") + '"><div class="ipucu">Kartla limitten fazla harcama girilemez.</div></div>' : "") +
+          (limit > 0 ? kutuyaYaz(limit) : "") + '"><div class="ipucu">Kartla limitten fazla harcama girilemez.</div></div>' +
+          // Sürüm 1.12: ekstre bilgileri (isteğe bağlı)
+          '<div class="yan-yana"><div class="alan"><label for="hsp-kesim">Hesap kesim günü</label><input type="text" inputmode="numeric" id="hsp-kesim" autocomplete="off" placeholder="Örn. 5" value="' + guvenli(String(hspDurum.ek.kesim)) + '"></div>' +
+          '<div class="alan"><label for="hsp-sonodeme">Son ödeme günü</label><input type="text" inputmode="numeric" id="hsp-sonodeme" autocomplete="off" placeholder="Örn. 15" value="' + guvenli(String(hspDurum.ek.son)) + '"></div></div>' +
+          '<div class="alan"><label for="hsp-asgari">Asgari ödeme oranı (%, isteğe bağlı)</label><input type="text" inputmode="decimal" id="hsp-asgari" autocomplete="off" placeholder="Örn. 20" value="' + guvenli(String(hspDurum.ek.asgari).replace(".", ",")) + '">' +
+          '<div class="ipucu">Kesim ve son ödeme günü girilirse ekstre borcu, son ödeme tarihi ve asgari ödeme hesaplanır; son ödemeye 3 gün kala takvimin üstünde hatırlatılır.</div></div>' : "") +
         '<button type="button" class="buton" data-islem="hesap-kaydet">Kaydet</button>' +
         '<div class="ipucu hata" id="hsp-hata"></div>' +
         (hspDurum.id ? '<button type="button" class="sil-dugmesi" data-islem="hesap-sil">Hesabı sil</button>' : "");
@@ -4025,6 +4282,7 @@
         // Başlık değişince yazılanlar korunur, etiket (bakiye / borç) güncellenir
         const a = el("hsp-ad").value, m = sayiyaCevir(el("hsp-baslangic").value);
         const lm = el("hsp-limit") ? sayiyaCevir(el("hsp-limit").value) : NaN;
+        if (el("hsp-kesim")) hspDurum.ek = { kesim: el("hsp-kesim").value.trim(), son: el("hsp-sonodeme").value.trim(), asgari: el("hsp-asgari").value.trim() };
         hspDurum.baslikId = b.id;
         hesapFormuCiz(a, isNaN(m) ? null : m, isNaN(lm) ? null : lm);
       })));
@@ -4094,6 +4352,14 @@
         const limit = hedef.tur === "kart" && limitMetin ? sayiyaCevir(limitMetin) : 0;
         if (isNaN(limit) || limit < 0) return hata("Limiti sayı olarak yazın.");
         if (limit > 0 && m > limit) return hata("Kart borcu limitten büyük olamaz.");
+        // Ekstre bilgileri (1.12)
+        const ekGun = id => { const v = el(id) && hedef.tur === "kart" ? el(id).value.trim() : ""; return v ? sayiyaCevir(v) : 0; };
+        const kesimGunu = ekGun("hsp-kesim"), sonOdemeGunu = ekGun("hsp-sonodeme"), asgariOran = ekGun("hsp-asgari");
+        const gunMu = g => g === 0 || (Number.isInteger(g) && g >= 1 && g <= 31);
+        if (!gunMu(kesimGunu) || !gunMu(sonOdemeGunu)) return hata("Kesim ve son ödeme günü 1–31 arasında olmalı.");
+        if (!!kesimGunu !== !!sonOdemeGunu) return hata("Kesim günü ile son ödeme gününü birlikte girin.");
+        if (isNaN(asgariOran) || asgariOran < 0 || asgariOran > 100) return hata("Asgari ödeme oranını kontrol edin (0–100).");
+        const ekstre = kesimGunu ? { kesimGunu, sonOdemeGunu, ...(asgariOran > 0 ? { asgariOran } : {}) } : {};
         if (limit > 0 && hspDurum.id) {
           // Hareketlerle birlikte şu anki borç (ileri tarihliler dahil) yeni limiti geçemez
           let toplam = hedef.tur === "kart" ? -m : m;
@@ -4109,10 +4375,12 @@
           });
           if (!hesap) return hata("Hesap bulunamadı.");
           const yeniHesap = { ...hesap, ad, baslangic };
+          ["kesimGunu", "sonOdemeGunu", "asgariOran"].forEach(k => delete yeniHesap[k]);
+          Object.assign(yeniHesap, ekstre);
           if (limit > 0) yeniHesap.limit = Math.round(limit * 100) / 100; else delete yeniHesap.limit;
           hedef.hesaplar.push(yeniHesap);
         } else {
-          hedef.hesaplar.push({ id: yeniId("h"), ad, baslangic, ...(limit > 0 ? { limit: Math.round(limit * 100) / 100 } : {}) });
+          hedef.hesaplar.push({ id: yeniId("h"), ad, baslangic, ...(limit > 0 ? { limit: Math.round(limit * 100) / 100 } : {}), ...ekstre });
         }
         return bitir(hspDurum.id ? "✓ Kaydedildi" : "✓ Hesap eklendi");
       }
@@ -4451,6 +4719,7 @@
       el("tip-havale-etiket").hidden = acik;
       el("tekrar-durdur").hidden = true;
       el("f-tarih-etiket").textContent = acik ? "Başlangıç" : "Tarih";
+      taksitBlokCiz();
     }
     function tekrarSecimCiz() {
       const sk = el("t-siklik"); sk.innerHTML = "";
@@ -4611,6 +4880,8 @@
         const t = planli[x.tarih] || (planli[x.tarih] = { gelir: 0, gider: 0 });
         t.gider += x.tutar;
       });
+      // Kart son ödeme günleri (1.12): ödenecek ekstre varsa 💳
+      const sonOdemeler = new Set(odenecekEkstreler().map(x => x.e.sonOdeme));
       // Limit yetmediği için girilmeyen tekrar günleri (1.9.1)
       const limitYok = new Set();
       tekrarlariOku().forEach(t => (t.limitYok || []).forEach(x => limitYok.add(x)));
@@ -4627,6 +4898,7 @@
           (planli[tarih] && planli[tarih].gelir ? '<span class="tg planli gelir-renk-y">' + kisaTutar(planli[tarih].gelir) + "</span>" : "") +
           (planli[tarih] && planli[tarih].gider ? '<span class="tg planli gider-renk-y">' + kisaTutar(planli[tarih].gider) + "</span>" : "") +
           (limitYok.has(tarih) ? '<span class="tg gider-renk-y">⚠</span>' : "") +
+          (sonOdemeler.has(tarih) ? '<span class="tg">💳</span>' : "") +
           "</button>";
       }
       el("takvim-izgara").innerHTML = html;
@@ -4679,7 +4951,7 @@
       const havaleler = havaleleriOku().filter(t => t.tarih === tarih);
       const satirlar = liste.map(k => ({ saat: k.saat || "", html: (() => {
           const ad = kayitAdlari(k, kalemler);
-          return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, hesapAdiKisa(k.hesapId), k.saat, k.tekrarId ? "↻ tekrarlayan" : "", k.not],
+          return hareketSatiri("kayit", k.id, k.tip, ad.kalem, [ad.grup, hesapAdiKisa(k.hesapId), k.saat, k.tekrarId ? "↻ tekrarlayan" : "", k.taksitNo ? "Taksit " + k.taksitNo + "/" + k.taksitSayisi : "", k.not],
             (k.tip === "gelir" ? "+" : "−") + tl(k.tutar), k.tip + "-renk");
         })() }))
         .concat(havaleler.map(t => ({ saat: t.saat || "", html: hareketSatiri("havale", t.id, "havale", "Havale",
@@ -4699,6 +4971,13 @@
             '<button type="button" class="planli-dugme" data-limit-gir="' + guvenli(t.id) + '" data-tarih="' + tarih + '">Gir</button>' +
             '<button type="button" class="planli-dugme" data-limit-atla="' + guvenli(t.id) + '" data-tarih="' + tarih + '">Atla</button></div>' };
         }))
+        // Kart son ödeme (Sürüm 1.12): "Öde" → karta havale
+        .concat(odenecekEkstreler().filter(x => x.e.sonOdeme === tarih).map(({ h, e }) => ({ saat: "", html: '<div class="satir planli kesin" data-hesap-ac="' + guvenli(h.id) + '">' +
+            '<span class="nokta havale"></span>' +
+            '<div class="satir-orta"><div class="satir-ust">' + guvenli(h.ad + " son ödeme") + "</div>" +
+            '<div class="satir-alt' + (e.gecti ? " borc-yazi" : "") + '">' + guvenli([e.gecti ? "⚠ Geçti" : "", "Ekstre " + tl(e.borc), e.asgari > 0 ? "Asgari " + tl(e.asgariKalan) : ""].filter(Boolean).join(" · ")) + "</div></div>" +
+            '<div class="satir-sag havale-renk">' + tl(e.kalan) + "</div>" +
+            '<button type="button" class="planli-dugme" data-ekstre-ode="' + guvenli(h.id) + '" data-tutar="' + e.kalan + '">Öde</button></div>' })))
         // Kredi taksiti (Sürüm 1.11): hatırlatma; "Öde" ile borç ayrıntısı o taksit seçili açılır
         .concat(planliTaksitler(tarih, tarih).map(x => ({ saat: "", html: '<div class="satir planli kesin" data-borc="' + guvenli(x.b.id) + '">' +
             '<span class="nokta gider"></span>' +
@@ -4737,6 +5016,10 @@
     el("gun-liste").addEventListener("click", olay => {
       const atla = olay.target.closest("[data-atla]");
       if (atla) return tekrarAtla(atla.dataset.atla, atla.dataset.tarih);
+      const eo = olay.target.closest("[data-ekstre-ode]");
+      if (eo) { const g = seciliGun; kartOdemesiAc(eo.dataset.ekstreOde, +eo.dataset.tutar); gunDonus = g; return; }
+      const ha = olay.target.closest("[data-hesap-ac]");
+      if (ha) { panelKapat(); return hesapDetayAc(ha.dataset.hesapAc); }
       const ode = olay.target.closest("[data-taksit-ode]");
       if (ode) { const g = seciliGun; borcDetayAc(ode.dataset.taksitOde, ode.dataset.tarih); gunDonus = g; return; }
       const lg = olay.target.closest("[data-limit-gir]");
@@ -4804,6 +5087,7 @@
         bildirimGoster("Kurlar alınamadı, internet bağlantısını kontrol et");
       }
       birikimListesiCiz();
+      borcListesiCiz();
     }
     // Açılışta: kur hiç yoksa ya da 6 saatten eskiyse arka planda al
     function kurlariGerekirseGuncelle() {
@@ -4832,10 +5116,186 @@
         : "Güncel kur henüz alınamadı. İnternete bağlıyken Yenile'ye dokun.";
     }
 
+
+    // =====================================================
+    // KREDİ KARTI EKSTRESİ (Sürüm 1.12)
+    // Kartta: kesimGunu, sonOdemeGunu (ayın günü, 1–31; o gün yoksa ayın son günü), asgariOran (%, isteğe bağlı).
+    //  Son kesim = bugünden önceki (ya da bugünkü) en yakın kesim günü.
+    //  Ekstre borcu = son kesim gününe kadarki kart borcu (başlangıç borcu + o güne kadarki hareketler).
+    //  Kesimden sonra karta giren para (havale, iade) ekstreden düşer → kalan ekstre borcu.
+    //  Son ödeme: son ödeme günü kesim gününden büyükse aynı ay, değilse sonraki ay.
+    //  Asgari = ekstre borcu × oran / 100.
+    // =====================================================
+    const ayaGunKoy = (ay, gun) => ay + "-" + ikiHane(aydakiGun(+ay.slice(0, 4), +ay.slice(5, 7), gun));
+    function kartEkstresi(h) {
+      if (!h || h.tur !== "kart" || !(h.kesimGunu >= 1)) return null;
+      const bugunT = bugun();
+      let ay = bugunT.slice(0, 7);
+      let kesim = ayaGunKoy(ay, h.kesimGunu);
+      if (kesim > bugunT) { ay = ayKaydir(ay, -1); kesim = ayaGunKoy(ay, h.kesimGunu); }
+      const sonOdeme = ayaGunKoy(h.sonOdemeGunu > h.kesimGunu ? ay : ayKaydir(ay, 1), h.sonOdemeGunu || h.kesimGunu);
+      const sonrakiKesim = ayaGunKoy(ayKaydir(ay, 1), h.kesimGunu);
+      let bakKesim = h.baslangic || 0, odenen = 0, harcama = 0;
+      hesapHareketleri().forEach(m => {
+        if (m.hesapId !== h.id) return;
+        if (m.tarih <= kesim) bakKesim += m.miktar;
+        else if (m.tarih <= bugunT) { if (m.miktar > 0) odenen += m.miktar; else harcama -= m.miktar; }
+      });
+      const y = n => Math.round(n * 100) / 100;
+      const borc = Math.max(0, y(-bakKesim));
+      const kalan = Math.max(0, y(borc - odenen));
+      const asgari = h.asgariOran > 0 ? y(borc * h.asgariOran / 100) : 0;
+      return { kesim, sonOdeme, sonrakiKesim, borc, odenen: y(odenen), kalan, asgari,
+        asgariKalan: Math.max(0, y(asgari - odenen)), harcama: y(harcama), gecti: bugunT > sonOdeme && kalan > 0 };
+    }
+    // Ödenecek ekstreler: [{ h, e }] (kalan > 0)
+    const odenecekEkstreler = () => tumHesaplar().map(h => ({ h, e: kartEkstresi(h) })).filter(x => x.e && x.e.kalan > 0);
+    const gunFarki = (a, b) => Math.round((tarihOku(b) - tarihOku(a)) / 86400000);
+    function sonOdemeYazisi(e) {
+      const f = gunFarki(bugun(), e.sonOdeme);
+      return uzunTarih(e.sonOdeme) + (f < 0 ? " (geçti)" : f === 0 ? " (bugün)" : f === 1 ? " (yarın)" : " (" + f + " gün)");
+    }
+    // Karta ödeme: Yeni Kayıt penceresi havale olarak açılır, hedef kart ve tutar dolu
+    function kartOdemesiAc(kartId, tutar) {
+      kayitPaneliAc(null);
+      el("tip-havale").checked = true;
+      tipDegisti();
+      if (havaleKaynak === kartId) havaleKaynak = (tumHesaplar().find(h => h.id !== kartId && h.tur !== "kart") || {}).id || null;
+      havaleHedef = kartId;
+      havaleCiz();
+      if (tutar > 0) el("f-tutar").value = kutuyaYaz(tutar);
+    }
+    // Hesap ayrıntısında ekstre kartı
+    function ekstreKartiCiz(h) {
+      const kutu = el("hsp-ekstre");
+      const e = kartEkstresi(h);
+      kutu.hidden = !(h && h.tur === "kart");
+      if (kutu.hidden) return;
+      if (!e) {
+        kutu.innerHTML = '<h2>Ekstre</h2><p class="bilgi">Kesim ve son ödeme gününü "Hesabı düzenle"den girersen dönem borcu, son ödeme tarihi ve asgari ödeme burada görünür.</p>';
+        return;
+      }
+      kutu.innerHTML = "<h2>Son ekstre <small>· kesim " + guvenli(uzunTarih(e.kesim)) + "</small></h2>" +
+        (e.borc > 0
+          ? '<div class="deger ' + (e.kalan > 0 ? "gider-renk" : "bitti") + '">' + (e.kalan > 0 ? tl(e.kalan) : "✓ Ödendi") + "</div>" +
+            '<div class="kart-alt">' + guvenli(["Ekstre borcu: " + tl(e.borc) + (e.odenen > 0 ? " · Ödenen: " + tl(Math.min(e.odenen, e.borc)) : ""),
+              e.asgari > 0 ? "Asgari ödeme: " + tl(e.asgari) + (e.asgariKalan > 0 && e.odenen > 0 ? " (kalan " + tl(e.asgariKalan) + ")" : e.asgariKalan <= 0 ? " ✓" : "") : "",
+              e.kalan > 0 ? (e.gecti ? "⚠ Son ödeme tarihi geçti: " : "Son ödeme: ") + sonOdemeYazisi(e) : ""].filter(Boolean).join("\n")) + "</div>"
+          : '<div class="kart-alt">Bu ekstrede borç yok.</div>') +
+        '<div class="kart-alt">' + guvenli("Bu dönem harcama: " + tl(e.harcama) + " · Sonraki kesim: " + uzunTarih(e.sonrakiKesim)) + "</div>" +
+        (e.kalan > 0 ? '<div class="dugme-satiri"><button type="button" class="ikincil-dugme" data-ekstre-ode="' + guvenli(h.id) + '" data-tutar="' + e.kalan + '">Ekstreyi öde</button>' +
+          (e.asgariKalan > 0 && e.asgariKalan < e.kalan ? '<button type="button" class="ikincil-dugme" data-ekstre-ode="' + guvenli(h.id) + '" data-tutar="' + e.asgariKalan + '">Asgariyi öde</button>' : "") + "</div>" : "");
+    }
+
+    // =====================================================
+    // TAKVİM ÜSTÜ UYARILAR (Sürüm 1.12): ödenmemiş kredi taksiti, yaklaşan / geçen kart son ödemesi, eski yedek
+    // =====================================================
+    const YEDEK_ERTELE_ANAHTARI = "butceYedekErtele_v1";
+    function takvimUyarilariCiz() {
+      const bugunT = bugun();
+      const l = [];
+      // Ödenmemiş (bugün ve önceki) kredi taksitleri
+      const geciken = planliTaksitler("0000-01-01", bugunT);
+      if (geciken.length) {
+        const ilk = geciken.slice().sort((a, b) => a.tarih.localeCompare(b.tarih))[0];
+        const tek = new Set(geciken.map(x => x.b.id)).size === 1;
+        l.push('<button type="button" class="uyari-bandi" data-u-taksit="' + guvenli(tek ? ilk.b.id : "") + '" data-tarih="' + ilk.tarih + '">⚠ ' +
+          (geciken.length === 1 ? guvenli(ilk.b.ad) + " taksiti ödenmedi (" + kisaTarih(ilk.tarih) + ", " + tl(ilk.tutar) + ")"
+            : geciken.length + " kredi taksiti ödenmedi") + "<span>Öde ›</span></button>");
+      }
+      // Kart son ödemesi: 3 gün kala ya da geçtiyse
+      odenecekEkstreler().forEach(({ h, e }) => {
+        const f = gunFarki(bugunT, e.sonOdeme);
+        if (f > 3) return;
+        l.push('<button type="button" class="uyari-bandi" data-ekstre-ode="' + guvenli(h.id) + '" data-tutar="' + e.kalan + '">' +
+          (e.gecti ? "⚠ " : "💳 ") + guvenli(h.ad + " ekstresi " + tl(e.kalan) + " · son ödeme " + sonOdemeYazisi(e)) + "<span>Öde ›</span></button>");
+      });
+      // Yedek (2 haftadan eski ya da hiç yok; veri varsa). "Sonra" 3 gün erteler.
+      const son = depoOku(SON_YEDEK_ANAHTARI, null);
+      const veriVar = kayitlariOku().length || borclariOku().length || birikimleriOku().length;
+      const ertele = depoOku(YEDEK_ERTELE_ANAHTARI, "");
+      const gun = son ? Math.floor((Date.now() - new Date(son)) / 86400000) : null;
+      if (veriVar && (gun === null || gun >= 14) && !(ertele && ertele > bugunT)) {
+        l.push('<div class="uyari-bandi yedek"><span class="metin" data-u-yedek>💾 ' + (gun === null ? "Henüz yedek alınmadı" : gun + " gündür yedek alınmadı") +
+          '</span><button type="button" class="git" data-u-yedek>Yedek al ›</button><button type="button" class="sonra" data-u-sonra>Sonra</button></div>');
+      }
+      el("takvim-uyarilar").innerHTML = l.join("");
+    }
+    el("takvim-uyarilar").addEventListener("click", olay => {
+      const t = olay.target.closest("[data-u-taksit]");
+      if (t) { if (t.dataset.uTaksit) borcDetayAc(t.dataset.uTaksit, t.dataset.tarih); else sayfaAc("borc"); return; }
+      const e = olay.target.closest("[data-ekstre-ode]");
+      if (e) return kartOdemesiAc(e.dataset.ekstreOde, +e.dataset.tutar);
+      if (olay.target.closest("[data-u-yedek]")) return sayfaAc("yedekleme");
+      if (olay.target.closest("[data-u-sonra]")) {
+        const d = tarihOku(bugun()); d.setDate(d.getDate() + 3);
+        depoYaz(YEDEK_ERTELE_ANAHTARI, tarihYaz(d));
+        takvimUyarilariCiz();
+      }
+    });
+    // Veriler telefonda kalıcı saklansın (tarayıcı yer açmak için silmesin) — destekleniyorsa
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+
+    // =====================================================
+    // KREDİ KARTIYLA TAKSİTLİ ALIŞVERİŞ (Sürüm 1.12)
+    // Kartla yeni giderde "Taksit" seçilirse tutar N kayda bölünür: alış tarihinden itibaren her ay bir taksit
+    // (aynı gün; o gün yoksa ayın son günü). Her kayıtta taksitGrup, taksitNo, taksitSayisi, taksitToplam.
+    // Gider her ay taksit kadar sayılır; kart limitinden tamamı hemen düşer (ileri tarihliler limite dahil).
+    // Düzenlemede kalem / not bütün taksitlere uygulanır; tutar ve tarih sadece o taksitte değişir; kart değişmez.
+    // Silmede bütün taksitler birlikte silinir.
+    // =====================================================
+    const TAKSIT_SECENEKLERI = [1, 2, 3, 4, 5, 6, 9, 12];
+    var tTaksit = 1;
+    var taksitHazir = false;     // bu bölüm yüklenmeden önce (açılışta) hesapCiz çağrılırsa taksit bloğu çizilmez
+    const taksitAcik = () => !tekrarModu && !duzenlenen && seciliTip() === "gider" && (hesapBul(seciliHesap) || {}).tur === "kart";
+    function taksitBlokCiz() {
+      const blok = el("taksit-blok");
+      if (!blok || !taksitHazir) return;
+      const taksitli = duzenlenen && duzenlenen.taksitGrup && !tekrarModu;
+      blok.hidden = !taksitAcik() && !taksitli;
+      if (taksitli) {
+        el("taksit-cipleri").innerHTML = "";
+        el("taksit-ipucu").textContent = "Taksitli alışveriş: " + duzenlenen.taksitNo + "/" + duzenlenen.taksitSayisi + ". taksit · toplam " +
+          tl(duzenlenen.taksitToplam || 0) + ". Kalem ve not bütün taksitlere uygulanır; tutar ve tarih sadece bu taksitte değişir.";
+        return;
+      }
+      if (blok.hidden) return;
+      const kutu = el("taksit-cipleri");
+      kutu.innerHTML = "";
+      TAKSIT_SECENEKLERI.forEach(n => kutu.appendChild(cipYap(n === 1 ? "Tek çekim" : n + " taksit", n === tTaksit, () => { tTaksit = n; taksitBlokCiz(); })));
+      const tutar = sayiyaCevir(el("f-tutar").value), tarih = el("f-tarih").value || bugun();
+      if (tTaksit > 1 && tutar > 0) {
+        const p = taksitParcalari(tutar, tTaksit, tarih);
+        el("taksit-ipucu").textContent = tTaksit + " × " + tl(p[0].tutar) + (p[p.length - 1].tutar !== p[0].tutar ? " (son taksit " + tl(p[p.length - 1].tutar) + ")" : "") +
+          " · son taksit " + uzunTarih(p[p.length - 1].tarih) + ". Gider her ay taksit kadar sayılır, kart limitinden tamamı düşer.";
+      } else el("taksit-ipucu").textContent = tTaksit > 1 ? "Toplam tutarı yaz; her ay bir taksit girilir." : "";
+    }
+    // Tutarı N parçaya böler (kuruş farkı son taksitte): [{ tutar, tarih }]
+    function taksitParcalari(toplam, n, tarih) {
+      const parca = Math.floor(toplam / n * 100) / 100;
+      const gun = +tarih.slice(8, 10);
+      return Array.from({ length: n }, (_, i) => ({
+        tutar: i === n - 1 ? Math.round((toplam - parca * (n - 1)) * 100) / 100 : parca,
+        tarih: ayaGunKoy(ayKaydir(tarih.slice(0, 7), i), gun)
+      }));
+    }
+    function taksitliEkle(kayit, n) {
+      const kayitlar = kayitlariOku();
+      const grup = yeniId("tk");
+      taksitParcalari(kayit.tutar, n, kayit.tarih).forEach((p, i) => kayitlar.push({ ...kayit, id: yeniId("r"), tutar: p.tutar, tarih: p.tarih,
+        saat: i ? "" : kayit.saat, taksitGrup: grup, taksitNo: i + 1, taksitSayisi: n, taksitToplam: kayit.tutar }));
+      return kayitlariYaz(kayitlar);
+    }
+    el("f-tutar").addEventListener("input", taksitBlokCiz);
+    el("f-tarih").addEventListener("change", taksitBlokCiz);
+    taksitHazir = true;
+
     // =====================================================
     // HEPSİNİ GÜNCELLE + BAŞLANGIÇ
     // =====================================================
     function hepsiniGuncelle() {
+      takvimUyarilariCiz();   // 1.12
+      hbCiz();
       tekrarListesiCiz();
       takvimCiz();
       if (acikPanel === "gun-paneli") gunPaneliCiz();
@@ -4852,7 +5312,7 @@
     ilkAcilis();
     if (tekrarLimitSayisi) bildirimGoster("⚠ " + tekrarLimitSayisi + " tekrarlayan işlem kart limiti yetmediği için girilmedi (takvimde görünür)");
     else if (acilisTaksit) bildirimGoster("💳 " + acilisTaksit + " kredi taksiti ödendi");
-    else if (bekleyenTaksitBildirimi()) bildirimGoster(bekleyenTaksitBildirimi());
+    // (1.12: ödenmemiş taksitler artık takvimin üstündeki uyarı bandında; açılış bildirimi kaldırıldı)
     kurlariGerekirseGuncelle();   // Sürüm 1.7
 
     // Çevrimdışı çalışma (Sürüm 1.0): sadece https ya da localhost'ta
