@@ -10,8 +10,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <!-- Durum çubuğu (saat, pil) düz renkte dursun; içerik altına girip bulanıklaşmasın -->
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <!-- Sürüm 1.15.1 (kullanıcı kararı): ana ekran uygulamasında sayfa saat/pil şeridinin altına uzanır;
+       başlık rengi en üste kadar çıkar, kaydırınca şeridin altından geçen içerik bulanık görünür (#durum-seridi) -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <!-- Ana ekranda simgenin altında görünecek isim -->
   <meta name="apple-mobile-web-app-title" content="Bütçe">
   <!-- Durum çubuğunun rengi: başlık çubuğuyla aynı (açık / koyu tema) -->
@@ -135,6 +136,12 @@
       border-bottom: 1px solid var(--bar-cizgi);
     }
     header h1 { font-size: 20px; -webkit-font-smoothing: antialiased; }
+    /* Sürüm 1.15.1: saat/pil şeridinin arkası — sabit, yarı saydam, arkasındaki içerik bulanık görünür */
+    #durum-seridi {
+      position: fixed; left: 0; right: 0; top: 0; height: env(safe-area-inset-top); z-index: 15; pointer-events: none;
+      background: color-mix(in srgb, var(--bar) 78%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+    }
     header small { color: var(--soluk); font-size: 12px; }
 
     /* Sayfa içeriği: alttaki sekme çubuğu ve + düğmesi son satırı kapatmasın */
@@ -803,6 +810,7 @@
   <!-- ===================================================
        BÖLÜM 3: ÜST BAŞLIK
        =================================================== -->
+  <div id="durum-seridi" aria-hidden="true"></div>
   <header>
     <!-- Alt sayfada (Yedekleme) görünür: Ayarlar'a döner -->
     <button type="button" class="geri-dugmesi" id="geri-dugmesi" hidden>‹ Ayarlar</button>
@@ -1426,7 +1434,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.15";
+    const SURUM = "1.15.1";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
