@@ -964,7 +964,7 @@
       <div class="ayar-listesi">
         <button type="button" class="ayar-ogesi" id="gelir-kategori">
           <span class="ayar-ikon" style="background:#15803d">➕</span>
-          <span class="ayar-yazi"><b>Gelir kategorisi</b><small>Gelir grupları ve kalemleri</small></span>
+          <span class="ayar-yazi"><b>Gelir kategorisi</b><small>Gelir kalemleri</small></span>
           <span class="ayar-ok">›</span>
         </button>
         <button type="button" class="ayar-ogesi" id="gider-kategori">
@@ -1426,7 +1426,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.14.1";
+    const SURUM = "1.15";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1760,11 +1760,10 @@
         { id: "kisisel",   ad: "Kişisel",       kalemler: [] },   // 1.3.1: Harçlık kaldırıldı
         { id: "diger",     ad: "Diğer",         kalemler: [] }
       ],
+      // Sürüm 1.15: gelirde grup yok — tek "Gelir" altında bütün gelir kalemleri.
+      // Hazır kalemler eski kimlikleriyle (tam kimlik verildi), eski kayıtlar ve silinen listesi bozulmasın.
       gelir: [
-        { id: "gelirler",   ad: "Gelirler",     kalemler: [["maas", "Maaş"]] },
-        // Kira geliri gelirde de "Ev" grubunda: Kayıtlar'da "Ev" süzülünce kira gideri ve geliri birlikte çıkar (Sürüm 1.2)
-        { id: "ev",         ad: "Ev",           kalemler: [["kiragelir", "Kira geliri"]] },
-        { id: "digergelir", ad: "Diğer gelir",  kalemler: [] }
+        { id: "gelir", ad: "Gelir", kalemler: [["gelir.gelirler.maas", "Maaş"], ["gelir.ev.kiragelir", "Kira geliri"]] }
       ]
     };
     // (1.9: "Kredi kartı" gider grubu ve borç ödemesini "gider olarak da kaydet" kaldırıldı — kart ödemesi havaleyle yapılır,
@@ -1777,7 +1776,7 @@
         ad: g.ad,
         ozel: false,
         gizli: false,
-        kalemler: g.kalemler.map(([id, ad]) => ({ id: tip + "." + g.id + "." + id, ad, ozel: false, gizli: false }))
+        kalemler: g.kalemler.map(([id, ad]) => ({ id: id.includes(".") ? id : tip + "." + g.id + "." + id, ad, ozel: false, gizli: false }))
       };
     }
 
@@ -1809,6 +1808,12 @@
         });
         sonuc[tip] = liste;
       });
+      // Sürüm 1.15: gelir tek grup — telefonda kalmış eski gelir gruplarının kalemleri de "Gelir" altında toplanır
+      const gelirKalemleri = [];
+      sonuc.gelir.forEach(g => g.kalemler.forEach(k => {
+        if (!gelirKalemleri.some(x => x.id === k.id)) gelirKalemleri.push(g.gizli ? { ...k, gizli: true } : k);
+      }));
+      sonuc.gelir = [{ id: "gelir", ad: "Gelir", ozel: false, gizli: false, kalemler: gelirKalemleri }];
       return sonuc;
     }
     const kalemleriYaz = kalemler => depoYaz(KALEM_ANAHTARI, kalemler);
@@ -1840,9 +1845,11 @@
 
     // Kaydın grup ve kalem adı: kalem hâlâ varsa güncel adı (adı değiştirilmiş olabilir), yoksa kayıttaki ad
     function kayitAdlari(k, kalemler) {
-      const g = (kalemler[k.tip] || []).find(x => x.id === k.grup);
-      const kal = g && g.kalemler.find(x => x.id === k.kalemId);
-      return { grup: g ? g.ad : (k.grupAd || "—"), kalem: kal ? kal.ad : (k.kalemAd || "—") };
+      const gruplar = kalemler[k.tip] || [];
+      const g = gruplar.find(x => x.id === k.grup);
+      // Kalem başka gruba geçmişse de (1.15: eski gelir grupları) güncel adı bulunsun
+      const kal = (g && g.kalemler.find(x => x.id === k.kalemId)) || gruplar.flatMap(x => x.kalemler).find(x => x.id === k.kalemId);
+      return { grup: k.tip === "gelir" ? "Gelir" : g ? g.ad : (k.grupAd || "—"), kalem: kal ? kal.ad : (k.kalemAd || "—") };
     }
 
     // =====================================================
@@ -2058,10 +2065,11 @@
       const tumu = kalemleriOku()[tip];
       const gruplar = tumu.filter(g => !g.gizli).map(g => ({ ...g, kalemler: g.kalemler.filter(k => !k.gizli) }));
       if (duzenlenen && duzenlenen.tip === tip) {
-        const asil = tumu.find(g => g.id === duzenlenen.grup);
-        let g = gruplar.find(x => x.id === duzenlenen.grup);
+        const grupId = tip === "gelir" ? "gelir" : duzenlenen.grup;   // 1.15: gelirde tek grup
+        const asil = tumu.find(g => g.id === grupId);
+        let g = gruplar.find(x => x.id === grupId);
         if (!g) {
-          g = { id: duzenlenen.grup, ad: asil ? asil.ad : duzenlenen.grupAd, kalemler: [], eski: !asil };
+          g = { id: grupId, ad: asil ? asil.ad : duzenlenen.grupAd, kalemler: [], eski: !asil };
           gruplar.push(g);
         }
         if (!g.kalemler.some(k => k.id === duzenlenen.kalemId)) {
@@ -2482,9 +2490,10 @@
       const kalemler = kalemleriOku()[tip];
       const sayi = kullanimSayilari();
       let html = "";
+      const gelir = tip === "gelir";      // 1.15: gelirde grup yok, sadece kalemler
       kalemler.forEach(g => {
-        html += '<div class="ayar-grup"><div class="ayar-grup-ust"><b class="' + (g.gizli ? "gizli-yazi" : "") + '">' +
-          guvenli(g.ad) + '</b><button type="button" class="ayar-ekle" data-ac="g:' + guvenli(g.id) + '">Grubu düzenle</button></div>';
+        html += '<div class="ayar-grup">' + (gelir ? "" : '<div class="ayar-grup-ust"><b class="' + (g.gizli ? "gizli-yazi" : "") + '">' +
+          guvenli(g.ad) + '</b><button type="button" class="ayar-ekle" data-ac="g:' + guvenli(g.id) + '">Grubu düzenle</button></div>');
         if (ayarAcik === "g:" + g.id) {
           html += ayarKutusu(ayarAcik, g.ad, { gizle: !!g.gizli, sil: true, ipucu: "Grup adı" });
         }
@@ -2499,9 +2508,11 @@
         if (ayarAcik === "yk:" + g.id) html += ayarKutusu(ayarAcik, "", { ipucu: "Yeni kalem adı" });
         html += "</div>";
       });
-      html += '<div class="ayar-grup"><button type="button" class="ayar-ekle" data-ac="yg">+ Yeni grup ekle</button>';
-      if (ayarAcik === "yg") html += ayarKutusu("yg", "", { ipucu: "Yeni grup adı" });
-      html += "</div>";
+      if (!gelir) {
+        html += '<div class="ayar-grup"><button type="button" class="ayar-ekle" data-ac="yg">+ Yeni grup ekle</button>';
+        if (ayarAcik === "yg") html += ayarKutusu("yg", "", { ipucu: "Yeni grup adı" });
+        html += "</div>";
+      }
       el("kalem-ayar-listesi").innerHTML = html;
       const kutu = el("ayar-ad");
       if (kutu && !kutu.value) kutu.focus();
@@ -2553,7 +2564,7 @@
 
       if (parca[0] === "yk") {                           // yeni kalem
         if (!ad) return hata("Kalem adı yazın.");
-        if (grup.kalemler.some(k => kucukHarf(k.ad) === kucukHarf(ad))) return hata("Bu grupta aynı adda kalem var.");
+        if (grup.kalemler.some(k => kucukHarf(k.ad) === kucukHarf(ad))) return hata(tip === "gelir" ? "Aynı adda gelir kalemi var." : "Bu grupta aynı adda kalem var.");
         grup.kalemler.push({ id: yeniId("k"), ad, ozel: true, gizli: false });
         return bitir("✓ Kalem eklendi");
       }
@@ -2787,7 +2798,13 @@
 
       const toplam = liste.reduce((t, k) => t + k.tutar, 0);
       const gruplar = {};
-      liste.forEach(k => {
+      // Sürüm 1.15: gelirde grup olmadığı için her kalem ayrı satır (bütün gelir kalemleri görünür)
+      if (tip === "gelir") liste.forEach(k => {
+        const ad = kayitAdlari(k, kalemler);
+        const g = gruplar[k.kalemId] || (gruplar[k.kalemId] = { id: k.kalemId, ad: ad.kalem, tutar: 0, kalemler: {} });
+        g.tutar += k.tutar;
+      });
+      else liste.forEach(k => {
         const ad = kayitAdlari(k, kalemler);
         const g = gruplar[k.grup] || (gruplar[k.grup] = { id: k.grup, ad: ad.grup, tutar: 0, kalemler: {} });
         g.tutar += k.tutar;
@@ -2804,10 +2821,10 @@
         const anahtar = tip + ":" + g.id;
         const acik = acikDagilim.has(anahtar);
         let html = '<button type="button" class="dagilim-satir" data-anahtar="' + guvenli(anahtar) + '" aria-expanded="' + acik + '">' +
-          '<div class="dagilim-ust"><span>' + guvenli(g.ad) + '<span class="ok">' + (acik ? "▾" : "▸") + "</span></span>" +
+          '<div class="dagilim-ust"><span>' + guvenli(g.ad) + (tip === "gelir" ? "" : '<span class="ok">' + (acik ? "▾" : "▸") + "</span>") + "</span>" +
           "<span>" + tl(g.tutar) + " <small>%" + Math.round(g.tutar / toplam * 100) + "</small></span></div>" +
           '<div class="cubuk-zemin"><div class="cubuk ' + tip + '" style="width:' + Math.max(1, g.tutar / enCok * 100) + '%"></div></div></button>';
-        if (acik) {
+        if (acik && tip !== "gelir") {
           html += '<div class="dagilim-alt">' + Object.values(g.kalemler).sort((a, b) => b.tutar - a.tutar).map(k =>
             '<div class="dagilim-ust"><span>' + guvenli(k.ad) + (k.sayi > 1 ? " <small>(" + k.sayi + ")</small>" : "") +
             "</span><span>" + tl(k.tutar) + "</span></div>").join("") + "</div>";
@@ -2831,7 +2848,9 @@
       return t === "koyu" || (!t && matchMedia("(prefers-color-scheme: dark)").matches);
     }
     function grupRengi(tip, grupId) {
-      const sira = (kalemleriOku()[tip] || []).findIndex(g => g.id === grupId);
+      // 1.15: gelirde satırlar kalem; renk kalemin gelir listesindeki sırasına göre
+      const sira = tip === "gelir" ? ((kalemleriOku().gelir[0] || { kalemler: [] }).kalemler.findIndex(k => k.id === grupId))
+        : (kalemleriOku()[tip] || []).findIndex(g => g.id === grupId);
       const l = koyuMu() ? GRUP_RENK_KOYU : GRUP_RENK_ACIK;
       return sira >= 0 && sira < l.length ? l[sira] : "#8a8f98";
     }
@@ -2874,9 +2893,9 @@
         let html = '<button type="button" class="dagilim-satir renkli" data-anahtar="' + guvenli(anahtar) + '" aria-expanded="' + acik + '">' +
           '<div class="dagilim-ust" style="align-items:center"><span>' +
           (tur === "pasta" ? '<b class="yuzde-rozet" style="background:' + g.renk + '">' + yuz(g) + "</b>" : '<i class="renk-kare" style="background:' + g.renk + '"></i>') +
-          guvenli(g.ad) + '<span class="ok">' + (acik ? "▾" : "▸") + "</span></span>" +
+          guvenli(g.ad) + (tip === "gelir" ? "" : '<span class="ok">' + (acik ? "▾" : "▸") + "</span>") + "</span>" +
           "<span>" + tl(g.tutar) + (tur === "pasta" ? "" : " <small>" + yuz(g) + "</small>") + "</span></div></button>";
-        if (acik) {
+        if (acik && tip !== "gelir") {
           html += '<div class="dagilim-alt">' + Object.values(g.kalemler).sort((a, b) => b.tutar - a.tutar).map(k =>
             '<div class="dagilim-ust"><span>' + guvenli(k.ad) + (k.sayi > 1 ? " <small>(" + k.sayi + ")</small>" : "") +
             "</span><span>" + tl(k.tutar) + "</span></div>").join("") + "</div>";
