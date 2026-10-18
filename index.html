@@ -54,6 +54,7 @@
       --bar-soluk: var(--soluk);
       --bar-aktif: var(--vurgu);
       --bar-cizgi: var(--cizgi);
+      --panel: var(--kart);       /* 1.13.1: açılır pencerelerin zemini (renk temalarında hafif tonlu) */
       color-scheme: light dark;   /* tarih/saat kutuları da temaya uysun */
     }
     :root[data-tema="acik"] { color-scheme: light; }
@@ -98,6 +99,10 @@
     :root[data-tema="mavi"], :root[data-tema="pembe"], :root[data-tema="turkuaz"], :root[data-tema="lavanta"], :root[data-tema="grafit"] {
       color-scheme: light; --kart: #ffffff; --buton-yazi: #ffffff; --bar-cizgi: transparent;
     }
+    /* 1.13.1: açılır pencere zemini temanın en açık tonu; içindeki listeler beyaz kalır */
+    :root[data-tema="mavi"] { --panel: #f5f8ff; } :root[data-tema="pembe"] { --panel: #fff6fa; }
+    :root[data-tema="turkuaz"] { --panel: #f3fbfa; } :root[data-tema="lavanta"] { --panel: #f9f6ff; }
+    :root[data-tema="grafit"] { --panel: #f4f5f7; }
     :root[data-tema="mavi"] { --arkaplan: #eef4ff; --yazi: #0f1d3a; --soluk: #5a6b88; --cizgi: #d6e2f6; --vurgu: #2563eb;
       --bar: #dbe7fd; --bar-yazi: #0f1d3a; --bar-soluk: #5a6b88; --bar-aktif: #1d4ed8; }
     :root[data-tema="pembe"] { --arkaplan: #fdf0f5; --yazi: #3a1028; --soluk: #8d5f75; --cizgi: #f5d3e2; --vurgu: #db2777;
@@ -106,8 +111,8 @@
       --bar: #d2f2ee; --bar-yazi: #0b2a28; --bar-soluk: #56706d; --bar-aktif: #0f766e; }
     :root[data-tema="lavanta"] { --arkaplan: #f5f1ff; --yazi: #22163f; --soluk: #6b6185; --cizgi: #e3dafb; --vurgu: #7c3aed;
       --bar: #e7defd; --bar-yazi: #22163f; --bar-soluk: #6b6185; --bar-aktif: #6d28d9; }
-    :root[data-tema="grafit"] { --arkaplan: #f2f3f5; --yazi: #111827; --soluk: #6b7280; --cizgi: #e1e3e8; --vurgu: #374151;
-      --bar: #e3e5ea; --bar-yazi: #111827; --bar-soluk: #6b7280; --bar-aktif: #111827; }
+    :root[data-tema="grafit"] { --arkaplan: #eceef1; --yazi: #111827; --soluk: #6b7280; --cizgi: #dcdfe4; --vurgu: #374151;
+      --bar: #d9dce2; --bar-yazi: #111827; --bar-soluk: #6b7280; --bar-aktif: #111827; }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     /* "hidden" verilen öğe, kendi display ayarı olsa bile gizli kalsın */
@@ -211,7 +216,7 @@
       max-height: calc(100% - env(safe-area-inset-top) - 16px);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
-      background: var(--kart);
+      background: var(--panel);
       border-radius: 18px 18px 0 0;
       padding: 8px 16px calc(env(safe-area-inset-bottom) + 16px);
       transform: translateY(105%);
@@ -634,6 +639,17 @@
     .dagilim-alt { padding: 0 0 6px 14px; border-left: 2px solid var(--cizgi); margin: 2px 0 6px 2px; }
     .dagilim-alt .dagilim-ust { font-size: 14px; padding: 5px 0; }
     .ok { color: var(--soluk); font-size: 12px; margin-left: 4px; }
+    /* Sürüm 1.14: grafik türleri (pasta, tek şerit) */
+    .grafik-svg { width: 100%; max-width: 340px; display: block; margin: 0 auto 4px; }
+    .grafik-svg path { cursor: pointer; }
+    .serit { display: flex; height: 22px; gap: 2px; border-radius: 6px; overflow: hidden; margin: 6px 0 4px; }
+    .serit > i { display: block; min-width: 3px; }
+    .serit-alt { display: flex; justify-content: space-between; font-size: 12px; color: var(--soluk); margin-bottom: 4px; }
+    .renk-kare { flex: none; width: 12px; height: 12px; border-radius: 3px; display: inline-block; margin-right: 10px; vertical-align: -1px; }
+    .yuzde-rozet { flex: none; display: inline-block; min-width: 40px; text-align: center; color: #fff; border-radius: 6px;
+      padding: 2px 6px; font-size: 12px; font-weight: 700; margin-right: 10px; }
+    .dagilim-satir.renkli { border-bottom: 1px solid var(--cizgi); padding: 10px 0; }
+    .dagilim-satir.renkli:last-of-type { border-bottom: none; }
 
     /* Grafik (Sürüm 0.6) */
     .lejant { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--soluk); margin: 2px 0 6px; }
@@ -975,6 +991,12 @@
           <span class="ayar-yazi"><b>Stil</b><small id="gorunum-ozet"></small></span>
           <span class="ayar-ok">›</span>
         </button>
+        <!-- Sürüm 1.14: Özet'teki gider/gelir dağılımının grafik türü -->
+        <button type="button" class="ayar-ogesi" id="grafik-ac">
+          <span class="ayar-ikon" style="background:#ea580c">📊</span>
+          <span class="ayar-yazi"><b>Grafik türü</b><small id="grafik-ozet"></small></span>
+          <span class="ayar-ok">›</span>
+        </button>
       </div>
       <p class="ayar-dipnot" id="uygulama-bilgi"></p>
     </section>
@@ -1255,6 +1277,32 @@
     </div>
   </div>
 
+  <!-- Sürüm 1.14: Grafik türü -->
+  <div class="panel" id="grafik-paneli" role="dialog" aria-modal="true" aria-labelledby="grafik-panel-baslik">
+    <div class="panel-ust">
+      <h2 id="grafik-panel-baslik">Grafik türü</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <p class="bilgi" style="margin:0 4px 10px">Özet'teki Giderler ve Gelirler kartlarında kullanılır.</p>
+    <div class="ayar-listesi" id="grafik-secenekleri">
+      <button type="button" class="ayar-ogesi" data-grafik="cubuk">
+        <span class="ayar-ikon" style="background:#c2410c">📶</span>
+        <span class="ayar-yazi"><b>Çubuklar</b><small>Gruplar alt alta, çubuk uzunluğu tutara göre</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-grafik="pasta">
+        <span class="ayar-ikon" style="background:#2a78d6">🥧</span>
+        <span class="ayar-yazi"><b>Pasta</b><small>Dilimler ve yüzde rozetli liste</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-grafik="serit">
+        <span class="ayar-ikon" style="background:#1baf7a">▬</span>
+        <span class="ayar-yazi"><b>Tek şerit</b><small>Bütün tutar tek çubukta, gruplar renk renk</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+    </div>
+  </div>
+
   <!-- Sürüm 1.12: Hesap ve borç ayarları -->
   <div class="panel" id="hb-paneli" role="dialog" aria-modal="true" aria-labelledby="hb-panel-baslik">
     <div class="panel-ust">
@@ -1372,7 +1420,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.13";
+    const SURUM = "1.14";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1888,7 +1936,7 @@
     const TEMA_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu",
       mavi: "Açık mavi", pembe: "Açık pembe", turkuaz: "Açık turkuaz", lavanta: "Lavanta", grafit: "Grafit" };
     // 1.13: renk temalarında durum çubuğu üst çubuğun rengi
-    const TEMA_CUBUK = { mavi: "#dbe7fd", pembe: "#fbd9e7", turkuaz: "#d2f2ee", lavanta: "#e7defd", grafit: "#e3e5ea" };
+    const TEMA_CUBUK = { mavi: "#dbe7fd", pembe: "#fbd9e7", turkuaz: "#d2f2ee", lavanta: "#e7defd", grafit: "#d9dce2" };
 
     function temaOku() {
       const t = depoOku(TEMA_ANAHTARI, "sistem");
@@ -1945,6 +1993,7 @@
       if (!b) return;
       depoYaz(TEMA_ANAHTARI, b.dataset.tema);
       temaUygula(b.dataset.tema);
+      ozetGuncelle();   // 1.14: grafik renkleri açık/koyu zemine göre
     });
     temaUygula(temaOku());
 
@@ -2719,6 +2768,8 @@
       });
       const sirali = Object.values(gruplar).sort((a, b) => b.tutar - a.tutar);
       const enCok = sirali[0].tutar;
+      const tur = grafikTuru();
+      if (tur !== "cubuk") return renkliDagilimCiz(tip, sirali, toplam, tur);
 
       el(tip + "-dagilim").innerHTML = sirali.map(g => {
         const anahtar = tip + ":" + g.id;
@@ -2735,8 +2786,91 @@
         return html;
       }).join("");
     }
+    // -----------------------------------------------------
+    // GRAFİK TÜRÜ (Sürüm 1.14): Çubuklar (varsayılan) / Pasta / Tek şerit — Ayarlar → Grafik türü (butceGrafik_v1)
+    // Pasta ve şeritte her grubun sabit bir rengi var: grubun kategori listesindeki sırasına göre (ay değişince renk değişmez).
+    // Renkler renk körlüğüne göre denetlenmiş 8'li sıra; açık ve koyu zemin için ayrı tonlar. 8'den sonraki gruplar gri.
+    // Gruba (dilime / satıra) dokununca kalemleri açılır.
+    // -----------------------------------------------------
+    const GRAFIK_ANAHTARI = "butceGrafik_v1";
+    const GRAFIK_ADLARI = { cubuk: "Çubuklar", pasta: "Pasta", serit: "Tek şerit" };
+    const grafikTuru = () => { const t = depoOku(GRAFIK_ANAHTARI, "cubuk"); return GRAFIK_ADLARI[t] ? t : "cubuk"; };
+    const GRUP_RENK_ACIK = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
+    const GRUP_RENK_KOYU = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
+    function koyuMu() {
+      const t = document.documentElement.dataset.tema;
+      return t === "koyu" || (!t && matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+    function grupRengi(tip, grupId) {
+      const sira = (kalemleriOku()[tip] || []).findIndex(g => g.id === grupId);
+      const l = koyuMu() ? GRUP_RENK_KOYU : GRUP_RENK_ACIK;
+      return sira >= 0 && sira < l.length ? l[sira] : "#8a8f98";
+    }
+    function renkliDagilimCiz(tip, sirali, toplam, tur) {
+      const yuz = g => "%" + Math.round(g.tutar / toplam * 100);
+      sirali.forEach(g => { g.renk = grupRengi(tip, g.id); });
+      let ust = "";
+      if (tur === "pasta") {
+        const cx = 170, cy = 122, R = 92;
+        const P = (a, r) => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+        let a = 0, yollar = "", etiket = "";
+        sirali.forEach(g => {
+          const pay = g.tutar / toplam, a1 = a + pay * 2 * Math.PI;
+          const anahtar = guvenli(tip + ":" + g.id);
+          if (pay >= 0.9999) yollar += '<circle cx="' + cx + '" cy="' + cy + '" r="' + R + '" fill="' + g.renk + '" data-anahtar="' + anahtar + '"/>';
+          else {
+            const [x0, y0] = P(a, R), [x1, y1] = P(a1, R);
+            yollar += '<path d="M' + cx + "," + cy + " L" + x0 + "," + y0 + " A" + R + "," + R + " 0 " + (a1 - a > Math.PI ? 1 : 0) + " 1 " + x1 + "," + y1 +
+              ' Z" fill="' + g.renk + '" stroke="var(--kart)" stroke-width="2" data-anahtar="' + anahtar + '"/>';
+          }
+          // %6'dan büyük dilimlerde dışarıda ad + yüzde
+          if (pay >= 0.06) {
+            const m = (a + a1) / 2, sag = Math.sin(m) >= 0;
+            const [lx0, ly0] = P(m, R), [lx, ly] = P(m, R + 14);
+            const tx = lx + (sag ? 4 : -4), yon = sag ? "start" : "end";
+            etiket += '<line x1="' + lx0 + '" y1="' + ly0 + '" x2="' + lx + '" y2="' + ly + '" stroke="var(--soluk)"/>' +
+              '<text x="' + tx + '" y="' + (ly - 2) + '" text-anchor="' + yon + '" font-size="12" font-weight="600" fill="var(--yazi)">' + guvenli(g.ad) + "</text>" +
+              '<text x="' + tx + '" y="' + (ly + 12) + '" text-anchor="' + yon + '" font-size="11" fill="var(--soluk)">' + yuz(g) + "</text>";
+          }
+          a = a1;
+        });
+        ust = '<svg class="grafik-svg" viewBox="0 0 340 244" role="img" aria-label="Pasta grafik">' + yollar + etiket + "</svg>";
+      } else {
+        ust = '<div class="serit">' + sirali.map(g => '<i style="flex:' + g.tutar + ";background:" + g.renk + '"></i>').join("") + "</div>" +
+          '<div class="serit-alt"><span>Toplam ' + tl(toplam) + "</span><span>" + sirali.length + " grup</span></div>";
+      }
+      el(tip + "-dagilim").innerHTML = ust + sirali.map(g => {
+        const anahtar = tip + ":" + g.id;
+        const acik = acikDagilim.has(anahtar);
+        let html = '<button type="button" class="dagilim-satir renkli" data-anahtar="' + guvenli(anahtar) + '" aria-expanded="' + acik + '">' +
+          '<div class="dagilim-ust" style="align-items:center"><span>' +
+          (tur === "pasta" ? '<b class="yuzde-rozet" style="background:' + g.renk + '">' + yuz(g) + "</b>" : '<i class="renk-kare" style="background:' + g.renk + '"></i>') +
+          guvenli(g.ad) + '<span class="ok">' + (acik ? "▾" : "▸") + "</span></span>" +
+          "<span>" + tl(g.tutar) + (tur === "pasta" ? "" : " <small>" + yuz(g) + "</small>") + "</span></div></button>";
+        if (acik) {
+          html += '<div class="dagilim-alt">' + Object.values(g.kalemler).sort((a, b) => b.tutar - a.tutar).map(k =>
+            '<div class="dagilim-ust"><span>' + guvenli(k.ad) + (k.sayi > 1 ? " <small>(" + k.sayi + ")</small>" : "") +
+            "</span><span>" + tl(k.tutar) + "</span></div>").join("") + "</div>";
+        }
+        return html;
+      }).join("");
+    }
+    function grafikAyarCiz() {
+      const t = grafikTuru();
+      el("grafik-secenekleri").querySelectorAll("[data-grafik]").forEach(b => b.classList.toggle("secili", b.dataset.grafik === t));
+      el("grafik-ozet").textContent = GRAFIK_ADLARI[t];
+    }
+    el("grafik-ac").addEventListener("click", () => { grafikAyarCiz(); panelAc("grafik-paneli"); });
+    el("grafik-secenekleri").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-grafik]");
+      if (!b) return;
+      depoYaz(GRAFIK_ANAHTARI, b.dataset.grafik);
+      grafikAyarCiz();
+      ozetGuncelle();
+    });
+
     ["gider", "gelir"].forEach(tip => el(tip + "-dagilim").addEventListener("click", olay => {
-      const satir = olay.target.closest(".dagilim-satir");
+      const satir = olay.target.closest(".dagilim-satir, [data-anahtar]");
       if (!satir) return;
       const a = satir.dataset.anahtar;
       acikDagilim.has(a) ? acikDagilim.delete(a) : acikDagilim.add(a);
@@ -5296,6 +5430,7 @@
     function hepsiniGuncelle() {
       takvimUyarilariCiz();   // 1.12
       hbCiz();
+      grafikAyarCiz();        // 1.14
       tekrarListesiCiz();
       takvimCiz();
       if (acikPanel === "gun-paneli") gunPaneliCiz();
