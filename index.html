@@ -526,6 +526,17 @@
 
     /* ---------- HESAPLAR (Sürüm 1.6) ---------- */
     header { position: relative; }
+    /* Sürüm 1.14.1: Özet'te üst çubuktaki Ay / Yıl ve Gelir / Gider sekmeleri */
+    .ust-secim { position: absolute; right: 16px; bottom: 12px; width: 120px; padding: 2px; }
+    .ust-secim label { padding: 5px 0; font-size: 14px; }
+    .ozet-sekmeler { display: flex; border-bottom: 1px solid var(--cizgi); margin: 0 0 14px; }
+    .ozet-sekmeler button { flex: 1; background: none; border: none; border-bottom: 3px solid transparent; padding: 10px 4px 9px;
+      color: var(--soluk); font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 2px; margin-bottom: -1px; }
+    .ozet-sekmeler button b { font-size: 16px; }
+    .ozet-sekmeler button.secili { color: var(--yazi); border-bottom-color: var(--vurgu); }
+    #kart-ozet-gelir .deger, #kart-ozet-gider .deger { display: none; }
+    .ozet-sekmeler button.secili[data-ozet-sekme="gelir"] b { color: var(--gelir); }
+    .ozet-sekmeler button.secili[data-ozet-sekme="gider"] b { color: var(--gider); }
     .ust-dugme {
       position: absolute; right: 16px; bottom: 12px;
       background: none; border: 1px solid var(--cizgi); border-radius: 18px;
@@ -800,6 +811,11 @@
     <small id="surum"></small>
     <!-- Sadece Hesaplar sayfasında görünür (Sürüm 1.6) -->
     <button type="button" class="ust-dugme" id="baslik-ekle" hidden>+ Başlık</button>
+    <!-- Sürüm 1.14.1: Özet'te Ay / Yıl seçimi üst çubukta -->
+    <div class="secim ust-secim" id="gorunum-secim" hidden>
+      <input type="radio" name="gorunum" id="gorunum-ay" value="ay" checked><label for="gorunum-ay">Ay</label>
+      <input type="radio" name="gorunum" id="gorunum-yil" value="yil"><label for="gorunum-yil">Yıl</label>
+    </div>
   </header>
 
   <main>
@@ -829,10 +845,6 @@
     </section>
 
     <section class="sayfa" id="sayfa-ozet">
-      <div class="secim secim-bosluk" id="gorunum-secim">
-        <input type="radio" name="gorunum" id="gorunum-ay" value="ay" checked><label for="gorunum-ay">Ay</label>
-        <input type="radio" name="gorunum" id="gorunum-yil" value="yil"><label for="gorunum-yil">Yıl</label>
-      </div>
       <!-- Dönem seçici: ‹ Ekim 2026 › ya da ‹ 2026 › -->
       <div class="ay-secici">
         <button type="button" id="donem-geri" aria-label="Önceki dönem">‹</button>
@@ -840,30 +852,25 @@
         <button type="button" id="donem-ileri" aria-label="Sonraki dönem">›</button>
       </div>
 
-      <div class="yan-yana">
-        <div class="kart">
+      <!-- Sürüm 1.14.1: Gelir / Gider ayrı ayrı bakılır (sekmede tutar yazar) -->
+      <div class="ozet-sekmeler" id="ozet-sekmeler">
+        <button type="button" data-ozet-sekme="gelir"><span>Gelir</span><b id="sekme-gelir"></b></button>
+        <button type="button" data-ozet-sekme="gider"><span>Gider</span><b id="sekme-gider"></b></button>
+      </div>
+      <div>
+        <div class="kart" id="kart-ozet-gelir">
           <h2>Gelir <span class="ozet-etiket">gerçekleşen</span></h2>
           <div class="deger gelir-renk" id="ozet-gelir">— ₺</div>
           <div class="karsilastirma" id="ozet-gelir-fark"></div>
           <div class="planlanan" id="ozet-gelir-plan"></div>
         </div>
-        <div class="kart">
+        <div class="kart" id="kart-ozet-gider">
           <h2>Gider <span class="ozet-etiket">gerçekleşen</span></h2>
           <div class="deger gider-renk" id="ozet-gider">— ₺</div>
           <div class="karsilastirma" id="ozet-gider-fark"></div>
           <div class="planlanan" id="ozet-gider-plan"></div>
         </div>
       </div>
-      <div class="kart">
-        <h2>Kalan</h2>
-        <div class="deger vurgu-renk" id="ozet-kalan">— ₺</div>
-        <div class="kart-alt" id="ozet-kalan-alt"></div>
-        <!-- Sürüm 1.9: hesaptan yapılan borç ödemeleri (gider sayılmaz) ve sonrası -->
-        <div class="kart-alt" id="ozet-borc-odeme" hidden></div>
-        <!-- Sürüm 1.9: planlananlarla birlikte (ileri tarihli kayıtlar + bütçeye dahil tekrarlar) -->
-        <div class="planlanan" id="ozet-kalan-plan"></div>
-      </div>
-
       <!-- Ay sonu gider tahmini: sadece içinde bulunulan ay seçiliyken -->
       <div class="kart" id="kart-tahmin" hidden>
         <h2>Ay sonu gider tahmini</h2>
@@ -881,15 +888,14 @@
         <div id="gelir-dagilim"></div>
       </div>
 
-      <!-- Aylık gelir-gider grafiği (o yılın 12 ayı) -->
-      <div class="kart" id="kart-grafik" hidden>
-        <h2 id="grafik-baslik">Aylık gelir ve gider</h2>
-        <div class="lejant">
-          <span><i style="background:var(--gelir)"></i>Gelir</span>
-          <span><i style="background:var(--gider)"></i>Gider</span>
-        </div>
-        <svg class="grafik" id="grafik" role="img" aria-label="Aylık gelir ve gider grafiği"></svg>
-        <div class="grafik-detay" id="grafik-detay"></div>
+      <div class="kart">
+        <h2>Kalan</h2>
+        <div class="deger vurgu-renk" id="ozet-kalan">— ₺</div>
+        <div class="kart-alt" id="ozet-kalan-alt"></div>
+        <!-- Sürüm 1.9: hesaptan yapılan borç ödemeleri (gider sayılmaz) ve sonrası -->
+        <div class="kart-alt" id="ozet-borc-odeme" hidden></div>
+        <!-- Sürüm 1.9: planlananlarla birlikte (ileri tarihli kayıtlar + bütçeye dahil tekrarlar) -->
+        <div class="planlanan" id="ozet-kalan-plan"></div>
       </div>
 
       <!-- Borç ve birikim kısa özeti (her zaman güncel durum) -->
@@ -1420,7 +1426,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.14";
+    const SURUM = "1.14.1";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1913,6 +1919,7 @@
       el("geri-dugmesi").hidden = !alt;   // alt sayfada "‹ Ayarlar" / "‹ Hesaplar"
       if (alt) el("geri-dugmesi").textContent = "‹ " + buton.dataset.baslik;
       el("baslik-ekle").hidden = ad !== "hesaplar";
+      el("gorunum-secim").hidden = ad !== "ozet";
       el("ekle-dugmesi").setAttribute("aria-label",
         ad === "borc" ? "Yeni borç ekle" : ad === "birikim" ? "Yeni birikim ekle" : "Yeni kayıt ekle");
       // Ayarlar ve alt sayfalarında eklenecek bir şey yok: + düğmesi gizlenir
@@ -2713,7 +2720,10 @@
       tahminGoster(sirali, gider);
       dagilimCiz("gider", donem, kalemler);
       dagilimCiz("gelir", donem, kalemler);
-      grafikCiz(sirali);
+      // 1.14.1: Gelir / Gider sekmesi — sadece seçilenin kartları görünür
+      el("sekme-gelir").textContent = tl(gelir);
+      el("sekme-gider").textContent = tl(gider);
+      ozetSekmeUygula();
       hesapOzetiGoster();
       el("ozet-bos").hidden = sirali.length > 0;
     }
@@ -2724,6 +2734,25 @@
     // Böylece kira gibi ayda bir ödenen kalem iki kez sayılmaz, market gibi kalemler de ayın kalanı için eklenir.
     // Son 3 ayda hiç gider yoksa gösterilmez.
     // -----------------------------------------------------
+    // Sürüm 1.14.1: Özet'te Gelir / Gider sekmesi (varsayılan Gider)
+    let ozetSekme = "gider";
+    function ozetSekmeUygula() {
+      el("ozet-sekmeler").querySelectorAll("[data-ozet-sekme]").forEach(b => b.classList.toggle("secili", b.dataset.ozetSekme === ozetSekme));
+      ["gelir", "gider"].forEach(t => {
+        // Tutar sekmede yazdığı için kart sadece karşılaştırma / planlanan varsa görünür
+        const ek = (el("ozet-" + t + "-fark").textContent + el("ozet-" + t + "-plan").textContent).trim();
+        el("kart-ozet-" + t).hidden = ozetSekme !== t || !ek;
+        if (ozetSekme !== t) el("kart-" + t + "-dagilim").hidden = true;
+      });
+      if (ozetSekme !== "gider") el("kart-tahmin").hidden = true;
+    }
+    el("ozet-sekmeler").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-ozet-sekme]");
+      if (!b || b.dataset.ozetSekme === ozetSekme) return;
+      ozetSekme = b.dataset.ozetSekme;
+      ozetGuncelle();
+    });
+
     function tahminGoster(sirali, buAyGider) {
       el("kart-tahmin").hidden = true;
       if (gorunum !== "ay" || seciliAy !== buAy()) return;
@@ -2877,102 +2906,8 @@
       ozetGuncelle();
     }));
 
-    // -----------------------------------------------------
-    // GRAFİK: seçili yılın 12 ayı, her ayda yan yana gelir (yeşil) ve gider (turuncu) çubuğu.
-    // Kütüphanesiz SVG, çevrimdışı da çalışır. Bir aya dokununca altında rakamları yazar.
-    // Ay görünümünde seçili ay baştan seçili gelir.
-    // -----------------------------------------------------
-    const SVG_NS = "http://www.w3.org/2000/svg";
-    const G_YUKSEKLIK = 180, G_SOL = 44, G_SAG = 8, G_UST = 10, G_ALT = 22;
-    const kisaSayi = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 1 });
-    let grafikSecim = null;   // "2026-03" gibi; null ise seçim yok
-
-    function guzelAdim(aralik) {
-      const ham = aralik / 3;
-      const us = Math.pow(10, Math.floor(Math.log10(ham)));
-      const oran = ham / us;
-      return (oran <= 1 ? 1 : oran <= 2 ? 2 : oran <= 2.5 ? 2.5 : oran <= 5 ? 5 : 10) * us;
-    }
-    function svgEleman(ad, ozellikler, ebeveyn) {
-      const e = document.createElementNS(SVG_NS, ad);
-      Object.entries(ozellikler).forEach(([k, v]) => e.setAttribute(k, v));
-      if (ebeveyn) ebeveyn.appendChild(e);
-      return e;
-    }
-    // Üstü yuvarlak çubuk
-    function cubukYolu(x, y, g, taban) {
-      const h = taban - y;
-      const r = Math.min(3, h / 2, g / 2);
-      return "M" + x + "," + taban + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y +
-        "H" + (x + g - r) + "Q" + (x + g) + "," + y + " " + (x + g) + "," + (y + r) + "V" + taban + "Z";
-    }
-
-    function grafikVerisi(sirali) {
-      const yil = seciliAy.slice(0, 4);
-      return Array.from({ length: 12 }, (_, i) => {
-        const ay = yil + "-" + ikiHane(i + 1);
-        const liste = sirali.filter(k => k.tarih.startsWith(ay));
-        return { ay, gelir: toplaTip(liste, "gelir"), gider: toplaTip(liste, "gider"), sayi: liste.length };
-      });
-    }
-
-    function grafikCiz(sirali) {
-      const veri = grafikVerisi(sirali);
-      const veriVar = veri.some(v => v.sayi > 0);
-      el("kart-grafik").hidden = !veriVar;
-      if (!veriVar) return;
-      if (grafikSecim && grafikSecim.slice(0, 4) !== seciliAy.slice(0, 4)) grafikSecim = null;
-      const secili = veri.findIndex(v => v.ay === grafikSecim);
-      el("grafik-baslik").textContent = "Aylık gelir ve gider (" + seciliAy.slice(0, 4) + ")";
-
-      const svg = el("grafik");
-      svg.innerHTML = "";
-      const G = Math.max(260, svg.clientWidth || svg.parentNode.clientWidth - 32 || 320);
-      svg.setAttribute("viewBox", "0 0 " + G + " " + G_YUKSEKLIK);
-      svg.setAttribute("height", G_YUKSEKLIK);
-      const enCok = Math.max(...veri.map(v => Math.max(v.gelir, v.gider)));
-      const adim = guzelAdim(enCok);
-      const ust = Math.ceil(enCok / adim) * adim;
-      const taban = G_YUKSEKLIK - G_ALT;
-      const yOlcek = v => taban - v / ust * (taban - G_UST);
-      const dilim = (G - G_SOL - G_SAG) / 12;
-      const xOrta = i => G_SOL + dilim * (i + 0.5);
-
-      for (let v = 0; v <= ust + adim / 1000; v += adim) {
-        svgEleman("line", { class: "izgara", x1: G_SOL, x2: G - G_SAG, y1: yOlcek(v), y2: yOlcek(v) }, svg);
-        const t = svgEleman("text", { x: G_SOL - 6, y: yOlcek(v) + 4, "text-anchor": "end" }, svg);
-        t.textContent = v >= 1000 ? kisaSayi.format(v / 1000) + " bin" : kisaSayi.format(v);
-      }
-      const g = Math.max(3, Math.min(11, dilim * 0.32));
-      veri.forEach((v, i) => {
-        const t = svgEleman("text", { x: xOrta(i), y: G_YUKSEKLIK - 6, "text-anchor": "middle" }, svg);
-        t.textContent = dilim >= 22 || i % 2 === 0 ? kisaAy(v.ay) : "";
-        const grup = svgEleman("g", secili >= 0 && i !== secili ? { class: "soluk" } : {}, svg);
-        if (v.gelir > 0) svgEleman("path", { d: cubukYolu(xOrta(i) - g - 1, Math.min(yOlcek(v.gelir), taban - 1), g, taban), fill: "var(--gelir)" }, grup);
-        if (v.gider > 0) svgEleman("path", { d: cubukYolu(xOrta(i) + 1, Math.min(yOlcek(v.gider), taban - 1), g, taban), fill: "var(--gider)" }, grup);
-      });
-
-      if (secili >= 0) {
-        const v = veri[secili];
-        el("grafik-detay").innerHTML = "<b>" + ayYazisi(v.ay) + "</b>" + (v.sayi
-          ? "<br><small>Gelir " + tl(v.gelir) + " · Gider " + tl(v.gider) + " · Kalan " + tl(v.gelir - v.gider) + "</small>"
-          : " · kayıt yok");
-      } else {
-        el("grafik-detay").innerHTML = "<small>Ayrıntı için bir aya dokun.</small>";
-      }
-    }
-
-    el("grafik").addEventListener("click", olay => {
-      const svg = olay.currentTarget;
-      const kutu = svg.getBoundingClientRect();
-      const G = svg.viewBox.baseVal.width || kutu.width;
-      const x = (olay.clientX - kutu.left) / kutu.width * G;
-      const i = Math.floor((x - G_SOL) / ((G - G_SOL - G_SAG) / 12));
-      if (i < 0 || i > 11) return;
-      const ay = seciliAy.slice(0, 4) + "-" + ikiHane(i + 1);
-      grafikSecim = grafikSecim === ay ? null : ay;   // aynı aya ikinci dokunuş seçimi kaldırır
-      grafikCiz(siraliKayitlar());
-    });
+    // (1.14.1: "Aylık gelir ve gider" 12 aylık çubuk grafiği kullanıcı isteğiyle kaldırıldı)
+    let grafikSecim = null;
 
     // Ekran döndürülünce grafik yeni genişliğe göre çizilsin
     let boyutZamanlayici = null;
