@@ -136,11 +136,14 @@
       border-bottom: 1px solid var(--bar-cizgi);
     }
     header h1 { font-size: 20px; -webkit-font-smoothing: antialiased; }
-    /* Sürüm 1.15.1: saat/pil şeridinin arkası — sabit, yarı saydam, arkasındaki içerik bulanık görünür */
+    /* Sürüm 1.15.1 / 1.15.2: saat/pil şeridinin arkası — sabit, daha saydam (arkadaki içerik görünsün),
+       bulanık; alt kenarı yumuşakça kaybolur (sert bir çizgi olmasın) */
     #durum-seridi {
-      position: fixed; left: 0; right: 0; top: 0; height: env(safe-area-inset-top); z-index: 15; pointer-events: none;
-      background: color-mix(in srgb, var(--bar) 78%, transparent);
-      -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+      position: fixed; left: 0; right: 0; top: 0; height: calc(env(safe-area-inset-top) + 22px); z-index: 15; pointer-events: none;
+      background: color-mix(in srgb, var(--bar) 45%, transparent);
+      -webkit-backdrop-filter: saturate(180%) blur(8px); backdrop-filter: saturate(180%) blur(8px);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, #000 60%, transparent 100%);
     }
     header small { color: var(--soluk); font-size: 12px; }
 
@@ -1434,7 +1437,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.15.1";
+    const SURUM = "1.15.2";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
