@@ -766,6 +766,13 @@
     /* Ayarlar sayfasındaki bölüm başlıkları (Sürüm 1.4) */
     .ayar-bolum { font-size: 13px; color: var(--soluk); margin: 16px 4px 6px; }
     .ayar-bolum:first-child { margin-top: 2px; }
+    /* Sürüm 1.15.5: Ayarlar'ın en altındaki kırmızı "Bütün verileri sil" */
+    .tehlike-listesi { margin-top: 24px; }
+    .tehlike-ogesi .ayar-ikon { background: var(--hata); }
+    .tehlike-ogesi .ayar-yazi b { color: var(--hata); font-weight: 600; }
+    .tehlike-ogesi.onay { background: var(--hata); }
+    .tehlike-ogesi.onay .ayar-yazi b, .tehlike-ogesi.onay .ayar-yazi small { color: #fff; }
+    .tehlike-ogesi.onay .ayar-ikon { background: rgba(255, 255, 255, .25); }
     .ayar-dipnot { font-size: 13px; color: var(--soluk); line-height: 1.5; margin: 4px 4px 0; }
     .geri-dugmesi {
       background: none;
@@ -1019,6 +1026,13 @@
           <span class="ayar-ikon" style="background:#ea580c">📊</span>
           <span class="ayar-yazi"><b>Grafik türü</b><small id="grafik-ozet"></small></span>
           <span class="ayar-ok">›</span>
+        </button>
+      </div>
+      <!-- Sürüm 1.15.5: bütün verileri sil (ilk dokunuşta uyarı, ikincide sıfırlar) -->
+      <div class="ayar-listesi tehlike-listesi">
+        <button type="button" class="ayar-ogesi tehlike-ogesi" id="verileri-sil">
+          <span class="ayar-ikon">🗑️</span>
+          <span class="ayar-yazi"><b>Bütün verileri sil</b><small id="verileri-sil-alt">Uygulamayı ilk kurulduğu hâline döndürür</small></span>
         </button>
       </div>
       <p class="ayar-dipnot" id="uygulama-bilgi"></p>
@@ -1443,7 +1457,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.15.4";
+    const SURUM = "1.15.5";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1956,6 +1970,32 @@
       b.addEventListener("click", () => sayfaAc(b.dataset.sayfa)));
     el("geri-dugmesi").addEventListener("click", () => sayfaAc(ALT_SAYFALAR[aktifSayfa] ? ALT_SAYFALAR[aktifSayfa].ust : "ozet"));
     el("yedekleme-ac").addEventListener("click", () => sayfaAc("yedekleme"));
+
+    // =====================================================
+    // BÜTÜN VERİLERİ SİL (Sürüm 1.15.5)
+    // İlk dokunuş: uyarı (5 sn içinde ikinci dokunuş beklenir). İkinci dokunuş: "butce" ile başlayan bütün
+    // telefon kayıtları (kayıtlar, hesaplar, borç, birikim, kalemler, tekrarlar, tema, ayarlar, kurlar) silinir ve
+    // sayfa yeniden açılır → uygulama yeni kurulmuş gibi başlar.
+    // =====================================================
+    el("verileri-sil").addEventListener("click", () => {
+      const d = el("verileri-sil"), alt = el("verileri-sil-alt");
+      if (d.dataset.onay === "1") {
+        try {
+          Object.keys(localStorage).filter(a => a.startsWith("butce")).forEach(a => localStorage.removeItem(a));
+        } catch (e) { return bildirimGoster("Veriler silinemedi."); }
+        location.reload();
+        return;
+      }
+      d.dataset.onay = "1";
+      d.classList.add("onay");
+      alt.textContent = "⚠ Kayıtlar, hesaplar, borçlar, birikimler ve ayarlar kalıcı olarak silinir. Silmek için tekrar dokun.";
+      clearTimeout(d.zamanlayici);
+      d.zamanlayici = setTimeout(() => {
+        d.dataset.onay = "";
+        d.classList.remove("onay");
+        alt.textContent = "Uygulamayı ilk kurulduğu hâline döndürür";
+      }, 5000);
+    });
 
     // =====================================================
     // GÖRÜNÜM (Sürüm 1.3.1): Telefonla aynı / Açık / Koyu
