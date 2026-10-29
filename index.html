@@ -119,6 +119,8 @@
     /* "hidden" verilen öğe, kendi display ayarı olsa bile gizli kalsın */
     [hidden] { display: none !important; }
 
+    /* Sürüm 1.15.3: sayfa uçlarında lastik gibi esneme olmasın (alt menü ve üst çubuk yerinde kalsın) */
+    html { overscroll-behavior-y: none; }
     html, body {
       background: var(--arkaplan);
       color: var(--yazi);
@@ -150,6 +152,10 @@
     /* Sayfa içeriği: alttaki sekme çubuğu ve + düğmesi son satırı kapatmasın */
     main {
       padding: 16px 16px calc(env(safe-area-inset-bottom) + 160px);
+      /* Sürüm 1.15.3: her sekme en az ekran boyu kadar uzun olsun. Kısa sayfada (ör. Hesaplar) iPhone sayfayı
+         kaydırılamaz sayıp alt menüyü başka yere koyuyordu; artık her sekme Özet gibi davranır, alt menü oynamaz. */
+      min-height: 100vh;
+      min-height: 100lvh;
     }
 
     /* Sekmelerden sadece aktif olan görünür */
@@ -1437,7 +1443,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.15.2";
+    const SURUM = "1.15.4";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -4292,7 +4298,9 @@
           if (m.miktar > 0) giren += m.miktar; else cikan -= m.miktar;
           return hareketHtml(m, kalemler, kisaTarih(m.tarih) + (m.saat ? " " + m.saat : ""));
         }).join("");
-        return '<div class="ay-baslik"><b>' + ayYazisi(a.ay) + "</b><small>Giren " + tl(giren) + " · Çıkan " + tl(cikan) + "</small></div>" +
+        // 1.15.4: kredi kartında "Ödenen / Harcanan"
+        const ayAlt = h.tur === "kart" ? "Ödenen " + tl(giren) + " · Harcanan " + tl(cikan) : "Giren " + tl(giren) + " · Çıkan " + tl(cikan);
+        return '<div class="ay-baslik"><b>' + ayYazisi(a.ay) + "</b><small>" + ayAlt + "</small></div>" +
           '<div class="liste-kart">' + satirlar + "</div>";
       }).join("");
       return true;
@@ -4306,7 +4314,10 @@
       }
       if (m.tur === "havale") {
         const t = m.t;
-        return hareketSatiri("havale", t.id, "havale", m.giden ? "Havale → " + hesapAdi(t.hedef) : "Havale ← " + hesapAdi(t.kaynak),
+        // 1.15.4: kredi kartına giden havale "Kart ödemesi" yazar
+        const kartaOdeme = (hesapBul(t.hedef) || {}).tur === "kart";
+        const ad = kartaOdeme ? "Kart ödemesi" : "Havale";
+        return hareketSatiri("havale", t.id, "havale", m.giden ? ad + " → " + hesapAdi(t.hedef) : ad + " ← " + hesapAdi(t.kaynak),
           [zaman, t.not], isaret, "havale-renk");
       }
       if (m.tur === "borcodeme") return hareketSatiri("borc", m.borcId, "gider", "Borç ödemesi: " + m.borcAd, [zaman, m.not], isaret, "gider-renk");
@@ -5237,7 +5248,8 @@
       let bakKesim = h.baslangic || 0, odenen = 0, harcama = 0;
       hesapHareketleri().forEach(m => {
         if (m.hesapId !== h.id) return;
-        if (m.tarih <= kesim) bakKesim += m.miktar;
+        // 1.15.4: kesim günü karta giren para (ödeme) o ekstreye karışmaz, ödenen sayılır (ekstre "borç yok" görünmesin)
+        if (m.tarih < kesim || (m.tarih === kesim && m.miktar < 0)) bakKesim += m.miktar;
         else if (m.tarih <= bugunT) { if (m.miktar > 0) odenen += m.miktar; else harcama -= m.miktar; }
       });
       const y = n => Math.round(n * 100) / 100;
