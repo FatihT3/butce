@@ -22,10 +22,18 @@
   <!-- Görünüm (Sürüm 1.3.1): seçilen tema sayfa çizilmeden önce uygulanır, açılışta yanıp sönme olmasın.
        "acik" / "koyu" seçiliyse html'e data-tema yazılır; yoksa telefonun ayarı izlenir. -->
   <script>
+    /* Sürüm 1.16.1: Mod (butceTema_v1: sistem / acik / koyu) ve Renk teması (butceRenk_v1: basit / mavi / pembe / turkuaz /
+       lavanta / grafit) ayrı. html'e: data-tema (sadece elle seçilen acik/koyu), data-mod (etkin mod: acik / koyu),
+       data-renk (basit değilse). uygulamadaki temaUygula() ile aynı mantık. */
     try {
+      var k = document.documentElement;
       var t = JSON.parse(localStorage.getItem("butceTema_v1"));
-      // 1.13: renk temaları da (mavi, pembe, turkuaz, lavanta, grafit)
-      if (["acik", "koyu", "mavi", "pembe", "turkuaz", "lavanta", "grafit"].indexOf(t) !== -1) document.documentElement.dataset.tema = t;
+      var r = JSON.parse(localStorage.getItem("butceRenk_v1"));
+      if (t !== "acik" && t !== "koyu") t = "sistem";
+      var koyu = t === "koyu" || (t === "sistem" && matchMedia("(prefers-color-scheme: dark)").matches);
+      if (t !== "sistem") k.dataset.tema = t;
+      k.dataset.mod = koyu ? "koyu" : "acik";
+      if (["mavi", "pembe", "turkuaz", "lavanta", "grafit"].indexOf(r) !== -1) k.dataset.renk = r;
     } catch (e) {}
   </script>
   <!-- Ana ekran simgesi (Sürüm 1.0) -->
@@ -93,29 +101,39 @@
       --uyari: #fbbf24;
     }
 
-    /* --- Renk temaları (Sürüm 1.13) ---
-       Stil'de Açık / Koyu'nun yanında ayrı tema; telefon karanlık modda olsa da açık görünür.
+    /* --- Renk temaları (Sürüm 1.13; 1.16.1'de Mod'dan ayrıldı) ---
+       Renk, moddan bağımsız seçilir: Açık modda aşağıdaki açık palet, Koyu modda koyu palet (data-mod).
        Bütün vurgular (üst çubuk, alt menü, düğmeler, seçili çipler, tutar kutusu çerçevesi, bugün) temanın renginde;
        gelir yeşil, gider kırmızı/turuncu aynen kalır. */
-    :root[data-tema="mavi"], :root[data-tema="pembe"], :root[data-tema="turkuaz"], :root[data-tema="lavanta"], :root[data-tema="grafit"] {
-      color-scheme: light; --kart: #ffffff; --buton-yazi: #ffffff; --bar-cizgi: transparent;
-    }
+    :root[data-renk][data-mod="acik"] { color-scheme: light; --kart: #ffffff; --buton-yazi: #ffffff; --bar-cizgi: transparent; }
+    :root[data-renk][data-mod="koyu"] { color-scheme: dark; --bar-cizgi: transparent; }
     /* 1.13.1: açılır pencere zemini temanın en açık tonu; içindeki listeler beyaz kalır */
-    :root[data-tema="mavi"] { --panel: #f5f8ff; } :root[data-tema="pembe"] { --panel: #fff6fa; }
-    :root[data-tema="turkuaz"] { --panel: #f3fbfa; } :root[data-tema="lavanta"] { --panel: #f9f6ff; }
-    :root[data-tema="grafit"] { --panel: #f4f5f7; }
-    :root[data-tema="mavi"] { --arkaplan: #eef4ff; --yazi: #0f1d3a; --soluk: #5a6b88; --cizgi: #d6e2f6; --vurgu: #2563eb;
+    :root[data-renk="mavi"][data-mod="acik"] { --panel: #f5f8ff; } :root[data-renk="pembe"][data-mod="acik"] { --panel: #fff6fa; }
+    :root[data-renk="turkuaz"][data-mod="acik"] { --panel: #f3fbfa; } :root[data-renk="lavanta"][data-mod="acik"] { --panel: #f9f6ff; }
+    :root[data-renk="grafit"][data-mod="acik"] { --panel: #f4f5f7; }
+    :root[data-renk="mavi"][data-mod="acik"] { --arkaplan: #eef4ff; --yazi: #0f1d3a; --soluk: #5a6b88; --cizgi: #d6e2f6; --vurgu: #2563eb;
       --bar: #dbe7fd; --bar-yazi: #0f1d3a; --bar-soluk: #5a6b88; --bar-aktif: #1d4ed8; }
-    :root[data-tema="pembe"] { --arkaplan: #fdf0f5; --yazi: #3a1028; --soluk: #8d5f75; --cizgi: #f5d3e2; --vurgu: #db2777;
+    :root[data-renk="pembe"][data-mod="acik"] { --arkaplan: #fdf0f5; --yazi: #3a1028; --soluk: #8d5f75; --cizgi: #f5d3e2; --vurgu: #db2777;
       --bar: #fbd9e7; --bar-yazi: #3a1028; --bar-soluk: #8d5f75; --bar-aktif: #be185d; }
-    :root[data-tema="turkuaz"] { --arkaplan: #ecfaf8; --yazi: #0b2a28; --soluk: #56706d; --cizgi: #cdeee9; --vurgu: #0f766e;
+    :root[data-renk="turkuaz"][data-mod="acik"] { --arkaplan: #ecfaf8; --yazi: #0b2a28; --soluk: #56706d; --cizgi: #cdeee9; --vurgu: #0f766e;
       --bar: #d2f2ee; --bar-yazi: #0b2a28; --bar-soluk: #56706d; --bar-aktif: #0f766e; }
-    :root[data-tema="lavanta"] { --arkaplan: #f5f1ff; --yazi: #22163f; --soluk: #6b6185; --cizgi: #e3dafb; --vurgu: #7c3aed;
+    :root[data-renk="lavanta"][data-mod="acik"] { --arkaplan: #f5f1ff; --yazi: #22163f; --soluk: #6b6185; --cizgi: #e3dafb; --vurgu: #7c3aed;
       --bar: #e7defd; --bar-yazi: #22163f; --bar-soluk: #6b6185; --bar-aktif: #6d28d9; }
-    :root[data-tema="grafit"] { --arkaplan: #eceef1; --yazi: #111827; --soluk: #6b7280; --cizgi: #dcdfe4; --vurgu: #374151;
+    :root[data-renk="grafit"][data-mod="acik"] { --arkaplan: #eceef1; --yazi: #111827; --soluk: #6b7280; --cizgi: #dcdfe4; --vurgu: #374151;
       --bar: #d9dce2; --bar-yazi: #111827; --bar-soluk: #6b7280; --bar-aktif: #111827; }
+    /* 1.16.1: koyu paletler (onaylı konseptler; kart, çubuk ve vurgu temanın renginde, gelir/gider/hata Basit koyudan gelir) */
+    :root[data-renk="mavi"][data-mod="koyu"] { --arkaplan: #0a1224; --kart: #121c33; --yazi: #e6edfb; --soluk: #8fa0c0; --cizgi: #22304f;
+      --vurgu: #5b8def; --buton-yazi: #061230; --bar: #14213f; --bar-yazi: #e6edfb; --bar-soluk: #8fa0c0; --bar-aktif: #7aa7ff; --panel: #0f1830; }
+    :root[data-renk="pembe"][data-mod="koyu"] { --arkaplan: #1a0d15; --kart: #271420; --yazi: #fbe8f1; --soluk: #c299ae; --cizgi: #44243a;
+      --vurgu: #f472b6; --buton-yazi: #2d0a1c; --bar: #301726; --bar-yazi: #fbe8f1; --bar-soluk: #c299ae; --bar-aktif: #f9a8d4; --panel: #20101a; }
+    :root[data-renk="turkuaz"][data-mod="koyu"] { --arkaplan: #071a19; --kart: #0f2a28; --yazi: #e3f7f4; --soluk: #8bb5b0; --cizgi: #1c4642;
+      --vurgu: #2dd4bf; --buton-yazi: #042f2b; --bar: #0f302d; --bar-yazi: #e3f7f4; --bar-soluk: #8bb5b0; --bar-aktif: #5eead4; --panel: #0b2220; }
+    :root[data-renk="lavanta"][data-mod="koyu"] { --arkaplan: #120d22; --kart: #1c1533; --yazi: #efe9ff; --soluk: #a79bc9; --cizgi: #342a55;
+      --vurgu: #a78bfa; --buton-yazi: #1a0b3d; --bar: #231a40; --bar-yazi: #efe9ff; --bar-soluk: #a79bc9; --bar-aktif: #c4b5fd; --panel: #181029; }
+    :root[data-renk="grafit"][data-mod="koyu"] { --arkaplan: #08090b; --kart: #131519; --yazi: #f1f2f4; --soluk: #8b9099; --cizgi: #24272e;
+      --vurgu: #cbd5e1; --buton-yazi: #0b0d10; --bar: #1b1e24; --bar-yazi: #f1f2f4; --bar-soluk: #8b9099; --bar-aktif: #ffffff; --panel: #101216; }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
     /* "hidden" verilen öğe, kendi display ayarı olsa bile gizli kalsın */
     [hidden] { display: none !important; }
 
@@ -541,7 +559,8 @@
     .tl-karsilik { font-size: 13px; color: var(--soluk); margin-top: 2px; }
 
     /* ---------- HESAPLAR (Sürüm 1.6) ---------- */
-    header { position: relative; }
+    /* Sürüm 1.15.6: üst çubuk sabit — sayfa kayarken yerinde kalır (alt menü gibi) */
+    header { position: -webkit-sticky; position: sticky; top: 0; z-index: 7; }
     /* Sürüm 1.14.1: Özet'te üst çubuktaki Ay / Yıl ve Gelir / Gider sekmeleri */
     .ust-secim { position: absolute; right: 16px; bottom: 12px; width: 120px; padding: 2px; }
     .ust-secim label { padding: 5px 0; font-size: 14px; }
@@ -634,7 +653,9 @@
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .ay-secici span { font-size: 17px; font-weight: 600; }
+    .ay-secici span { font-size: 17px; font-weight: 600; text-align: center; }
+    /* Sürüm 1.16: dönem başlığının altındaki tarih aralığı (başlangıç günü 1'den farklıysa) */
+    .ay-secici span small { display: block; font-size: 12px; font-weight: 400; color: var(--soluk); margin-top: 1px; }
     .ay-secici button {
       width: 40px; height: 40px;
       border-radius: 50%;
@@ -761,6 +782,19 @@
     .ayar-yazi b { display: block; font-size: 16px; font-weight: 500; }
     .ayar-yazi small { display: block; font-size: 13px; color: var(--soluk); margin-top: 2px; }
     .ayar-ok { flex: none; color: var(--soluk); font-size: 22px; line-height: 1; }
+    .ayar-deger { flex: none; color: var(--soluk); font-size: 17px; margin-right: -4px; }
+    /* Sürüm 1.16: başlangıç günü seçici (1–31, haftada 7 sütun) */
+    .gun-izgara { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding-bottom: 4px; }
+    .gun-izgara button {
+      height: 48px;
+      border-radius: 10px;
+      border: 1px solid var(--cizgi);
+      background: var(--kart);
+      color: var(--yazi);
+      font-size: 17px;
+    }
+    .gun-izgara button:active { background: var(--arkaplan); }
+    .gun-izgara button.secili { background: var(--vurgu); border-color: var(--vurgu); color: var(--buton-yazi); font-weight: 700; }
     .ayar-tik { flex: none; color: var(--vurgu); font-size: 18px; font-weight: 700; visibility: hidden; }
     .ayar-ogesi.secili .ayar-tik { visibility: visible; }
     /* Ayarlar sayfasındaki bölüm başlıkları (Sürüm 1.4) */
@@ -895,12 +929,6 @@
           <div class="planlanan" id="ozet-gider-plan"></div>
         </div>
       </div>
-      <!-- Ay sonu gider tahmini: sadece içinde bulunulan ay seçiliyken -->
-      <div class="kart" id="kart-tahmin" hidden>
-        <h2>Ay sonu gider tahmini</h2>
-        <div class="deger" id="ozet-tahmin"></div>
-        <div class="kart-alt" id="ozet-tahmin-alt"></div>
-      </div>
 
       <!-- Gruplara göre dağılım (gruba dokununca kalemleri açılır) -->
       <div class="kart" id="kart-gider-dagilim" hidden>
@@ -974,7 +1002,7 @@
       <div class="ayar-listesi">
         <button type="button" class="ayar-ogesi" id="donem-ac">
           <span class="ayar-ikon" style="background:#0891b2">📅</span>
-          <span class="ayar-yazi"><b>Dönem ayrıntıları</b><small>Ayın başlangıç günü, dönem ayarları</small></span>
+          <span class="ayar-yazi"><b>Dönem ayrıntıları</b><small id="donem-ozet">Ayın başlangıç günü, dönem ayarları</small></span>
           <span class="ayar-ok">›</span>
         </button>
         <button type="button" class="ayar-ogesi" id="tekrar-ac">
@@ -994,11 +1022,6 @@
         <button type="button" class="ayar-ogesi" id="gider-kategori">
           <span class="ayar-ikon" style="background:#c2410c">➖</span>
           <span class="ayar-yazi"><b>Gider kategorisi</b><small>Gider grupları ve kalemleri</small></span>
-          <span class="ayar-ok">›</span>
-        </button>
-        <button type="button" class="ayar-ogesi" id="hesap-ac">
-          <span class="ayar-ikon" style="background:#0f766e">🏦</span>
-          <span class="ayar-yazi"><b>Hesap ayarları</b><small>Hesaplar, hesap türleri</small></span>
           <span class="ayar-ok">›</span>
         </button>
         <!-- Sürüm 1.12: yuvarlama yönü + kredi taksit günü -->
@@ -1054,6 +1077,22 @@
         <p class="bilgi">Maaş, kira, faturalar gibi düzenli gelir ve giderleri eklemek için + düğmesine dokun.
           Günü gelince uygulama açıldığında kendiliğinden kaydedilir.</p>
       </div>
+    </section>
+
+    <!-- ===================================================
+         SAYFA — DÖNEM AYRINTILARI (Ayarlar'ın alt sayfası, Sürüm 1.16)
+         Ayın başlangıç günü: Özet bu güne göre dönemlere bölünür (örn. 22'sinden ertesi ayın 21'ine).
+         =================================================== -->
+    <section class="sayfa" id="sayfa-donem">
+      <div class="ayar-listesi">
+        <button type="button" class="ayar-ogesi" id="donem-gun-ac">
+          <span class="ayar-ikon" style="background:#0891b2">📅</span>
+          <span class="ayar-yazi"><b>Ayın başlangıç günü</b><small>Özet'teki dönem bu günden başlar</small></span>
+          <span class="ayar-deger" id="donem-gun-deger"></span>
+          <span class="ayar-ok">›</span>
+        </button>
+      </div>
+      <p class="bilgi" id="donem-aciklama" style="margin:12px 4px 0"></p>
     </section>
 
     <section class="sayfa" id="sayfa-yedekleme">
@@ -1266,52 +1305,68 @@
       <h2 id="gorunum-panel-baslik">Stil</h2>
       <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
     </div>
+    <div class="ayar-bolum">Mod</div>
     <div class="ayar-listesi" id="tema-secenekleri">
-      <button type="button" class="ayar-ogesi" data-tema="sistem">
+      <button type="button" class="ayar-ogesi" data-mod-sec="sistem">
         <span class="ayar-ikon" style="background:#6b7280">📱</span>
         <span class="ayar-yazi"><b>Telefonla aynı</b><small>iPhone açık moddaysa açık, karanlık moddaysa koyu</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="acik">
+      <button type="button" class="ayar-ogesi" data-mod-sec="acik">
         <span class="ayar-ikon" style="background:#f59e0b">☀️</span>
         <span class="ayar-yazi"><b>Açık</b><small>Her zaman aydınlık</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="koyu">
+      <button type="button" class="ayar-ogesi" data-mod-sec="koyu">
         <span class="ayar-ikon" style="background:#1e3a8a">🌙</span>
         <span class="ayar-yazi"><b>Koyu</b><small>Her zaman karanlık</small></span>
         <span class="ayar-tik">✓</span>
       </button>
     </div>
-    <!-- Sürüm 1.13: renk temaları -->
-    <div class="ayar-bolum">Renkli temalar</div>
+    <!-- Sürüm 1.13: renk temaları (1.16.1: moddan bağımsız seçilir, Basit eklendi) -->
+    <div class="ayar-bolum">Renk teması</div>
     <div class="ayar-listesi" id="tema-renkler">
-      <button type="button" class="ayar-ogesi" data-tema="mavi">
+      <button type="button" class="ayar-ogesi" data-renk-sec="basit">
+        <span class="ayar-ikon" style="background:#6b7280">⚪</span>
+        <span class="ayar-yazi"><b>Basit</b><small>Sade görünüm, renk yok</small></span>
+        <span class="ayar-tik">✓</span>
+      </button>
+      <button type="button" class="ayar-ogesi" data-renk-sec="mavi">
         <span class="ayar-ikon" style="background:#2563eb">💙</span>
-        <span class="ayar-yazi"><b>Açık mavi</b><small>Mavi tonlar</small></span>
+        <span class="ayar-yazi"><b>Mavi</b><small>Mavi tonlar</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="pembe">
+      <button type="button" class="ayar-ogesi" data-renk-sec="pembe">
         <span class="ayar-ikon" style="background:#db2777">🩷</span>
-        <span class="ayar-yazi"><b>Açık pembe</b><small>Pembe tonlar</small></span>
+        <span class="ayar-yazi"><b>Pembe</b><small>Pembe tonlar</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="turkuaz">
+      <button type="button" class="ayar-ogesi" data-renk-sec="turkuaz">
         <span class="ayar-ikon" style="background:#0f766e">🩵</span>
-        <span class="ayar-yazi"><b>Açık turkuaz</b><small>Turkuaz tonlar</small></span>
+        <span class="ayar-yazi"><b>Turkuaz</b><small>Turkuaz tonlar</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="lavanta">
+      <button type="button" class="ayar-ogesi" data-renk-sec="lavanta">
         <span class="ayar-ikon" style="background:#7c3aed">💜</span>
         <span class="ayar-yazi"><b>Lavanta</b><small>Mor tonlar</small></span>
         <span class="ayar-tik">✓</span>
       </button>
-      <button type="button" class="ayar-ogesi" data-tema="grafit">
+      <button type="button" class="ayar-ogesi" data-renk-sec="grafit">
         <span class="ayar-ikon" style="background:#374151">🩶</span>
         <span class="ayar-yazi"><b>Grafit</b><small>Sade gri tonlar</small></span>
         <span class="ayar-tik">✓</span>
       </button>
     </div>
+  </div>
+
+  <!-- Sürüm 1.16: Ayın başlangıç günü seçici -->
+  <div class="panel" id="donem-gun-paneli" role="dialog" aria-modal="true" aria-labelledby="donem-gun-baslik">
+    <div class="panel-ust">
+      <h2 id="donem-gun-baslik">Başlangıç tarihi</h2>
+      <button type="button" class="kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <div class="gun-izgara" id="gun-izgara"></div>
+    <p class="bilgi" style="margin:12px 4px 0">29, 30 ve 31'i seçersen, o günü olmayan kısa aylarda ayın son günü kullanılır.</p>
   </div>
 
   <!-- Sürüm 1.14: Grafik türü -->
@@ -1457,7 +1512,7 @@
        =================================================== -->
   <script>
     // --- Sürüm: her güncellemede bu numarayı artıracağız ---
-    const SURUM = "1.15.5";
+    const SURUM = "1.16.2";
     const el = id => document.getElementById(id);
     el("surum").textContent = "Sürüm " + SURUM;
     el("uygulama-bilgi").textContent = "Bütçe · Sürüm " + SURUM +
@@ -1942,7 +1997,8 @@
     const ALT_SAYFALAR = {
       yedekleme: { ust: "ayarlar", baslik: "Yedekle" },
       hesap: { ust: "hesaplar", baslik: "Hesap" },     // başlık açılan hesabın adı olur (Sürüm 1.6)
-      tekrarlar: { ust: "ayarlar", baslik: "Tekrarlayan işlemler" }   // Sürüm 1.8
+      tekrarlar: { ust: "ayarlar", baslik: "Tekrarlayan işlemler" },   // Sürüm 1.8
+      donem: { ust: "ayarlar", baslik: "Dönem ayrıntıları" }           // Sürüm 1.16
     };
 
     function sayfaAc(ad) {
@@ -2003,27 +2059,47 @@
     // "acik" / "koyu": html'e data-tema yazılır, renkler CSS'te ona göre seçilir.
     // Durum çubuğu rengi (theme-color) de seçilen temaya göre ayarlanır.
     // =====================================================
-    const TEMA_ANAHTARI = "butceTema_v1";
-    const TEMA_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu",
-      mavi: "Açık mavi", pembe: "Açık pembe", turkuaz: "Açık turkuaz", lavanta: "Lavanta", grafit: "Grafit" };
-    // 1.13: renk temalarında durum çubuğu üst çubuğun rengi
-    const TEMA_CUBUK = { mavi: "#dbe7fd", pembe: "#fbd9e7", turkuaz: "#d2f2ee", lavanta: "#e7defd", grafit: "#d9dce2" };
+    const TEMA_ANAHTARI = "butceTema_v1";    // mod: sistem | acik | koyu
+    const RENK_ANAHTARI = "butceRenk_v1";    // renk teması: basit | mavi | pembe | turkuaz | lavanta | grafit
+    const MOD_ADLARI = { sistem: "Telefonla aynı", acik: "Açık", koyu: "Koyu" };
+    const RENK_ADLARI = { basit: "Basit", mavi: "Mavi", pembe: "Pembe", turkuaz: "Turkuaz", lavanta: "Lavanta", grafit: "Grafit" };
+    // Koyu hali olan renkler (hepsinin var; ileride koyu hali olmayan renk eklenirse listeden çıkarılır, koyuda Basit görünür)
+    const KOYU_RENKLER = ["mavi", "pembe", "turkuaz", "lavanta", "grafit"];
+    // Durum çubuğu (theme-color) = üst çubuğun rengi
+    const CUBUK_ACIK = { mavi: "#dbe7fd", pembe: "#fbd9e7", turkuaz: "#d2f2ee", lavanta: "#e7defd", grafit: "#d9dce2" };
+    const CUBUK_KOYU = { mavi: "#14213f", pembe: "#301726", turkuaz: "#0f302d", lavanta: "#231a40", grafit: "#1b1e24" };
 
-    function temaOku() {
+    function modOku() {
       const t = depoOku(TEMA_ANAHTARI, "sistem");
-      return TEMA_ADLARI[t] ? t : "sistem";
+      return MOD_ADLARI[t] ? t : "sistem";
     }
-    function temaUygula(tema) {
+    function renkOku() {
+      const r = depoOku(RENK_ANAHTARI, "basit");
+      return RENK_ADLARI[r] ? r : "basit";
+    }
+    // Etkin mod: "sistem" ise telefonun ayarı
+    const etkinMod = mod => mod === "koyu" || (mod === "sistem" && matchMedia("(prefers-color-scheme: dark)").matches) ? "koyu" : "acik";
+
+    function temaUygula() {
       const kok = document.documentElement;
-      if (tema === "sistem") delete kok.dataset.tema; else kok.dataset.tema = tema;
+      const mod = modOku(), renk = renkOku(), etkin = etkinMod(mod);
+      const renkGecerli = renk !== "basit" && (etkin === "acik" || KOYU_RENKLER.includes(renk));
+      if (mod === "sistem") delete kok.dataset.tema; else kok.dataset.tema = mod;
+      kok.dataset.mod = etkin;
+      if (renkGecerli) kok.dataset.renk = renk; else delete kok.dataset.renk;
       // Durum çubuğu: sistemde iki etiket telefona göre; elle seçilende ikisi de aynı renk
-      const acikRenk = "#ffffff", koyuRenk = "#161b26";
-      el("renk-acik").content = TEMA_CUBUK[tema] || (tema === "koyu" ? koyuRenk : acikRenk);
-      el("renk-koyu").content = TEMA_CUBUK[tema] || (tema === "acik" ? acikRenk : koyuRenk);
-      el("gorunum-ozet").textContent = TEMA_ADLARI[tema];
-      el("gorunum-paneli").querySelectorAll("[data-tema]").forEach(b =>
-        b.classList.toggle("secili", b.dataset.tema === tema));
+      const acikRenk = renk !== "basit" ? CUBUK_ACIK[renk] : "#ffffff";
+      const koyuRenk = KOYU_RENKLER.includes(renk) ? CUBUK_KOYU[renk] : "#161b26";
+      el("renk-acik").content = mod === "koyu" ? koyuRenk : acikRenk;
+      el("renk-koyu").content = mod === "acik" ? acikRenk : koyuRenk;
+      el("gorunum-ozet").textContent = MOD_ADLARI[mod] + " · " + RENK_ADLARI[renk];
+      el("gorunum-paneli").querySelectorAll("[data-mod-sec]").forEach(b => b.classList.toggle("secili", b.dataset.modSec === mod));
+      el("gorunum-paneli").querySelectorAll("[data-renk-sec]").forEach(b => b.classList.toggle("secili", b.dataset.renkSec === renk));
     }
+    // "Telefonla aynı" iken telefon açık/koyu değişirse uygulama da değişir
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (modOku() === "sistem") { temaUygula(); ozetGuncelle(); }
+    });
     el("gorunum-ac").addEventListener("click", () => panelAc("gorunum-paneli"));
 
     // --- Hesap ve borç ayarları (Sürüm 1.12) ---
@@ -2060,13 +2136,14 @@
       bildirimGoster(b.dataset.taksit === "otomatik" ? "✓ Taksitler otomatik ödenecek" + (n ? " · " + n + " taksit ödendi" : "") : "✓ Taksitler hatırlatılacak");
     });
     el("gorunum-paneli").addEventListener("click", olay => {
-      const b = olay.target.closest("[data-tema]");
-      if (!b) return;
-      depoYaz(TEMA_ANAHTARI, b.dataset.tema);
-      temaUygula(b.dataset.tema);
+      const m = olay.target.closest("[data-mod-sec]"), r = olay.target.closest("[data-renk-sec]");
+      if (m) depoYaz(TEMA_ANAHTARI, m.dataset.modSec);
+      else if (r) depoYaz(RENK_ANAHTARI, r.dataset.renkSec);
+      else return;
+      temaUygula();
       ozetGuncelle();   // 1.14: grafik renkleri açık/koyu zemine göre
     });
-    temaUygula(temaOku());
+    temaUygula();
 
     // + düğmesi: açık sekmeye göre
     el("ekle-dugmesi").addEventListener("click", () => {
@@ -2586,10 +2663,8 @@
     el("gelir-kategori").addEventListener("click", () => kalemPaneliAc("gelir"));
     el("gider-kategori").addEventListener("click", () => kalemPaneliAc("gider"));
     // İçeriği henüz yazılmamış satırlar (Sürüm 1.4): şimdilik sadece bilgi gösterir
-    el("hesap-ac").addEventListener("click", () => sayfaAc("hesaplar"));   // Sürüm 1.6
     el("tekrar-ac").addEventListener("click", () => sayfaAc("tekrarlar"));   // Sürüm 1.8
-    ["donem-ac"].forEach(id =>
-      el(id).addEventListener("click", () => bildirimGoster("Bu bölüm yakında eklenecek")));
+    el("donem-ac").addEventListener("click", () => { donemSayfasiCiz(); sayfaAc("donem"); });   // Sürüm 1.16
 
     // Kalem ayarı işlemi: anahtar ve işlem adına göre
     function kalemAyarIslemi(anahtar, islem, dugme) {
@@ -2685,35 +2760,76 @@
     // =====================================================
     // ÖZET (Sürüm 0.5) + GRAFİK (Sürüm 0.6)
     // Ay / Yıl görünümü, ‹ dönem › seçici, Gelir-Gider-Kalan, önceki döneme göre karşılaştırma,
-    // ay sonu gider tahmini, gruplara göre dağılım (gruba dokununca kalemler), aylık grafik.
+    // gruplara göre dağılım (gruba dokununca kalemler), aylık grafik.
     // =====================================================
+    // =====================================================
+    // DÖNEM (Sürüm 1.16): ayın başlangıç günü. Varsayılan 1 (takvim ayı). Örn. 22 → dönem 22 Eki – 21 Kas ve
+    // "Ekim" adını alır (başlangıç ayı). Seçilen gün kısa ayda yoksa ayın son günü kullanılır; her dönem bir
+    // sonrakinin başlangıcından bir gün önce biter (boşluk ve çakışma olmaz). Sadece Özet dönemleri kullanır;
+    // Takvim gerçek ay olarak kalır. Kayıtlarda sadece tarih saklandığı için gün değişince geçmiş de yeniden gruplanır.
+    // =====================================================
+    const DONEM_GUN_ANAHTARI = "butceDonemGun_v1";
+    function donemGunu() {
+      const g = Math.floor(+depoOku(DONEM_GUN_ANAHTARI, 1));
+      return g >= 1 && g <= 31 ? g : 1;
+    }
+    const ayGunSayisi = ay => new Date(+ay.slice(0, 4), +ay.slice(5, 7), 0).getDate();
+    // "2026-10" dönemi hangi tarihte başlar / biter
+    function donemBaslangici(ay, gun) {
+      return ay + "-" + ikiHane(Math.min(gun || donemGunu(), ayGunSayisi(ay)));
+    }
+    function donemBitisi(ay, gun) {
+      const t = donemBaslangici(ayKaydir(ay, 1), gun);
+      const d = new Date(+t.slice(0, 4), +t.slice(5, 7) - 1, +t.slice(8, 10) - 1);
+      return d.getFullYear() + "-" + ikiHane(d.getMonth() + 1) + "-" + ikiHane(d.getDate());
+    }
+    // Bir tarihin ait olduğu dönem ("2026-10" = başlangıç ayı) ve bugünün dönemi
+    function donemAyi(tarih) {
+      const ay = tarih.slice(0, 7);
+      return tarih < donemBaslangici(ay) ? ayKaydir(ay, -1) : ay;
+    }
+    const buDonemAyi = () => donemAyi(bugun());
+
     let gorunum = "ay";      // "ay" ya da "yil"
-    let seciliAy = buAy();   // "2026-10" (yıl görünümünde yıl buradan alınır)
+    let seciliAy = buDonemAyi();   // "2026-10" = dönemin başlangıç ayı (yıl görünümünde yıl buradan alınır)
     const acikDagilim = new Set();   // açılmış gruplar: "gider:mutfak"
 
     // Seçili dönem ve karşılaştırılacak önceki dönem.
     // Yıl görünümünde bu yıl seçiliyse geçen yılın AYNI DÖNEMİ (Ocak–bu ay) ile karşılaştırılır.
     function donemBilgisi() {
+      const ozelGun = donemGunu() !== 1;   // 1 ise takvim ayı: tarih aralığı yazılmaz
       if (gorunum === "ay") {
         const onceki = ayKaydir(seciliAy, -1);
+        const bas = donemBaslangici(seciliAy), son = donemBitisi(seciliAy);
+        const oBas = donemBaslangici(onceki), oSon = donemBitisi(onceki);
         return {
           ad: ayYazisi(seciliAy),
-          icinde: k => k.tarih.startsWith(seciliAy),
-          oncekiIcinde: k => k.tarih.startsWith(onceki),
+          aralik: ozelGun ? kisaTarih(bas) + " – " + kisaTarih(son) : "",
+          bas, son,
+          icinde: k => k.tarih >= bas && k.tarih <= son,
+          oncekiIcinde: k => k.tarih >= oBas && k.tarih <= oSon,
           karsilastirmaAdi: "Geçen aya göre"
         };
       }
+      // Yıl = o yıl başlayan 12 dönem (örn. 22 Oca 2026 – 21 Oca 2027)
       const yil = seciliAy.slice(0, 4);
       const oncekiYil = String(+yil - 1);
-      const buYilMi = yil === buAy().slice(0, 4);
-      const sonAy = buAy().slice(5, 7);
+      const buYilMi = yil === buDonemAyi().slice(0, 4);
+      const sonAy = buDonemAyi().slice(5, 7);
+      const bas = donemBaslangici(yil + "-01"), son = donemBitisi(yil + "-12");
+      const oBas = donemBaslangici(oncekiYil + "-01");
+      const oSon = donemBitisi(oncekiYil + "-" + (buYilMi ? sonAy : "12"));
       return {
         ad: yil,
-        icinde: k => k.tarih.startsWith(yil),
-        oncekiIcinde: k => k.tarih.startsWith(oncekiYil) && (!buYilMi || k.tarih.slice(5, 7) <= sonAy),
+        aralik: ozelGun ? uzunKisaTarih(bas) + " – " + uzunKisaTarih(son) : "",
+        bas, son,
+        icinde: k => k.tarih >= bas && k.tarih <= son,
+        oncekiIcinde: k => k.tarih >= oBas && k.tarih <= oSon,
         karsilastirmaAdi: buYilMi ? "Geçen yılın aynı dönemine göre" : "Geçen yıla göre"
       };
     }
+    // "2026-10-22" → "22 Eki 2026"
+    const uzunKisaTarih = t => kisaTarih(t) + " " + t.slice(0, 4);
 
     // "Geçen aya göre ▲ %12 (+150,00 ₺)". Önceki dönemde kayıt yoksa boş.
     function farkYazisi(simdi, onceki, d) {
@@ -2728,7 +2844,7 @@
     const toplaTip = (liste, tip) => liste.filter(k => k.tip === tip).reduce((t, k) => t + (k.tutar || 0), 0);
 
     // Özet (Sürüm 1.9): GERÇEKLEŞEN = bugüne kadarki kayıtlar; PLANLANAN = bugünden sonraki kayıtlar +
-    // "bütçeye dahil" tekrarların gelecek tarihleri (atlananlar hariç). Dağılım, grafik ve tahmin gerçekleşenle çizilir.
+    // "bütçeye dahil" tekrarların gelecek tarihleri (atlananlar hariç). Dağılım ve grafik gerçekleşenle çizilir.
     // İleri ok: bu aydan sonra 12 aya (yılda: gelecek yıla) kadar gidilebilir.
     function ozetGuncelle() {
       const bugunT = bugun();
@@ -2740,21 +2856,20 @@
       const donem = sirali.filter(d.icinde);
       const onceki = sirali.filter(d.oncekiIcinde);
       // Dönemin planlananları
-      const donemSon = gorunum === "ay" ? seciliAy + "-31" : seciliAy.slice(0, 4) + "-12-31";
-      const donemBas = gorunum === "ay" ? seciliAy + "-01" : seciliAy.slice(0, 4) + "-01-01";
+      const donemSon = d.son, donemBas = d.bas;
       const planli = ilerideki.filter(d.icinde).map(k => ({ tip: k.tip, tutar: k.tutar }))
         .concat(planliTekrarlar(donemBas, donemSon).filter(p => p.kesin && !p.atlandi).map(p => ({ tip: p.t.tip, tutar: p.t.tutar })));
       const planGelir = planli.filter(x => x.tip === "gelir").reduce((t, x) => t + x.tutar, 0);
       const planGider = planli.filter(x => x.tip === "gider").reduce((t, x) => t + x.tutar, 0);
 
       // Dönem başlığı ve oklar (ileri en fazla bu ay/yıl, geri en eski kayda kadar)
-      el("donem-adi").textContent = d.ad;
-      const enEskiAy = tumu.length ? tumu[0].tarih.slice(0, 7) : buAy();
+      el("donem-adi").innerHTML = d.ad + (d.aralik ? "<small>" + d.aralik + "</small>" : "");
+      const enEskiAy = tumu.length ? donemAyi(tumu[0].tarih) : buDonemAyi();
       if (gorunum === "ay") {
-        el("donem-ileri").disabled = seciliAy >= ayKaydir(buAy(), 12);
+        el("donem-ileri").disabled = seciliAy >= ayKaydir(buDonemAyi(), 12);
         el("donem-geri").disabled = seciliAy <= enEskiAy;
       } else {
-        el("donem-ileri").disabled = seciliAy.slice(0, 4) > buAy().slice(0, 4);
+        el("donem-ileri").disabled = seciliAy.slice(0, 4) > buDonemAyi().slice(0, 4);
         el("donem-geri").disabled = seciliAy.slice(0, 4) <= enEskiAy.slice(0, 4);
       }
 
@@ -2785,7 +2900,6 @@
         ? "Borç ödemeleri: −" + tl(borcOdenen) + " · Ödemelerden sonra elde kalan: " + tl(Math.round((gelir - gider - borcOdenen) * 100) / 100) : "",
         taksitPlan ? "Ödenecek kredi taksitleri: −" + tl(taksitPlan) : ""].filter(Boolean).join("\n");
 
-      tahminGoster(sirali, gider);
       dagilimCiz("gider", donem, kalemler);
       dagilimCiz("gelir", donem, kalemler);
       // 1.14.1: Gelir / Gider sekmesi — sadece seçilenin kartları görünür
@@ -2796,12 +2910,6 @@
       el("ozet-bos").hidden = sirali.length > 0;
     }
 
-    // -----------------------------------------------------
-    // AY SONU GİDER TAHMİNİ — sadece içinde bulunulan ay seçiliyken.
-    // Her kalem için: bu ay şimdiye kadar harcanan ile son 3 tam ayın aylık ortalamasından BÜYÜK olanı.
-    // Böylece kira gibi ayda bir ödenen kalem iki kez sayılmaz, market gibi kalemler de ayın kalanı için eklenir.
-    // Son 3 ayda hiç gider yoksa gösterilmez.
-    // -----------------------------------------------------
     // Sürüm 1.14.1: Özet'te Gelir / Gider sekmesi (varsayılan Gider)
     let ozetSekme = "gider";
     function ozetSekmeUygula() {
@@ -2812,7 +2920,6 @@
         el("kart-ozet-" + t).hidden = ozetSekme !== t || !ek;
         if (ozetSekme !== t) el("kart-" + t + "-dagilim").hidden = true;
       });
-      if (ozetSekme !== "gider") el("kart-tahmin").hidden = true;
     }
     el("ozet-sekmeler").addEventListener("click", olay => {
       const b = olay.target.closest("[data-ozet-sekme]");
@@ -2820,30 +2927,6 @@
       ozetSekme = b.dataset.ozetSekme;
       ozetGuncelle();
     });
-
-    function tahminGoster(sirali, buAyGider) {
-      el("kart-tahmin").hidden = true;
-      if (gorunum !== "ay" || seciliAy !== buAy()) return;
-      const giderler = sirali.filter(k => k.tip === "gider");
-      const ucAy = [1, 2, 3].map(i => ayKaydir(seciliAy, -i));
-      const gecmis = giderler.filter(k => ucAy.includes(k.tarih.slice(0, 7)));
-      if (!gecmis.length) return;
-      // Kayıt tutulan ilk aydan önceki aylar ortalamaya katılmaz
-      const enEski = giderler[0].tarih.slice(0, 7);
-      const aySayisi = ucAy.filter(a => a >= enEski).length || 1;
-
-      const ortalama = {}, buAyKalem = {};
-      gecmis.forEach(k => { ortalama[k.kalemId] = (ortalama[k.kalemId] || 0) + k.tutar / aySayisi; });
-      giderler.filter(k => k.tarih.startsWith(seciliAy)).forEach(k => { buAyKalem[k.kalemId] = (buAyKalem[k.kalemId] || 0) + k.tutar; });
-      const kalemlerin = new Set([...Object.keys(ortalama), ...Object.keys(buAyKalem)]);
-      let tahmin = 0;
-      kalemlerin.forEach(id => { tahmin += Math.max(ortalama[id] || 0, buAyKalem[id] || 0); });
-
-      el("kart-tahmin").hidden = false;
-      el("ozet-tahmin").textContent = "≈ " + tamSayi.format(Math.round(tahmin / 10) * 10) + " ₺";
-      el("ozet-tahmin-alt").textContent = "Şu ana kadar " + tl(buAyGider) + ". Son " +
-        (aySayisi === 1 ? "ayın" : aySayisi + " ayın") + " kalem ortalamalarına göre.";
-    }
 
     // -----------------------------------------------------
     // GRUPLARA GÖRE DAĞILIM: her grup bir satır (tutar, yüzde, çubuk); dokununca kalemleri açılır
@@ -2901,8 +2984,7 @@
     const GRUP_RENK_ACIK = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#6250d6", "#e34948"];
     const GRUP_RENK_KOYU = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300", "#9085e9", "#e66767"];
     function koyuMu() {
-      const t = document.documentElement.dataset.tema;
-      return t === "koyu" || (!t && matchMedia("(prefers-color-scheme: dark)").matches);
+      return document.documentElement.dataset.mod === "koyu";   // 1.16.1: etkin mod (temaUygula yazar)
     }
     function grupRengi(tip, grupId) {
       // 1.15: gelirde satırlar kalem; renk kalemin gelir listesindeki sırasına göre
@@ -2992,11 +3074,41 @@
       boyutZamanlayici = setTimeout(() => { if (aktifSayfa === "ozet") ozetGuncelle(); }, 150);
     });
 
+    // --- Dönem ayrıntıları sayfası (Sürüm 1.16) ---
+    function donemSayfasiCiz() {
+      const g = donemGunu();
+      const ay = buDonemAyi();
+      el("donem-gun-deger").textContent = g;
+      el("donem-ozet").textContent = g === 1 ? "Ayın başlangıç günü: 1 (takvim ayı)" : "Ayın başlangıç günü: " + g;
+      el("donem-aciklama").textContent = "Şu anki dönem: " + kisaTarih(donemBaslangici(ay)) + " – " + kisaTarih(donemBitisi(ay)) +
+        ". Özet bu dönemlere göre hesaplanır, Takvim gerçek ay olarak kalır." +
+        (g > 28 ? " Kısa aylarda ayın son günü kullanılır." : "");
+    }
+    donemSayfasiCiz();
+    el("donem-gun-ac").addEventListener("click", () => {
+      const g = donemGunu();
+      el("gun-izgara").innerHTML = Array.from({ length: 31 }, (_, i) =>
+        '<button type="button" data-gun="' + (i + 1) + '"' + (i + 1 === g ? ' class="secili"' : "") + ">" + (i + 1) + "</button>").join("");
+      panelAc("donem-gun-paneli");
+    });
+    el("gun-izgara").addEventListener("click", olay => {
+      const b = olay.target.closest("[data-gun]");
+      if (!b) return;
+      const g = +b.dataset.gun;
+      depoYaz(DONEM_GUN_ANAHTARI, g);
+      seciliAy = buDonemAyi();       // seçimden sonra Özet bugünün dönemiyle açılır
+      grafikSecim = gorunum === "ay" ? seciliAy : null;
+      panelKapat();
+      donemSayfasiCiz();
+      hepsiniGuncelle();
+      bildirimGoster("✓ Dönem ayın " + g + ". gününde başlıyor");
+    });
+
     // Dönem okları: ay görünümünde bir ay, yıl görünümünde bir yıl kayar
     function donemKaydir(fark) {
       seciliAy = gorunum === "ay" ? ayKaydir(seciliAy, fark) : ayKaydir(seciliAy, fark * 12);
       // Sürüm 1.9: planlananlar için 12 ay ileriye kadar (yılda: gelecek yılın aynı ayı)
-      const enIleri = ayKaydir(buAy(), 12);
+      const enIleri = ayKaydir(buDonemAyi(), 12);
       if (seciliAy > enIleri) seciliAy = enIleri;
       grafikSecim = gorunum === "ay" ? seciliAy : null;
       ozetGuncelle();
@@ -4164,8 +4276,12 @@
               }
               return;
             }
+            // Sürüm 1.15.7: kredi kartının kesim günü, son ödeme günü ve asgari oranı da geri yüklenir
+            const gunMu = g => Number.isInteger(g) && g >= 1 && g <= 31;
             bs.hesaplar.push({ id: h.id, ad: metin(h.ad, 30), baslangic: typeof h.baslangic === "number" ? yuvarla(h.baslangic) : 0,
-              ...(typeof h.limit === "number" && h.limit > 0 ? { limit: yuvarla(h.limit) } : {}) });
+              ...(typeof h.limit === "number" && h.limit > 0 ? { limit: yuvarla(h.limit) } : {}),
+              ...(gunMu(h.kesimGunu) && gunMu(h.sonOdemeGunu) ? { kesimGunu: h.kesimGunu, sonOdemeGunu: h.sonOdemeGunu } : {}),
+              ...(typeof h.asgariOran === "number" && h.asgariOran > 0 && h.asgariOran <= 100 ? { asgariOran: h.asgariOran } : {}) });
             varOlan.add(h.id); sayac.hesap++;
           });
         });
@@ -5361,12 +5477,13 @@
         l.push('<button type="button" class="uyari-bandi" data-ekstre-ode="' + guvenli(h.id) + '" data-tutar="' + e.kalan + '">' +
           (e.gecti ? "⚠ " : "💳 ") + guvenli(h.ad + " ekstresi " + tl(e.kalan) + " · son ödeme " + sonOdemeYazisi(e)) + "<span>Öde ›</span></button>");
       });
-      // Yedek (2 haftadan eski ya da hiç yok; veri varsa). "Sonra" 3 gün erteler.
+      // Yedek (Sürüm 1.15.7): SADECE PAZARTESİ, son 7 günde yedek alınmadıysa (veri varsa). "Sonra" o gün için gizler.
       const son = depoOku(SON_YEDEK_ANAHTARI, null);
       const veriVar = kayitlariOku().length || borclariOku().length || birikimleriOku().length;
       const ertele = depoOku(YEDEK_ERTELE_ANAHTARI, "");
       const gun = son ? Math.floor((Date.now() - new Date(son)) / 86400000) : null;
-      if (veriVar && (gun === null || gun >= 14) && !(ertele && ertele > bugunT)) {
+      const pazartesi = tarihOku(bugunT).getDay() === 1;
+      if (veriVar && pazartesi && (gun === null || gun >= 7) && !(ertele && ertele > bugunT)) {
         l.push('<div class="uyari-bandi yedek"><span class="metin" data-u-yedek>💾 ' + (gun === null ? "Henüz yedek alınmadı" : gun + " gündür yedek alınmadı") +
           '</span><button type="button" class="git" data-u-yedek>Yedek al ›</button><button type="button" class="sonra" data-u-sonra>Sonra</button></div>');
       }
@@ -5379,7 +5496,7 @@
       if (e) return kartOdemesiAc(e.dataset.ekstreOde, +e.dataset.tutar);
       if (olay.target.closest("[data-u-yedek]")) return sayfaAc("yedekleme");
       if (olay.target.closest("[data-u-sonra]")) {
-        const d = tarihOku(bugun()); d.setDate(d.getDate() + 3);
+        const d = tarihOku(bugun()); d.setDate(d.getDate() + 1);   // 1.15.7: sadece bugün gizlenir, sonraki pazartesi yine çıkar
         depoYaz(YEDEK_ERTELE_ANAHTARI, tarihYaz(d));
         takvimUyarilariCiz();
       }
